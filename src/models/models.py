@@ -21,13 +21,29 @@ class Group:
         return dataclasses.asdict(self)
 
 @dataclasses.dataclass
-class Lesson:
+class LessonWEB:
     discipline: str
     kind_of_work: str
     auditorium: str
-    date: datetime
-    beginLesson: datetime
-    endLesson: datetime
+    date: str
+    beginLesson: str
+    endLesson: str
+    lecturer_title: str
+    lecturer_rank: str
+    sub_group: int
+    group_id: int
+
+    def json(self):
+        return dataclasses.asdict(self)
+
+@dataclasses.dataclass
+class LessonDB:
+    discipline: str
+    kind_of_work: str
+    auditorium: str
+    date: str
+    beginLesson: str
+    endLesson: str
     lecturer_title: str
     lecturer_rank: str
     sub_group: int
