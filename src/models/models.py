@@ -3,16 +3,22 @@ from datetime import datetime
 
 @dataclasses.dataclass
 class User:
-    user_id: int
-    group_id: int
-    group_name: str
-    sub_group: int
-    is_premium: bool
+    id: int
+    group_id: int = 0
+    group_name: str = ""
+    sub_group: int = 0
+    is_premium: bool = False
+
+    def json(self):
+        return dataclasses.asdict(self)
 
 @dataclasses.dataclass
 class Group:
     group_id: int
     group_name: str
+
+    def json(self):
+        return dataclasses.asdict(self)
 
 @dataclasses.dataclass
 class Lesson:
@@ -27,3 +33,6 @@ class Lesson:
     sub_group: int
     group_id: int
     id: int = None
+
+    def json(self):
+        return dataclasses.asdict(self)
