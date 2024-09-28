@@ -288,6 +288,19 @@ class DB:
         self.cur.execute(query, params)
         return self.cur.fetchone()[0]
 
+    def deleteGroup(
+        self,
+        id: int
+        ):
+        query = """
+            DELETE FROM groups
+            WHERE id = %s
+        """
+        params = (id, )
+
+        self.cur.execute(query, params)
+        self._commit()
+
     # ========================
     # Schedule
 

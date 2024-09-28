@@ -130,7 +130,7 @@ async def getGroup(request: Request, id: int):
 
     return db.getGroup(id)
 
-@app.get("/group/all")
+@app.get("/groups")
 async def getGroups(request: Request):
     return db.getGroups()
 
@@ -158,6 +158,21 @@ async def getUserCountByGroup(request: Request, id: int):
         )
 
     return db.getUserCountByGroup(id)
+
+@app.delete('/group')
+async def deleteGroup(request: Request, id: int):
+    if not db.isGroupInDB(id):
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={"message": "Group doesn't exist"}
+        )
+
+    db.deleteGroup(id)
+
+    return JSONResponse(
+        content={"message": "Group deleted"},
+        status_code=status.HTTP_200_OK
+    )
 
 # ========================
 # Schedule
