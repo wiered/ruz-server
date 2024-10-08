@@ -1,4 +1,13 @@
-﻿import dataclasses
+﻿"""This is models module.
+
+This module contains models.
+"""
+
+__all__ = ["User", "Group", "LessonWEB", "LessonDB"]
+__version__ = "1.0"
+__author__ = "Wiered"
+
+import dataclasses
 from datetime import datetime
 
 @dataclasses.dataclass

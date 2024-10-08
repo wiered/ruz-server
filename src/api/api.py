@@ -1,4 +1,13 @@
-﻿from datetime import datetime
+﻿"""This is api module.
+
+This module contains web api.
+"""
+
+__all__ = ["app"]
+__version__ = "1.0"
+__author__ = "Wiered"
+
+from datetime import datetime
 import os
 from typing import List
 

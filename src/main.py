@@ -1,4 +1,16 @@
+"""This is main file.
+
+This file contains main function.
+"""
+
+__version__ = "1.0"
+__author__ = "Wiered"
+
 import os
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 import uvicorn
 

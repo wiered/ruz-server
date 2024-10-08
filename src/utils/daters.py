@@ -1,4 +1,17 @@
-﻿from datetime import datetime, timedelta, date, time
+﻿"""This is utils module.
+
+This module contains utility functions.
+"""
+
+__all__ = [
+    "getStartEndOfDay",
+    "getStartAndEndOfWeek",
+    "getPreviousAndNextMonthBounds"
+    ]
+__version__ = "1.0"
+__author__ = "Wiered"
+
+from datetime import datetime, timedelta, date, time
 
 def getStartEndOfDay(target_date: date) -> tuple:
     """

@@ -1,4 +1,13 @@
-﻿from datetime import datetime
+﻿"""This is db module.
+
+This module handles dealing with postgre database.
+"""
+
+__all__ = ["DB"]
+__version__ = "1.0"
+__author__ = "Wiered"
+
+from datetime import datetime
 from typing import List
 
 import psycopg2
@@ -78,32 +87,33 @@ class DB:
     # ========================
     # Exists
     def isUserKnown(
-        self,
-        user_id: int
-        ) -> bool:
+            self,
+            user_id: int
+    ) -> bool:
         query = "SELECT COUNT(id) FROM users WHERE id = %s"
-        params = (user_id, )
+        params = (user_id,)
 
         self.cur.execute(query, params)
 
         return self.cur.fetchone()[0] == 1
 
     def isGroupInDB(
-        self,
-        group_id: int
-        ) -> bool:
+            self,
+            group_id: int
+    ) -> bool:
         query = "SELECT COUNT(id) FROM groups WHERE id = %s"
-        params = (group_id, )
+        params = (group_id,)
 
         self.cur.execute(query, params)
 
         return self.cur.fetchone()[0] == 1
 
     def isDateRangeInDB(
-        self,        group_id: str,
-        start: str,
-        end: str
-        ) -> bool:
+            self,
+            group_id: str,
+            start: str,
+            end: str
+    ) -> bool:
         # If the group is not cached, the day is not cached
         # If group is not chached, the day is not cached
         if not self.isGroupInDB(group_id):
@@ -131,17 +141,17 @@ class DB:
         return True
 
     def isDayInDB(
-        self,
-        group_id: int,
-        date: str
-        ) -> bool:
+            self,
+            group_id: int,
+            date: str
+    ) -> bool:
         return self.isDateRangeInDB(group_id, date, date)
 
     def isWeekInDB(
-        self,
-        group_id: int,
-        date: str
-        ):
+            self,
+            group_id: int,
+            date: str
+    ):
         start, end = utils.getStartAndEndOfWeek(datetime.strptime(date, "%Y-%m-%d"))
         return self.isDateRangeInDB(group_id, start, end)
 
@@ -150,28 +160,28 @@ class DB:
     # ========================
     # User
     def getUser(
-        self,
-        user_id: int
-        ) -> models.User:
+            self,
+            user_id: int
+    ) -> models.User:
         query = """
             SELECT users.id, users.group_id, groups.name, users.sub_group, users.is_premium FROM users
             INNER JOIN groups ON groups.id = users.group_id
             WHERE users.id = %s
         """
-        params = (user_id, )
+        params = (user_id,)
 
         self.cur.execute(query, params)
 
         return models.User(*self.cur.fetchone())
 
     def addUser(
-        self,
-        user_id: int,
-        group_id: int,
-        group_name: str,
-        sub_group: int = 0,
-        is_premium: bool = False
-        ):
+            self,
+            user_id: int,
+            group_id: int,
+            group_name: str,
+            sub_group: int = 0,
+            is_premium: bool = False
+    ):
         if self.isUserKnown(user_id):
             raise Exception("User already exists")
 
@@ -184,13 +194,13 @@ class DB:
         self._commit()
 
     def updateUser(
-        self,
-        id: int,
-        group_id: int,
-        group_name: str,
-        sub_group: int = 0,
-        is_premium: bool = False
-        ):
+            self,
+            id: int,
+            group_id: int,
+            group_name: str,
+            sub_group: int = 0,
+            is_premium: bool = False
+    ):
         # Add group first to prevent concurrent access issues
         self.addGroup(group_id, group_name)
 
@@ -215,6 +225,8 @@ class DB:
             group_name: str,
             sub_group: int = 0
     ):
+        self.addGroup(group_id, group_name)
+
         query = """
             UPDATE users
             SET
@@ -229,14 +241,14 @@ class DB:
         self._commit()
 
     def deleteUser(
-        self,
-        user_id: int
-        ):
+            self,
+            user_id: int
+    ):
         query = """
             DELETE FROM users
             WHERE id = %s;
         """
-        params = (user_id, )
+        params = (user_id,)
 
         self.cur.execute(query, params)
         self._commit()
@@ -246,10 +258,10 @@ class DB:
     # ========================
     # Group
     def getGroup(
-        self,
-        id: int
-        ) -> models.Group:
-        params = (id, )
+            self,
+            id: int
+    ) -> models.Group:
+        params = (id,)
         query = "SELECT * FROM groups WHERE id = %s"
         self.cur.execute(query, params)
 
@@ -276,27 +288,27 @@ class DB:
         self._commit()
 
     def getUserCountByGroup(
-        self,
-        group_id: int
-        ) -> int:
+            self,
+            group_id: int
+    ) -> int:
         query = """
             SELECT COUNT(id) FROM users
             WHERE group_id = %s
         """
-        params = (group_id, )
+        params = (group_id,)
 
         self.cur.execute(query, params)
         return self.cur.fetchone()[0]
 
     def deleteGroup(
-        self,
-        id: int
-        ):
+            self,
+            id: int
+    ):
         query = """
             DELETE FROM groups
             WHERE id = %s
         """
-        params = (id, )
+        params = (id,)
 
         self.cur.execute(query, params)
         self._commit()
@@ -305,24 +317,24 @@ class DB:
     # Schedule
 
     def getSchedule(
-        self,
-        group_id: int
-        ) -> List[models.LessonDB]:
+            self,
+            group_id: int
+    ) -> List[models.LessonDB]:
         query = """
             SELECT * FROM lessons
             WHERE group_id = %s
         """
-        params = (group_id, )
+        params = (group_id,)
 
         self.cur.execute(query, params)
         return [models.LessonDB(*lesson) for lesson in self.cur.fetchall()]
 
     def getScheduleInRange(
-        self,
-        group_id: int,
-        start_date: str,
-        end_date: str,
-        sub_group: int = 0
+            self,
+            group_id: int,
+            start_date: str,
+            end_date: str,
+            sub_group: int = 0
     ) -> List[models.LessonDB]:
         query = """
             SELECT * FROM lessons
@@ -337,10 +349,10 @@ class DB:
         return [models.LessonDB(*lesson) for lesson in self.cur.fetchall()]
 
     def getScheduleForDay(
-        self,
-        group_id: int,
-        sub_group: int,
-        date: datetime
+            self,
+            group_id: int,
+            sub_group: int,
+            date: datetime
     ) -> List[models.LessonDB]:
 
         if not self.isGroupInDB(group_id):
@@ -349,11 +361,11 @@ class DB:
         return self.getScheduleInRange(group_id, date, date, sub_group)
 
     def getScheduleForWeek(
-        self,
-        group_id: int,
-        sub_group: int,
-        date: datetime
-        ) -> list[models.LessonDB]:
+            self,
+            group_id: int,
+            sub_group: int,
+            date: datetime
+    ) -> list[models.LessonDB]:
 
         if not self.isGroupInDB(group_id):
             return []
@@ -363,8 +375,8 @@ class DB:
         return self.getScheduleInRange(group_id, start_time, end_time, sub_group)
 
     def addLessonToSchedule(
-        self,
-        lesson: models.LessonDB
+            self,
+            lesson: models.LessonDB
     ):
         query = """
             INSERT INTO lessons (
@@ -399,10 +411,10 @@ class DB:
         self._commit()
 
     def addScheduleToDB(
-        self,
-        group_id: str,
-        schedule: List[dict]
-        ):
+            self,
+            group_id: str,
+            schedule: List[dict]
+    ):
         self.deleteScheduleFromDB(group_id)
         for lesson in schedule:
             self.addLessonToSchedule(lesson)
