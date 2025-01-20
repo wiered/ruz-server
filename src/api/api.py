@@ -281,6 +281,11 @@ async def getScheduleInRange(request: Request, user_id: int, start: str, end: st
 
     return db.getScheduleInRange(group_id, start, end, sub_group)
 
+@app.get("/ping")
+async def ping(request: Request):
+    server_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+    return {"server_time": server_time}
+
 @app.post("/schedule")
 async def addScheduleToDB(request: Request, schedule: list[models.LessonWEB]):
     group_id = schedule[0].group_id
