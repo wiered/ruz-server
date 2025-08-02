@@ -10,51 +10,6 @@ class GroupRepository:
     def __init__(self, session: Session):
         self.session = session
 
-    def ListAllGroups(self) -> List[Group]:
-        """Возвращает список всех групп
-
-        Returns:
-            List[Group]: Список групп
-        """
-        stmt = select(Group)
-        return self.session.exec(stmt).all()
-
-    def GetGroupById(self, value: int) -> Optional[Group]:
-        """Возвращает группу по ID
-
-        Args:
-            value (int): ID группы
-
-        Returns:
-            Optional[Group]: Группа
-        """
-        stmt = select(Group).where(Group.id == value)
-        return self.session.exec(stmt).first()
-
-    def GetGroupByGUID(self, value: UUID) -> Optional[Group]:
-        """Возвращает группу по GUID
-
-        Args:
-            value (UUID): GUID группы
-
-        Returns:
-            Optional[Group]: Группа
-        """
-        stmt = select(Group).where(Group.guid == value)
-        return self.session.exec(stmt).first()
-
-    def GetGroupByName(self, value: str) -> List[Group]:
-        """Возвращает группу по названию
-
-        Args:
-            value (str): Название группы
-
-        Returns:
-            List[Group]: Список групп
-        """
-        stmt = select(Group).where(Group.name == value)
-        return self.session.exec(stmt).all()
-
     def CreateGroup(
         self,
         id: int,
@@ -73,13 +28,64 @@ class GroupRepository:
         Returns:
             Group: Созданная группа
         """
-        option = Group(id=id, guid=guid, name=name, faculty_name=faculty_name)
-        self.session.add(option)
+        group = Group(id=id, guid=guid, name=name, faculty_name=faculty_name)
+        self.session.add(group)
         self.session.commit()
-        self.session.refresh(option)
-        return option
+        self.session.refresh(group)
+        return group
 
-    def UpdateGroup(self, value: int, name: str, faculty_name: str) -> bool:
+    def GetOrCreate(self, group: Group):
+        existing = self.GetById(group.id)
+        if existing:
+            return existing
+        return self.CreateUser(group)
+
+    def ListAll(self) -> List[Group]:
+        """Возвращает список всех групп
+
+        Returns:
+            List[Group]: Список групп
+        """
+        stmt = select(Group)
+        return self.session.exec(stmt).all()
+
+    def GetById(self, value: int) -> Optional[Group]:
+        """Возвращает группу по ID
+
+        Args:
+            value (int): ID группы
+
+        Returns:
+            Optional[Group]: Группа
+        """
+        stmt = select(Group).where(Group.id == value)
+        return self.session.exec(stmt).first()
+
+    def GetByGUID(self, value: UUID) -> Optional[Group]:
+        """Возвращает группу по GUID
+
+        Args:
+            value (UUID): GUID группы
+
+        Returns:
+            Optional[Group]: Группа
+        """
+        stmt = select(Group).where(Group.guid == value)
+        return self.session.exec(stmt).first()
+
+    def GetByName(self, value: str) -> List[Group]:
+        """Возвращает группу по названию
+
+        Args:
+            value (str): Название группы
+
+        Returns:
+            List[Group]: Список групп
+        """
+        stmt = select(Group).where(Group.name == value)
+        return self.session.exec(stmt).all()
+
+    def Update(self, value: int, name: str, faculty_name: str) -> bool:
         """Обновляет гурппу по ID.
 
         Args:
@@ -99,7 +105,7 @@ class GroupRepository:
             self.session.rollback()
             return False
 
-    def DeleteGroup(self, value: int) -> bool:
+    def Delete(self, value: int) -> bool:
         """Удаляет группу по ID.
 
         Args:
