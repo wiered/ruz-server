@@ -13,7 +13,7 @@ class UserRepository:
     def __init__(self, session: Session):
         self.session = session
 
-    def CreateUser(self, user: User) -> User:
+    def Create(self, user: User) -> User:
         self.session.add(user)
         self.session.commit()
         return user
@@ -24,27 +24,27 @@ class UserRepository:
             return existing
         return self.CreateUser(user)
 
-    def ListAllUsers(self) -> List[User]:
+    def ListAll(self) -> List[User]:
         stmt = select(User)
         return self.session.exec(stmt).all()
 
-    def ListUsersByGroupOid(self, value: int) -> List[User]:
+    def ListByGroupOid(self, value: int) -> List[User]:
         stmt = select(User).where(User.group_oid == value)
         return self.session.exec(stmt).all()
 
-    def GetUserById(self, value: int) -> Optional[User]:
+    def GetById(self, value: int) -> Optional[User]:
         stmt = select(User).where(User.id == value)
         return self.session.exec(stmt).first()
 
-    def GetUserByUsername(self, value: str) -> Optional[User]:
+    def GetByUsername(self, value: str) -> Optional[User]:
         stmt = select(User).where(User.username == value)
         return self.session.exec(stmt).first()
 
-    def GetUserWithGroup(self, value: int) -> Optional[User]:
+    def GetWithGroup(self, value: int) -> Optional[User]:
         stmt = select(User).where(User.id == value).options(selectinload(User.group))
         return self.session.exec(stmt).first()
 
-    def UpdateUser(
+    def Update(
         self,
         value: int,
         username: str = None,
@@ -82,7 +82,7 @@ class UserRepository:
             self.session.rollback()
             return False
 
-    def DeleteUser(self, value: int) -> bool:
+    def Delete(self, value: int) -> bool:
         try:
             stmt = delete(User).where(User.id == value)
             result = self.session.exec(stmt)
