@@ -34,7 +34,15 @@ class GroupRepository:
         self.session.refresh(group)
         return group
 
-    def GetOrCreate(self, group: Group):
+    def GetOrCreate(self, group: Group) -> Group:
+        """Возвращает группу по ID. Если группа не найдена, то создает новую.
+
+        Args:
+            group (Group): Группа
+
+        Returns:
+            Group: Группа
+        """
         existing = self.GetById(group.id)
         if existing:
             return existing
