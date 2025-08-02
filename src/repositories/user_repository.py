@@ -14,33 +14,86 @@ class UserRepository:
         self.session = session
 
     def Create(self, user: User) -> User:
+        """Создает нового пользователя
+
+        Args:
+            user (User): создаваемый пользователь
+
+        Returns:
+            User: созданный пользователь
+        """
         self.session.add(user)
         self.session.commit()
         return user
 
     def GetOrCreate(self, user: User) -> User:
-        existing = self.GetUserById(user.id)
+        """Получает пользователя или создает его
+
+        Args:
+            user (User): пользователь
+
+        Returns:
+            User: созданный или полученный пользователь
+        """
+        existing = self.GetById(user.id)
         if existing:
             return existing
         return self.CreateUser(user)
 
     def ListAll(self) -> List[User]:
+        """Возвращает список всех пользователей
+
+        Returns:
+            List[User]: список пользователей
+        """
         stmt = select(User)
         return self.session.exec(stmt).all()
 
     def ListByGroupOid(self, value: int) -> List[User]:
+        """Возвращает список пользователей по ID группы
+
+        Args:
+            value (int): ID группы
+
+        Returns:
+            List[User]: список пользователей
+        """
         stmt = select(User).where(User.group_oid == value)
         return self.session.exec(stmt).all()
 
     def GetById(self, value: int) -> Optional[User]:
+        """Возвращает пользователя по ID
+
+        Args:
+            value (int): ID пользователя
+
+        Returns:
+            Optional[User]: пользователь
+        """
         stmt = select(User).where(User.id == value)
         return self.session.exec(stmt).first()
 
     def GetByUsername(self, value: str) -> Optional[User]:
+        """Возвращает пользователя по тегу телеграм
+
+        Args:
+            value (str): тег телеграм
+
+        Returns:
+            Optional[User]: пользователь
+        """
         stmt = select(User).where(User.username == value)
         return self.session.exec(stmt).first()
 
     def GetWithGroup(self, value: int) -> Optional[User]:
+        """Возвращает пользователя и его группу по ID
+
+        Args:
+            value (int): ID пользователя
+
+        Returns:
+            Optional[User]: пользователь
+        """
         stmt = select(User).where(User.id == value).options(selectinload(User.group))
         return self.session.exec(stmt).first()
 
@@ -51,6 +104,18 @@ class UserRepository:
         group_oid: int = None,
         subgroup: int = None,
         ) -> bool:
+        """Updates a user's details by ID.
+
+        Args:
+            value (int): ID of the user to be updated.
+            username (str, optional): New username for the user. Defaults to the current username if not provided.
+            group_oid (int, optional): New group ID for the user. Defaults to the current group ID if not provided.
+            subgroup (int, optional): New subgroup for the user. Defaults to the current subgroup if not provided.
+
+        Returns:
+            bool: True if the update was successful, False otherwise.
+        """
+
         try:
             user = self.GetUserById(value)
 
@@ -70,6 +135,14 @@ class UserRepository:
             return False
 
     def UpdateLastUsedAt(self, value: int) -> bool:
+        """Updates the last used at time for a user by ID.
+
+        Args:
+            value (int): ID of the user to be updated.
+
+        Returns:
+            bool: True if the update was successful, False otherwise.
+        """
         try:
             stmt = (
                 update(User)
@@ -83,6 +156,14 @@ class UserRepository:
             return False
 
     def Delete(self, value: int) -> bool:
+        """Deletes a user by ID.
+
+        Args:
+            value (int): ID of the user to be deleted.
+
+        Returns:
+            bool: True if the deletion was successful, False otherwise.
+        """
         try:
             stmt = delete(User).where(User.id == value)
             result = self.session.exec(stmt)
