@@ -3,6 +3,7 @@ import logging
 
 from fastapi import FastAPI, Request, Security
 from api.security import require_api_key
+from api import api_router
 
 logging.basicConfig(
     format="%(levelname)s: %(asctime)s %(name)s %(message)s",
@@ -10,6 +11,7 @@ logging.basicConfig(
 )
 
 app = FastAPI()
+app.include_router(api_router, prefix="/api")
 
 @app.get("/")
 async def root(request: Request):
