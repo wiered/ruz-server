@@ -178,6 +178,7 @@ class Lesson(SQLModel, table=True):
     )
 
 class LessonGroup(SQLModel, table=True):
+    """Chains lessons to groups"""
     __tablename__ = "lesson_group"
     lesson_id: int = Field(
         sa_column=Column(
