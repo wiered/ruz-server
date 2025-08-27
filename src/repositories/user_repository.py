@@ -117,7 +117,7 @@ class UserRepository:
         """
 
         try:
-            user = self.GetUserById(value)
+            user = self.GetById(value)
 
             if username is None:
                 username = user.username
