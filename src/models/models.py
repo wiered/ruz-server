@@ -2,16 +2,37 @@
 from datetime import timezone
 from decimal import Decimal
 from typing import List, Optional
+from uuid import UUID
 
-from sqlalchemy import (UUID, BigInteger, CheckConstraint, Date, ForeignKey,
+from sqlalchemy import (BigInteger, CheckConstraint, Date, ForeignKey,
                         Integer, Numeric, String, Time)
+from sqlalchemy.dialects.postgresql import UUID as SA_UUID
 from sqlmodel import Column, Field, Relationship, SQLModel, UniqueConstraint
 
+class LessonGroup(SQLModel, table=True):
+    """Chains lessons to groups"""
+    __tablename__ = "lesson_group"
+    lesson_id: int = Field(
+        sa_column=Column(
+            ForeignKey("lesson.id", ondelete="CASCADE"),
+            primary_key=True
+        )
+    ) # lessonOid
+    group_id: int = Field(
+        sa_column=Column(
+            ForeignKey("groups.id", ondelete="CASCADE"),
+            primary_key=True
+        )
+    ) # groupOid
 
 class Group(SQLModel, table=True):
     __tablename__ = "groups"
     id: int = Field(default=None, primary_key=True) # groupOid
-    guid: UUID = Field(default=None, nullable=False) # groupGUID
+    guid: UUID = Field(
+        default=None,
+        nullable=False,
+        sa_type=SA_UUID(as_uuid=True)
+        ) # groupGUID
     name: str = Field(sa_column=Column(
         "name",
         String,
@@ -28,7 +49,7 @@ class Group(SQLModel, table=True):
     lesson_groups: List["LessonGroup"] = Relationship(back_populates="group")
     lessons: List["Lesson"] = Relationship(
         back_populates="groups",
-        link_model="LessonGroup"
+        link_model=LessonGroup
     )
 
 class User(SQLModel, table=True):
@@ -60,7 +81,11 @@ class User(SQLModel, table=True):
 class Lecturer(SQLModel, table=True):
     __tablename__ = "lecturer"
     id: int = Field(default=None, primary_key=True) # lecturerOid
-    guid: UUID = Field(default=None, nullable=False) # lecturerGUID
+    guid: UUID = Field(
+        default=None,
+        nullable=False,
+        sa_type=SA_UUID(as_uuid=True)
+        ) # lecturerGUID
     full_name: str = Field(sa_column=Column(
         "full_name",
         String,
@@ -114,7 +139,11 @@ class Discipline(SQLModel, table=True):
 class Auditorium(SQLModel, table=True):
     __tablename__ = "auditorium"
     id: int = Field(default=None, primary_key=True) # auditoriumOid
-    guid: UUID = Field(default=None, nullable=False) # auditoriumGUID
+    guid: UUID = Field(
+        default=None,
+        nullable=False,
+        sa_type=SA_UUID(as_uuid=True)
+        ) # auditoriumGUID
     name: str = Field(sa_column=Column(
         "name",
         String,
@@ -174,24 +203,5 @@ class Lesson(SQLModel, table=True):
     lesson_groups: List["LessonGroup"] = Relationship(back_populates="lesson")
     groups: List["Group"] = Relationship(
         back_populates="lessons",
-        link_model="LessonGroup"
+        link_model=LessonGroup
     )
-
-class LessonGroup(SQLModel, table=True):
-    """Chains lessons to groups"""
-    __tablename__ = "lesson_group"
-    lesson_id: int = Field(
-        sa_column=Column(
-            ForeignKey("lesson.id", ondelete="CASCADE"),
-            primary_key=True
-        )
-    ) # lessonOid
-    group_id: int = Field(
-        sa_column=Column(
-            ForeignKey("groups.id", ondelete="CASCADE"),
-            primary_key=True
-        )
-    ) # groupOid
-
-    lesson: Optional[Lesson] = Relationship(back_populates="lesson_groups")
-    group: Optional[Group] = Relationship(back_populates="lesson_groups")
