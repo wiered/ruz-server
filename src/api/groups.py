@@ -164,6 +164,13 @@ def update_group(
     Обновить существующую статью.
     """
     repo = GroupRepository(session)
+    group = repo.GetById(group_id)
+    if not group:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Group not found"
+        )
+
     return repo.Update(group_id, payload.name, payload.faculty_name)
 
 @router.delete("/{group_id}", status_code=status.HTTP_204_NO_CONTENT)
