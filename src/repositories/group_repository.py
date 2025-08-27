@@ -16,17 +16,18 @@ class GroupRepository:
         guid: UUID,
         name: str,
         faculty_name: str
-        ) -> Group:
-        """Создает новую группу.
+    ) -> Group:
+        """
+        Creates a new group.
 
         Args:
-            id (int): ID группы
-            guid (UUID): GUID группы
-            name (str): Имя группы
-            faculty_name (str): Название факультета
+            id (int): The ID of the group to create.
+            guid (UUID): The GUID of the group to create.
+            name (str): The name of the group to create.
+            faculty_name (str): The name of the faculty of the group to create.
 
         Returns:
-            Group: Созданная группа
+            Group: The created group.
         """
         group = Group(id=id, guid=guid, name=name, faculty_name=faculty_name)
         self.session.add(group)
@@ -35,13 +36,14 @@ class GroupRepository:
         return group
 
     def GetOrCreate(self, group: Group) -> Group:
-        """Возвращает группу по ID. Если группа не найдена, то создает новую.
+        """
+        Gets a group by ID, or creates a new one if it doesn't exist.
 
         Args:
-            group (Group): Группа
+            group (Group): The group to get or create.
 
         Returns:
-            Group: Группа
+            Group: The existing or newly-created group.
         """
         existing = self.GetById(group.id)
         if existing:
@@ -49,60 +51,61 @@ class GroupRepository:
         return self.CreateUser(group)
 
     def ListAll(self) -> List[Group]:
-        """Возвращает список всех групп
+        """Returns all groups in the database.
 
         Returns:
-            List[Group]: Список групп
+            List[Group]: A list of all groups in the database.
         """
         stmt = select(Group)
         return self.session.exec(stmt).all()
 
     def GetById(self, value: int) -> Optional[Group]:
-        """Возвращает группу по ID
+        """Gets a group by ID.
 
         Args:
-            value (int): ID группы
+            value (int): The ID of the group to get.
 
         Returns:
-            Optional[Group]: Группа
+            Optional[Group]: The group with the given ID, or None if no such group exists.
         """
         stmt = select(Group).where(Group.id == value)
         return self.session.exec(stmt).first()
 
     def GetByGUID(self, value: UUID) -> Optional[Group]:
-        """Возвращает группу по GUID
+        """Gets a group by GUID.
 
         Args:
-            value (UUID): GUID группы
+            value (UUID): The GUID of the group to get.
 
         Returns:
-            Optional[Group]: Группа
+            Optional[Group]: The group with the given GUID, or None if no such group exists.
         """
         stmt = select(Group).where(Group.guid == value)
         return self.session.exec(stmt).first()
 
     def GetByName(self, value: str) -> List[Group]:
-        """Возвращает группу по названию
+        """Gets all groups with the given name.
 
         Args:
-            value (str): Название группы
+            value (str): The name of the groups to get.
 
         Returns:
-            List[Group]: Список групп
+            List[Group]: A list of all groups with the given name.
         """
+
         stmt = select(Group).where(Group.name == value)
         return self.session.exec(stmt).all()
 
     def Update(self, value: int, name: str, faculty_name: str) -> bool:
-        """Обновляет гурппу по ID.
+        """Updates a group by ID.
 
         Args:
-            value (int): ID группы
-            name (str): Имя группы
-            faculty_name (str): Название факультета
+            value (int): The ID of the group to update.
+            name (str): The new name of the group.
+            faculty_name (str): The new name of the faculty of the group.
 
         Returns:
-            bool: True, если обновление прошло успешно
+            bool: True if the update was successful, False otherwise.
         """
         try:
             stmt = update(Group).where(Group.id == value).values(name=name, faculty_name=faculty_name)
@@ -114,13 +117,13 @@ class GroupRepository:
             return False
 
     def Delete(self, value: int) -> bool:
-        """Удаляет группу по ID.
+        """Deletes a group by ID.
 
         Args:
-            value (int): ID группы
+            value (int): The ID of the group to delete.
 
         Returns:
-            bool: True, если удаление прошло успешно
+            bool: True if the deletion was successful, False otherwise.
         """
         try:
             stmt = delete(Group).where(Group.id == value)
