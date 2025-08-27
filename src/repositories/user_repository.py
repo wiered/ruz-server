@@ -38,7 +38,7 @@ class UserRepository:
         existing = self.GetById(user.id)
         if existing:
             return existing
-        return self.CreateUser(user)
+        return self.Create(user)
 
     def ListAll(self) -> List[User]:
         """Возвращает список всех пользователей

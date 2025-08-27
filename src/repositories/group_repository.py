@@ -10,7 +10,7 @@ class GroupRepository:
     def __init__(self, session: Session):
         self.session = session
 
-    def CreateGroup(
+    def Create(
         self,
         id: int,
         guid: UUID,
@@ -48,7 +48,7 @@ class GroupRepository:
         existing = self.GetById(group.id)
         if existing:
             return existing
-        return self.CreateUser(group)
+        return self.Create(group.id, group.guid, group.name, group.faculty_name)
 
     def ListAll(self) -> List[Group]:
         """Returns all groups in the database.
