@@ -2,3 +2,4 @@
 from .user_repository import UserRepository
 from .lecturer_repository import LecturerRepository
 from .kind_of_work_repository import KindOfWorkRepository
+from .discipline_repository import DisciplineRepository
