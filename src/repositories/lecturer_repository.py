@@ -6,7 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload
 from sqlmodel import Session, delete, select, update
 
-from src.models import Lecturer
+from models import Lecturer
 
 class LecturerRepository:
     def __init__(self, session: Session):

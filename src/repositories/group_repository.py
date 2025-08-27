@@ -4,7 +4,7 @@ from sqlmodel import Session, select, delete, update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import UUID
 
-from src.models import Group
+from models import Group
 
 class GroupRepository:
     def __init__(self, session: Session):
