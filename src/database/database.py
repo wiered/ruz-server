@@ -12,7 +12,7 @@ import os
 from datetime import datetime
 from typing import Generator, List
 
-import src.models as models
+import models as models
 # import src.utils as utils
 from dotenv import load_dotenv
 from sqlmodel import Session, SQLModel, create_engine, select
