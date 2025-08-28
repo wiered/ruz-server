@@ -9,6 +9,7 @@ __version__ = "1.0"
 __author__ = "Wiered"
 
 import os
+import logging
 from datetime import datetime
 from typing import Generator, List
 
@@ -18,6 +19,11 @@ from dotenv import load_dotenv
 from sqlmodel import Session, SQLModel, create_engine, select
 
 load_dotenv()
+
+logging.basicConfig(
+    format="%(levelname)s: %(asctime)s %(name)s %(message)s",
+    level=logging.INFO,
+)
 
 class DataBase:
     def __init__(self, dbname, user, host, password, port = 5432):
@@ -32,6 +38,7 @@ class DataBase:
             f"@{self.host}:{self.port}/{self.dbname}"
         )
         self.engine = create_engine(self._sqlalchemy_url, echo=True)
+        logging.info(f"Started database engine")
 
     def getSession(self) -> Session:
         """
@@ -50,12 +57,16 @@ class DataBase:
         """
         Создаёт в базе все таблицы, описанные в SQLModel-моделях.
         """
+        logging.info(f"Creating all tables")
+
         SQLModel.metadata.create_all(self.engine)
 
     def dropAllTables(self) -> None:
         """
         Удаляет из базы все таблицы, описанные в SQLModel-моделях.
         """
+        logging.warning(f"Dropping all tables")
+
         SQLModel.metadata.drop_all(self.engine)
 
 db = DataBase(
