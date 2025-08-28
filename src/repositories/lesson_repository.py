@@ -1,4 +1,5 @@
 ﻿import datetime
+import logging
 from typing import List, Optional
 
 from sqlalchemy.exc import SQLAlchemyError
@@ -6,6 +7,8 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import Session, delete, select, update
 
 from models import Lesson
+
+logger = logging.getLogger(__name__)
 
 
 class LessonRepository:
@@ -21,6 +24,8 @@ class LessonRepository:
         Returns:
             Lesson: The created lesson.
         """
+        logger.info(f"Creating lesson {lesson}")
+
         self.session.add(lesson)
         self.session.commit()
         return lesson
@@ -34,9 +39,14 @@ class LessonRepository:
         Returns:
             Lesson: The existing or newly created lesson.
         """
+        logger.info(f"Getting or creating lesson {lesson}")
+
         existing = self.GetById(lesson.id)
         if existing:
+            logger.debug(f"Lesson {lesson} already exists")
             return existing
+
+        logger.debug(f"Lesson {lesson} does not exist, creating")
         return self.Create(lesson)
 
     def ListAll(self) -> List[Lesson]:
@@ -45,6 +55,8 @@ class LessonRepository:
         Returns:
             List[Lesson]: List of lessons.
         """
+        logger.info("Listing all lessons")
+
         stmt = select(Lesson)
         return self.session.exec(stmt).all()
 
@@ -57,6 +69,8 @@ class LessonRepository:
         Returns:
             Optional[Lesson]: The lesson if found, otherwise None.
         """
+        logger.info(f"Getting lesson by ID {value}")
+
         stmt = select(Lesson).where(Lesson.id == value)
         return self.session.exec(stmt).first()
 
@@ -69,6 +83,8 @@ class LessonRepository:
         Returns:
             Optional[Lesson]: The lesson with relations if found, otherwise None.
         """
+        logger.info(f"Getting lesson by ID {value}")
+
         stmt = (
             select(Lesson)
             .where(Lesson.id == value)
@@ -92,6 +108,8 @@ class LessonRepository:
         Returns:
             List[Lesson]: List of lessons on the given date.
         """
+        logger.info(f"Listing lessons for date {value}")
+
         stmt = select(Lesson).where(Lesson.date == value)
         return self.session.exec(stmt).all()
 
@@ -105,6 +123,8 @@ class LessonRepository:
         Returns:
             List[Lesson]: List of lessons in the date range.
         """
+        logger.info(f"Listing lessons for date range {start} to {end}")
+
         stmt = select(Lesson).where(Lesson.date >= start, Lesson.date <= end)
         return self.session.exec(stmt).all()
 
@@ -117,6 +137,8 @@ class LessonRepository:
         Returns:
             List[Lesson]: List of lessons for the lecturer.
         """
+        logger.info(f"Listing lessons for lecturer ID {value}")
+
         stmt = select(Lesson).where(Lesson.lecturer_id == value)
         return self.session.exec(stmt).all()
 
@@ -129,6 +151,8 @@ class LessonRepository:
         Returns:
             List[Lesson]: List of lessons for the discipline.
         """
+        logger.info(f"Listing lessons for discipline ID {value}")
+
         stmt = select(Lesson).where(Lesson.discipline_id == value)
         return self.session.exec(stmt).all()
 
@@ -141,6 +165,8 @@ class LessonRepository:
         Returns:
             List[Lesson]: List of lessons for the auditorium.
         """
+        logger.info(f"Listing lessons for auditorium ID {value}")
+
         stmt = select(Lesson).where(Lesson.auditorium_id == value)
         return self.session.exec(stmt).all()
 
@@ -153,6 +179,8 @@ class LessonRepository:
         Returns:
             List[Lesson]: List of lessons matching the kind of work.
         """
+        logger.info(f"Listing lessons for kind of work ID {value}")
+
         stmt = select(Lesson).where(Lesson.kind_of_work_id == value)
         return self.session.exec(stmt).all()
 
@@ -165,6 +193,8 @@ class LessonRepository:
         Returns:
             List[Lesson]: List of lessons for the subgroup.
         """
+        logger.info(f"Listing lessons for subgroup {value}")
+
         stmt = select(Lesson).where(Lesson.sub_group == value)
         return self.session.exec(stmt).all()
 
@@ -196,26 +226,44 @@ class LessonRepository:
         Returns:
             bool: True if the update was successful, False otherwise.
         """
+        logger.info(f"Updating Lesson {value}")
+
         try:
             current = self.GetById(value)
             if not current:
+                logger.error(f"Lesson {value} not found")
                 return False
 
             if kind_of_work_id is None:
+                logger.debug(f"Payload kind_of_work_id is None")
                 kind_of_work_id = current.kind_of_work_id
+
             if discipline_id is None:
+                logger.debug(f"Payload discipline_id is None")
                 discipline_id = current.discipline_id
+
             if auditorium_id is None:
+                logger.debug(f"Payload auditorium_id is None")
                 auditorium_id = current.auditorium_id
+
             if lecturer_id is None:
+                logger.debug(f"Payload lecturer_id is None")
                 lecturer_id = current.lecturer_id
+
             if date is None:
+                logger.debug(f"Payload date is None")
                 date = current.date
+
             if begin_lesson is None:
+                logger.debug(f"Payload begin_lesson is None")
                 begin_lesson = current.begin_lesson
+
             if end_lesson is None:
+                logger.debug(f"Payload end_lesson is None")
                 end_lesson = current.end_lesson
+
             if sub_group is None:
+                logger.debug(f"Payload sub_group is None")
                 sub_group = current.sub_group
 
             stmt = (
@@ -235,9 +283,11 @@ class LessonRepository:
             )
             result = self.session.exec(stmt)
             self.session.commit()
+            logger.debug(f"Updated Lesson {value}")
             return result.rowcount > 0
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             self.session.rollback()
+            logger.error(f"Lesson update failed: \n{e}")
             return False
 
     def UpdateUpdatedAt(self, value: int) -> bool:
