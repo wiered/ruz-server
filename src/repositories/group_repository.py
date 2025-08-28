@@ -12,10 +12,7 @@ class GroupRepository:
 
     def Create(
         self,
-        id: int,
-        guid: UUID,
-        name: str,
-        faculty_name: str
+        group: Group
     ) -> Group:
         """
         Creates a new group.
@@ -29,7 +26,6 @@ class GroupRepository:
         Returns:
             Group: The created group.
         """
-        group = Group(id=id, guid=guid, name=name, faculty_name=faculty_name)
         self.session.add(group)
         self.session.commit()
         self.session.refresh(group)
@@ -48,7 +44,7 @@ class GroupRepository:
         existing = self.GetById(group.id)
         if existing:
             return existing
-        return self.Create(group.id, group.guid, group.name, group.faculty_name)
+        return self.Create(group)
 
     def ListAll(self) -> List[Group]:
         """Returns all groups in the database.
