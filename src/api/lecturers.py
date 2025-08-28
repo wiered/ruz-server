@@ -55,7 +55,13 @@ def create_lecturer(
     Создать нового лектора.
     """
     repo = LecturerRepository(session)
-    return repo.GetOrCreate(
+    if repo.GetById(payload.id):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Lecturer with this ID already exists"
+        )
+
+    return repo.Create(
         Lecturer(
             id=payload.id,
             guid=payload.guid,

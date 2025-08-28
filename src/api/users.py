@@ -87,7 +87,13 @@ def create_user(
             )
         )
 
-    return repo.GetOrCreate(
+    if repo.GetById(payload.id):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="User with this ID already exists"
+        )
+
+    return repo.Create(
         User(
             id=payload.id,
             username=payload.username,
