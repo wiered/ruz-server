@@ -1,13 +1,11 @@
 ﻿import datetime
 from datetime import timezone
-from decimal import Decimal
 from typing import List, Optional
 from uuid import UUID
 
-from sqlalchemy import (BigInteger, CheckConstraint, Date, ForeignKey,
-                        Integer, Numeric, String, Time)
+from sqlalchemy import BigInteger, ForeignKey, Integer, String, Time
 from sqlalchemy.dialects.postgresql import UUID as SA_UUID
-from sqlmodel import Column, Field, Relationship, SQLModel, UniqueConstraint
+from sqlmodel import Column, Field, Relationship, SQLModel
 
 
 class LessonGroup(SQLModel, table=True):
