@@ -14,10 +14,10 @@ LOGGING_CONFIG = {
     'disable_existing_loggers': False,
     'formatters': {
         'standard': {
-            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+            'format': '%(levelname)s: %(asctime)s %(name)s - %(message)s'
         },
         'detailed': {
-            'format': '%(asctime)s [%(levelname)s] %(name)s (%(filename)s:%(lineno)d): %(message)s'
+            'format': '%(levelname)s: %(asctime)s %(name)s (%(filename)s:%(lineno)d) - %(message)s'
         },
     },
     'handlers': {
@@ -54,6 +54,29 @@ LOGGING_CONFIG = {
         },
     }
 }
+
+class ColoredFormatter(logging.Formatter):
+    green = "\033[0;32m"
+    yellow = "\033[1;33m"
+    red = "\033[1;31m"
+    purple = "\033[0;35m"
+    reset = "\033[0m"
+
+    colors = {
+        logging.INFO: green,
+        logging.WARNING: yellow,
+        logging.ERROR: red,
+        logging.DEBUG: purple,
+    }
+
+    def format(self, record):
+        message = super().format(record)
+        color = self.colors.get(record.levelno, "")
+        if color:
+            levelname = f"{record.levelname}"
+            colored_level = f"{color}{levelname}{self.reset}"
+            message = message.replace(levelname, colored_level)
+        return message
 
 if __name__ == '__main__':
     dictConfig(LOGGING_CONFIG)
