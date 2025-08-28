@@ -36,7 +36,7 @@ class LecturerRepository:
         Returns:
             Lecturer: The existing or newly-created Lecturer.
         """
-        existing = self.GetUserById(lecturer.id)
+        existing = self.GetById(lecturer.id)
         if existing:
             return existing
         return self.Create(lecturer)
