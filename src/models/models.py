@@ -9,6 +9,7 @@ from sqlalchemy import (BigInteger, CheckConstraint, Date, ForeignKey,
 from sqlalchemy.dialects.postgresql import UUID as SA_UUID
 from sqlmodel import Column, Field, Relationship, SQLModel, UniqueConstraint
 
+
 class LessonGroup(SQLModel, table=True):
     """Chains lessons to groups"""
     __tablename__ = "lesson_group"
@@ -24,6 +25,7 @@ class LessonGroup(SQLModel, table=True):
             primary_key=True
         )
     ) # groupOid
+
 
 class Group(SQLModel, table=True):
     __tablename__ = "groups"
@@ -49,6 +51,7 @@ class Group(SQLModel, table=True):
     lessons: List["Lesson"] = Relationship(
         link_model=LessonGroup
     )
+
 
 class User(SQLModel, table=True):
     __tablename__ = "users"
@@ -76,6 +79,7 @@ class User(SQLModel, table=True):
 
     group: Optional[Group] = Relationship(back_populates="users")
 
+
 class Lecturer(SQLModel, table=True):
     __tablename__ = "lecturer"
     id: int = Field(default=None, primary_key=True) # lecturerOid
@@ -102,6 +106,7 @@ class Lecturer(SQLModel, table=True):
 
     lessons: List["Lesson"] = Relationship(back_populates="lecturer")
 
+
 class KindOfWork(SQLModel, table=True):
     __tablename__ = "kind_of_work"
     id: int = Field(default=None, primary_key=True) # kindOfWorkOid
@@ -118,6 +123,7 @@ class KindOfWork(SQLModel, table=True):
 
     lessons: List["Lesson"] = Relationship(back_populates="kind_of_work")
 
+
 class Discipline(SQLModel, table=True):
     __tablename__ = "discipline"
     id: int = Field(default=None, primary_key=True) # disciplineOid
@@ -133,6 +139,7 @@ class Discipline(SQLModel, table=True):
     has_labs: bool = Field(default=False)
 
     lessons: List["Lesson"] = Relationship(back_populates="discipline")
+
 
 class Auditorium(SQLModel, table=True):
     __tablename__ = "auditorium"
