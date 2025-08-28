@@ -115,7 +115,7 @@ class LecturerRepository:
         """
 
         try:
-            current = self.GetUserById(value)
+            current = self.GetById(value)
 
             if current is None:
                 return False
