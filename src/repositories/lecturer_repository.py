@@ -115,14 +115,14 @@ class LecturerRepository:
         """
 
         try:
-            lecturer = self.GetUserById(value)
+            current = self.GetUserById(value)
 
             if full_name is None:
-                full_name = lecturer.full_name
+                full_name = current.full_name
             if short_name is None:
-                short_name = lecturer.short_name
+                short_name = current.short_name
             if rank is None:
-                rank = lecturer.rank
+                rank = current.rank
 
             stmt = (
                 update(Lecturer).

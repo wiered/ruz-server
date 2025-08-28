@@ -117,14 +117,14 @@ class UserRepository:
         """
 
         try:
-            user = self.GetById(value)
+            current = self.GetById(value)
 
             if username is None:
-                username = user.username
+                username = current.username
             if group_oid is None:
-                group_oid = user.group_oid
+                group_oid = current.group_oid
             if subgroup is None:
-                subgroup = user.subgroup
+                subgroup = current.subgroup
 
             stmt = update(User).where(User.id == value).values(username=username, group_oid=group_oid, subgroup=subgroup)
             result = self.session.exec(stmt)
