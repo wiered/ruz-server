@@ -86,6 +86,25 @@ class GroupUpdate(BaseModel):
     name: str
     faculty_name: str
 
+@router.post("/", response_model=GroupRead, status_code=status.HTTP_201_CREATED)
+def create_group(
+    payload: GroupCreate,
+    session: Session =  Depends(get_db),
+    _api_key: str = Security(require_api_key)
+):
+    """
+    Создать новую статью.
+    """
+    repo = GroupRepository(session)
+    return repo.GetOrCreate(
+        Group(
+            id=payload.id,
+            guid=payload.guid,
+            name=payload.name,
+            faculty_name=payload.faculty_name
+        )
+    )
+
 @router.get("/", response_model=List[GroupRead])
 def list_groups(
     session: Session = Depends(get_db),
@@ -115,7 +134,6 @@ def get_group(
         )
     return group
 
-
 @router.get("/guid/{group_guid}", response_model=GroupRead)
 def get_group_by_guid(
     group_guid: UUID,
@@ -133,25 +151,6 @@ def get_group_by_guid(
             detail="Group not found"
         )
     return group
-
-@router.post("/", response_model=GroupRead, status_code=status.HTTP_201_CREATED)
-def create_group(
-    payload: GroupCreate,
-    session: Session =  Depends(get_db),
-    _api_key: str = Security(require_api_key)
-):
-    """
-    Создать новую статью.
-    """
-    repo = GroupRepository(session)
-    return repo.GetOrCreate(
-        Group(
-            id=payload.id,
-            guid=payload.guid,
-            name=payload.name,
-            faculty_name=payload.faculty_name
-        )
-    )
 
 @router.put("/{group_id}")
 def update_group(
@@ -190,4 +189,3 @@ def delete_group(
         )
 
     return repo.Delete(group_id)
-
