@@ -6,7 +6,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-console_logging_level = os.getenv('LOGGING_LEVEL', 'INFO')
+console_handler_level = os.getenv('LOGGING_LEVEL', 'INFO')
+console_handler_format = os.getenv('LOGGING_FORMAT', 'standard')
 
 LOGGING_CONFIG = {
     'version': 1,
@@ -22,8 +23,8 @@ LOGGING_CONFIG = {
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'standard',
-            'level': console_logging_level,
+            'formatter': console_handler_format,
+            'level': console_handler_level,
             'stream': 'ext://sys.stdout'
         },
         'file_debug': {
