@@ -1,8 +1,11 @@
-﻿from sqlalchemy.exc import SQLAlchemyError
+﻿import logging
+
+from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel import Session, delete, select, update
 
 from models import KindOfWork
 
+logger = logging.getLogger(__name__)
 
 class KindOfWorkRepository:
     def __init__(self, session: Session):
@@ -18,6 +21,8 @@ class KindOfWorkRepository:
         Returns:
             KindOfWork: Created KindOfWork.
         """
+        logger.info(f"Creating KindOfWork {kind_of_work.type_of_work}")
+
         self.session.add(kind_of_work)
         self.session.commit()
         return kind_of_work
@@ -32,9 +37,14 @@ class KindOfWorkRepository:
         Returns:
             KindOfWork: Created or retrieved KindOfWork.
         """
+        logger.info(f"Getting or creating KindOfWork {kind_of_work.type_of_work}")
+
         existing = self.GetById(kind_of_work.id)
         if existing:
+            logger.debug(f"KindOfWork {kind_of_work.type_of_work} already exists")
             return existing
+
+        logger.debug(f"KindOfWork {kind_of_work.type_of_work} does not exist, creating")
         return self.Create(kind_of_work)
 
     def ListAll(self):
@@ -44,6 +54,8 @@ class KindOfWorkRepository:
         Returns:
             List[KindOfWork]: List of all KindOfWork objects.
         """
+        logger.info("Listing all KindOfWorks")
+
         stmt = select(KindOfWork)
         return self.session.exec(stmt).all()
 
@@ -57,6 +69,8 @@ class KindOfWorkRepository:
         Returns:
             KindOfWork: Retrieved KindOfWork object or None if no such object exists.
         """
+        logger.info(f"Getting KindOfWork {value}")
+
         stmt = select(KindOfWork).where(KindOfWork.id == value)
         return self.session.exec(stmt).first()
 
@@ -72,16 +86,20 @@ class KindOfWorkRepository:
         Returns:
             bool: True if the update was successful, False otherwise.
         """
+        logger.info(f"Updating KindOfWork {value}")
 
         try:
             current = self.GetById(value)
 
             if current is None:
+                logger.error(f"KindOfWork {value} does not exist")
                 return False
 
             if type_of_work is None:
+                logger.debug(f"KindOfWork {value} does not have a type of work")
                 type_of_work = current.type_of_work
             if complexity is None:
+                logger.debug(f"KindOfWork {value} does not have a complexity")
                 complexity = current.complexity
 
             stmt = (
@@ -91,9 +109,11 @@ class KindOfWorkRepository:
             )
             result = self.session.exec(stmt)
             self.session.commit()
+            logger.debug(f"KindOfWork {value} updated")
             return result.rowcount > 0
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             self.session.rollback()
+            logger.error(f"KindOfWork {value} update failed: \n{e}")
             return False
 
     def Delete(self, value: int) -> bool:
@@ -106,12 +126,15 @@ class KindOfWorkRepository:
         Returns:
             bool: True if the deletion was successful, False otherwise.
         """
+        logger.info(f"Deleting KindOfWork {value}")
 
         try:
             stmt = delete(KindOfWork).where(KindOfWork.id == value)
             result = self.session.exec(stmt)
             self.session.commit()
+            logger.debug(f"KindOfWork {value} deleted")
             return result.rowcount > 0
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             self.session.rollback()
+            logger.error(f"KindOfWork {value} delete failed: \n{e}")
             return False
