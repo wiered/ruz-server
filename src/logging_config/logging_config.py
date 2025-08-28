@@ -52,6 +52,11 @@ LOGGING_CONFIG = {
             'level': 'DEBUG',
             'propagate': False
         },
+        'sqlalchemy.engine': {
+            'level': 'INFO',
+            'handlers': ['console'],
+            'propagate': False
+        }
     }
 }
 
