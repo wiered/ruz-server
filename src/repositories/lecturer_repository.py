@@ -22,7 +22,7 @@ class LecturerRepository:
         Returns:
             Lecturer: The created Lecturer object.
         """
-        self.session.add(Lecturer)
+        self.session.add(lecturer)
         self.session.commit()
         return lecturer
 
