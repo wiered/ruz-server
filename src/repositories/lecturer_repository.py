@@ -117,6 +117,9 @@ class LecturerRepository:
         try:
             current = self.GetUserById(value)
 
+            if current is None:
+                return False
+
             if full_name is None:
                 full_name = current.full_name
             if short_name is None:

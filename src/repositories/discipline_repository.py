@@ -98,7 +98,23 @@ class DisciplineRepository:
         """
 
         try:
-            stmt = update(Discipline).where(Discipline.id == value).values(name=name, examtype=examtype, has_labs=has_labs)
+            current = self.GetById(value)
+
+            if current is None:
+                return False
+
+            if name is None:
+                name = current.name
+            if examtype is None:
+                examtype = current.examtype
+            if has_labs is None:
+                has_labs = current.has_labs
+
+            stmt = (
+                update(Discipline)
+                .where(Discipline.id == value)
+                .values(name=name, examtype=examtype, has_labs=has_labs)
+            )
             result = self.session.exec(stmt)
             self.session.commit()
             return result.rowcount > 0

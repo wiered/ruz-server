@@ -79,8 +79,20 @@ class KindOfWorkRepository:
         """
 
         try:
-            stmt = update(KindOfWork).where(KindOfWork.id == value).values(
-                type_of_work=type_of_work, complexity=complexity
+            current = self.GetById(value)
+
+            if current is None:
+                return False
+
+            if type_of_work is None:
+                type_of_work = current.type_of_work
+            if complexity is None:
+                complexity = current.complexity
+
+            stmt = (
+                update(KindOfWork)
+                .where(KindOfWork.id == value)
+                .values(type_of_work=type_of_work, complexity=complexity)
             )
             result = self.session.exec(stmt)
             self.session.commit()

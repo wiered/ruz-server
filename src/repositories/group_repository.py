@@ -104,7 +104,21 @@ class GroupRepository:
             bool: True if the update was successful, False otherwise.
         """
         try:
-            stmt = update(Group).where(Group.id == value).values(name=name, faculty_name=faculty_name)
+            current = self.GetById(value)
+
+            if current is None:
+                return False
+
+            if name is None:
+                name = current.name
+            if faculty_name is None:
+                faculty_name = current.faculty_name
+
+            stmt = (
+                update(Group)
+                .where(Group.id == value)
+                .values(name=name, faculty_name=faculty_name)
+                )
             result = self.session.exec(stmt)
             self.session.commit()
             return result.rowcount > 0
