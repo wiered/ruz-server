@@ -1,10 +1,13 @@
-﻿from typing import List, Optional
+﻿import logging
+from typing import List, Optional
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload
 from sqlmodel import Session, delete, select
 
 from models import LessonGroup
+
+logger = logging.getLogger(__name__)
 
 
 class LessonGroupRepository:
@@ -20,6 +23,8 @@ class LessonGroupRepository:
         Returns:
             LessonGroup: Created association.
         """
+        logger.info(f"Creating LessonGroup {lesson_group}")
+
         self.session.add(lesson_group)
         self.session.commit()
         return lesson_group
@@ -33,9 +38,14 @@ class LessonGroupRepository:
         Returns:
             LessonGroup: Existing or newly created association.
         """
+        logger.info(f"Getting or creating LessonGroup {lesson_group}")
+
         existing = self.GetByIds(lesson_group.lesson_id, lesson_group.group_id)
         if existing:
+            logger.debug(f"LessonGroup {lesson_group} already exists")
             return existing
+
+        logger.debug(f"LessonGroup {lesson_group} does not exist, creating")
         return self.Create(lesson_group)
 
     def ListAll(self) -> List[LessonGroup]:
@@ -44,6 +54,8 @@ class LessonGroupRepository:
         Returns:
             List[LessonGroup]: List of associations.
         """
+        logger.info("Listing all LessonGroup associations")
+
         stmt = select(LessonGroup)
         return self.session.exec(stmt).all()
 
@@ -57,6 +69,8 @@ class LessonGroupRepository:
         Returns:
             Optional[LessonGroup]: Association if found, otherwise None.
         """
+        logger.info(f"Getting LessonGroup by IDs {lesson_id} and {group_id}")
+
         stmt = select(LessonGroup).where(
             LessonGroup.lesson_id == lesson_id,
             LessonGroup.group_id == group_id,
@@ -72,6 +86,8 @@ class LessonGroupRepository:
         Returns:
             List[LessonGroup]: List of associations.
         """
+        logger.info(f"Listing LessonGroup associations by lesson ID {lesson_id}")
+
         stmt = select(LessonGroup).where(LessonGroup.lesson_id == lesson_id)
         return self.session.exec(stmt).all()
 
@@ -84,6 +100,8 @@ class LessonGroupRepository:
         Returns:
             List[LessonGroup]: List of associations.
         """
+        logger.info(f"Listing LessonGroup associations by group ID {group_id}")
+
         stmt = select(LessonGroup).where(LessonGroup.group_id == group_id)
         return self.session.exec(stmt).all()
 
@@ -97,6 +115,8 @@ class LessonGroupRepository:
         Returns:
             Optional[LessonGroup]: Association with relationships loaded.
         """
+        logger.info(f"Getting LessonGroup by IDs {lesson_id} and {group_id}")
+
         stmt = (
             select(LessonGroup)
             .where(
@@ -119,6 +139,8 @@ class LessonGroupRepository:
         Returns:
             List[LessonGroup]: List of associations with Group loaded.
         """
+        logger.info(f"Listing LessonGroup associations by lesson ID {lesson_id}")
+
         stmt = (
             select(LessonGroup)
             .where(LessonGroup.lesson_id == lesson_id)
@@ -135,6 +157,8 @@ class LessonGroupRepository:
         Returns:
             List[LessonGroup]: List of associations with Lesson loaded.
         """
+        logger.info(f"Listing LessonGroup associations by group ID {group_id}")
+
         stmt = (
             select(LessonGroup)
             .where(LessonGroup.group_id == group_id)
@@ -152,6 +176,8 @@ class LessonGroupRepository:
         Returns:
             bool: True if deletion was successful, False otherwise.
         """
+        logger.info(f"Deleting LessonGroup by IDs {lesson_id} and {group_id}")
+
         try:
             stmt = delete(LessonGroup).where(
                 LessonGroup.lesson_id == lesson_id,
@@ -159,9 +185,11 @@ class LessonGroupRepository:
             )
             result = self.session.exec(stmt)
             self.session.commit()
+            logger.debug(f"Deleted LessonGroup by IDs {lesson_id} and {group_id}")
             return result.rowcount > 0
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             self.session.rollback()
+            logger.error(f"Failed to delete LessonGroup by IDs {lesson_id} and {group_id}: \n{e}")
             return False
 
     def DeleteByLessonId(self, lesson_id: int) -> bool:
@@ -173,13 +201,16 @@ class LessonGroupRepository:
         Returns:
             bool: True if any rows were deleted, False otherwise.
         """
+        logger.info(f"Deleting LessonGroup by lesson ID {lesson_id}")
         try:
             stmt = delete(LessonGroup).where(LessonGroup.lesson_id == lesson_id)
             result = self.session.exec(stmt)
             self.session.commit()
+            logger.debug(f"Deleted LessonGroup by lesson ID {lesson_id}")
             return result.rowcount > 0
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             self.session.rollback()
+            logger.error(f"Failed to delete LessonGroup by lesson ID {lesson_id}: \n{e}")
             return False
 
     def DeleteByGroupId(self, group_id: int) -> bool:
@@ -191,11 +222,14 @@ class LessonGroupRepository:
         Returns:
             bool: True if any rows were deleted, False otherwise.
         """
+        logger.info(f"Deleting LessonGroup by group ID {group_id}")
         try:
             stmt = delete(LessonGroup).where(LessonGroup.group_id == group_id)
             result = self.session.exec(stmt)
             self.session.commit()
+            logger.debug(f"Deleted LessonGroup by group ID {group_id}")
             return result.rowcount > 0
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             self.session.rollback()
+            logger.error(f"Failed to delete LessonGroup by group ID {group_id}: \n{e}")
             return False
