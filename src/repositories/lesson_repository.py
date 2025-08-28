@@ -299,6 +299,8 @@ class LessonRepository:
         Returns:
             bool: True if the update was successful, False otherwise.
         """
+        logger.info(f"Updating updated_at for Lesson {value}")
+
         try:
             stmt = (
                 update(Lesson)
@@ -307,9 +309,11 @@ class LessonRepository:
             )
             result = self.session.exec(stmt)
             self.session.commit()
+            logger.debug(f"Updated updated_at for Lesson {value}")
             return result.rowcount > 0
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             self.session.rollback()
+            logger.error(f"Failed to update updated_at for Lesson {value}: \n{e}")
             return False
 
     def Delete(self, value: int) -> bool:
@@ -321,11 +325,15 @@ class LessonRepository:
         Returns:
             bool: True if the deletion was successful, False otherwise.
         """
+        logger.info(f"Deleting Lesson {value}")
+
         try:
             stmt = delete(Lesson).where(Lesson.id == value)
             result = self.session.exec(stmt)
             self.session.commit()
+            logger.debug(f"Deleted Lesson {value}")
             return result.rowcount > 0
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             self.session.rollback()
+            logger.error(f"Failed to delete Lesson {value}: \n{e}")
             return False
