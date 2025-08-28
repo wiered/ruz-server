@@ -8,15 +8,14 @@ __all__ = ["DataBase"]
 __version__ = "1.0"
 __author__ = "Wiered"
 
-import os
 import logging
-from datetime import datetime
-from typing import Generator, List
+import os
+from typing import Generator
+
+from dotenv import load_dotenv
+from sqlmodel import Session, SQLModel, create_engine
 
 import models as models
-# import src.utils as utils
-from dotenv import load_dotenv
-from sqlmodel import Session, SQLModel, create_engine, select
 
 load_dotenv()
 
