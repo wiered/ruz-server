@@ -1,10 +1,13 @@
-﻿from typing import List, Optional, Dict, Any
+﻿import logging
+from typing import List, Optional, Dict, Any
 
 from sqlmodel import Session, select, delete, update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import UUID
 
 from models import Group
+
+logger = logging.getLogger(__name__)
 
 class GroupRepository:
     def __init__(self, session: Session):
@@ -26,6 +29,8 @@ class GroupRepository:
         Returns:
             Group: The created group.
         """
+        logger.info(f"Creating Group {group.name}")
+
         self.session.add(group)
         self.session.commit()
         self.session.refresh(group)
@@ -41,9 +46,14 @@ class GroupRepository:
         Returns:
             Group: The existing or newly-created group.
         """
+        logger.info(f"Getting or creating Group {group.name}")
+
         existing = self.GetById(group.id)
         if existing:
+            logger.debug(f"Group {group.name} already exists")
             return existing
+
+        logger.debug(f"Group {group.name} does not exist, creating")
         return self.Create(group)
 
     def ListAll(self) -> List[Group]:
@@ -52,6 +62,8 @@ class GroupRepository:
         Returns:
             List[Group]: A list of all groups in the database.
         """
+        logger.info("Listing all groups")
+
         stmt = select(Group)
         return self.session.exec(stmt).all()
 
@@ -64,6 +76,8 @@ class GroupRepository:
         Returns:
             Optional[Group]: The group with the given ID, or None if no such group exists.
         """
+        logger.info(f"Getting Group {value}")
+
         stmt = select(Group).where(Group.id == value)
         return self.session.exec(stmt).first()
 
@@ -76,6 +90,8 @@ class GroupRepository:
         Returns:
             Optional[Group]: The group with the given GUID, or None if no such group exists.
         """
+        logger.info(f"Getting Group {value}")
+
         stmt = select(Group).where(Group.guid == value)
         return self.session.exec(stmt).first()
 
@@ -88,6 +104,7 @@ class GroupRepository:
         Returns:
             List[Group]: A list of all groups with the given name.
         """
+        logger.info(f"Getting Group {value}")
 
         stmt = select(Group).where(Group.name == value)
         return self.session.exec(stmt).all()
@@ -103,15 +120,20 @@ class GroupRepository:
         Returns:
             bool: True if the update was successful, False otherwise.
         """
+        logger.info(f"Updating Group {value}")
+
         try:
             current = self.GetById(value)
 
             if current is None:
+                logger.error(f"Group {value} does not exist")
                 return False
 
             if name is None:
+                logger.debug(f"Group {value} does not have a name")
                 name = current.name
             if faculty_name is None:
+                logger.debug(f"Group {value} does not have a faculty name")
                 faculty_name = current.faculty_name
 
             stmt = (
@@ -121,8 +143,10 @@ class GroupRepository:
                 )
             result = self.session.exec(stmt)
             self.session.commit()
+            logger.debug(f"Group {value} updated")
             return result.rowcount > 0
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
+            logger.error(f"Group {value} update failed: \n{e}")
             self.session.rollback()
             return False
 
@@ -135,11 +159,15 @@ class GroupRepository:
         Returns:
             bool: True if the deletion was successful, False otherwise.
         """
+        logger.info(f"Deleting Group {value}")
+
         try:
             stmt = delete(Group).where(Group.id == value)
             result = self.session.exec(stmt)
             self.session.commit()
+            logger.debug(f"Group {value} deleted")
             return result.rowcount > 0
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
+            logger.error(f"Group {value} delete failed: \n{e}")
             self.session.rollback()
             return False
