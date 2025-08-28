@@ -20,10 +20,7 @@ from sqlmodel import Session, SQLModel, create_engine, select
 
 load_dotenv()
 
-logging.basicConfig(
-    format="%(levelname)s: %(asctime)s %(name)s %(message)s",
-    level=logging.INFO,
-)
+logger = logging.getLogger(__name__)
 
 class DataBase:
     def __init__(self, dbname, user, host, password, port = 5432):
@@ -38,7 +35,7 @@ class DataBase:
             f"@{self.host}:{self.port}/{self.dbname}"
         )
         self.engine = create_engine(self._sqlalchemy_url, echo=True)
-        logging.info(f"Started database engine")
+        logger.info(f"Started database engine")
 
     def getSession(self) -> Session:
         """
@@ -49,6 +46,7 @@ class DataBase:
     def get_session(self) -> Generator[Session, None, None]:
         session = Session(self.engine)
         try:
+            logger.info(f"Started session")
             yield session
         finally:
             session.close()
@@ -57,7 +55,7 @@ class DataBase:
         """
         Создаёт в базе все таблицы, описанные в SQLModel-моделях.
         """
-        logging.info(f"Creating all tables")
+        logger.info(f"Creating all tables")
 
         SQLModel.metadata.create_all(self.engine)
 
@@ -65,7 +63,7 @@ class DataBase:
         """
         Удаляет из базы все таблицы, описанные в SQLModel-моделях.
         """
-        logging.warning(f"Dropping all tables")
+        logger.warning(f"Dropping all tables")
 
         SQLModel.metadata.drop_all(self.engine)
 
