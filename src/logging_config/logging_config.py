@@ -2,6 +2,12 @@
 import logging
 from logging.config import dictConfig
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
+console_logging_level = os.getenv('LOGGING_LEVEL', 'INFO')
+
 LOGGING_CONFIG = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -17,13 +23,7 @@ LOGGING_CONFIG = {
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'standard',
-            'level': 'INFO',
-            'stream': 'ext://sys.stdout'
-        },
-        'console_debug': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'detailed',
-            'level': 'DEBUG',
+            'level': console_logging_level,
             'stream': 'ext://sys.stdout'
         },
         'file_debug': {
@@ -47,7 +47,7 @@ LOGGING_CONFIG = {
     },
     'loggers': {
         '': {
-            'handlers': ['console_debug', 'file_debug', 'file_error'],
+            'handlers': ['console', 'file_debug', 'file_error'],
             'level': 'DEBUG',
             'propagate': False
         },
