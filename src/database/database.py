@@ -23,17 +23,8 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 class DataBase:
-    def __init__(self, dbname, user, host, password, port = 5432):
-        self.dbname = dbname
-        self.user = user
-        self.host = host
-        self.password = password
-        self.port = port
-
-        self._sqlalchemy_url = (
-            f"postgresql://{self.user}:{self.password}"
-            f"@{self.host}:{self.port}/{self.dbname}"
-        )
+    def __init__(self, postgresql_uri):
+        self._sqlalchemy_url = postgresql_uri
         self.engine = create_engine(self._sqlalchemy_url, echo=True)
         logger.info(f"Started database engine")
 
@@ -67,10 +58,4 @@ class DataBase:
 
         SQLModel.metadata.drop_all(self.engine)
 
-db = DataBase(
-    os.environ.get("DB_NAME"),
-    os.environ.get("DB_USER"),
-    os.environ.get("DB_HOST"),
-    os.environ.get("DB_PASSWORD"),
-    os.environ.get("DB_PORT"),
-    )
+db = DataBase(os.environ.get("POSTGRESQL_URI"))
