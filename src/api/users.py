@@ -48,7 +48,7 @@ class UserUpdate(BaseModel):
     group_name: Optional[str] | None = None
     faculty_name: Optional[str] | None = None
 
-def check_payload(payload: UserCreate | UserUpdate) -> None:
+def _check_payload(payload: UserCreate | UserUpdate) -> None:
     if payload.group_guid is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
