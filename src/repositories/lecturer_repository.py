@@ -41,7 +41,7 @@ class LecturerRepository:
             return existing
         return self.Create(lecturer)
 
-    def listAll(self) -> List[Lecturer]:
+    def ListAll(self) -> List[Lecturer]:
         """
         Returns a list of all Lecturer objects in the database.
 
@@ -51,7 +51,7 @@ class LecturerRepository:
         stmt = select(Lecturer)
         return self.session.exec(stmt).all()
 
-    def getById(self, value: int) -> Optional[Lecturer]:
+    def GetById(self, value: int) -> Optional[Lecturer]:
         """
         Gets a Lecturer by ID.
 
@@ -64,7 +64,7 @@ class LecturerRepository:
         stmt = select(Lecturer).where(Lecturer.id == value)
         return self.session.exec(stmt).first()
 
-    def getByGUID(self, value: UUID) -> Optional[Lecturer]:
+    def GetByGUID(self, value: UUID) -> Optional[Lecturer]:
         """
         Gets a Lecturer by GUID.
 
@@ -77,7 +77,7 @@ class LecturerRepository:
         stmt = select(Lecturer).where(Lecturer.guid == value)
         return self.session.exec(stmt).first()
 
-    def getWithLessons(self, value: int) -> Optional[Lecturer]:
+    def GetWithLessons(self, value: int) -> Optional[Lecturer]:
         """
         Gets a Lecturer by ID, with all its lessons.
 
