@@ -173,13 +173,6 @@ def update_user(
             )
         )
 
-    if payload.username is None:
-        payload.username = user.username
-    if payload.group_oid is None:
-        payload.group_oid = user.group_oid
-    if payload.subgroup is None:
-        payload.subgroup = user.subgroup
-
     return repo.Update(
         user_id,
         payload.username,
