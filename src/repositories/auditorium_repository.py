@@ -132,7 +132,7 @@ class AuditoriumRepository:
             current = self.GetById(value)
 
             if current is None:
-                logger.debug(f"Auditorium {value} does not exist")
+                logger.error(f"Auditorium {value} does not exist")
                 return False
 
             if name is None:
