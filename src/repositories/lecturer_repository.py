@@ -12,7 +12,7 @@ class LecturerRepository:
     def __init__(self, session: Session):
         self.session = session
 
-    def CreateLecturer(self, lecturer: Lecturer) -> Lecturer:
+    def Create(self, lecturer: Lecturer) -> Lecturer:
         """
         Creates a new Lecturer object in the database.
 
@@ -39,7 +39,7 @@ class LecturerRepository:
         existing = self.GetUserById(lecturer.id)
         if existing:
             return existing
-        return self.CreateUser(lecturer)
+        return self.Create(lecturer)
 
     def listAll(self) -> List[Lecturer]:
         """
@@ -87,7 +87,11 @@ class LecturerRepository:
         Returns:
             Optional[Lecturer]: The Lecturer with the given ID, or None if no such Lecturer exists.
         """
-        stmt = select(Lecturer).where(Lecturer.id == value).options(selectinload(Lecturer.lessons))
+        stmt = (
+            select(Lecturer)
+            .where(Lecturer.id == value)
+            .options(selectinload(Lecturer.lessons))
+        )
         return self.session.exec(stmt).first()
 
     def Update(
