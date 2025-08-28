@@ -1,5 +1,6 @@
 ﻿from typing import Generator, List, Optional
 from datetime import datetime
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Security, status
 from pydantic import BaseModel
@@ -7,8 +8,8 @@ from sqlmodel import Session
 
 from api.security import require_api_key
 from database import db
-from models import User
-from repositories import UserRepository
+from models import User, Group
+from repositories import UserRepository, GroupRepository
 
 router = APIRouter(prefix="/user", tags=["user"])
 
@@ -27,21 +28,42 @@ class UserRead(BaseModel):
     class Config:
         orm_mode = True
 
-
 class UserCreate(BaseModel):
     """Create schema for User entity. Used to create a new user record."""
     id: int  # Telegram ID
     username: str
-    group_oid: Optional[int] = None
+    group_oid: int
     subgroup: int = 0
-
+    group_guid: Optional[UUID] | None = None
+    group_name: Optional[str] | None = None
+    faculty_name: Optional[str] | None = None
 
 class UserUpdate(BaseModel):
     """Update schema for User entity. All fields are optional for partial updates."""
-    username: Optional[str] = None
-    group_oid: Optional[int] = None
-    subgroup: Optional[int] = None
-    last_used_at: Optional[datetime] = None
+    username: Optional[str] | None = None
+    group_oid: Optional[int] | None = None
+    subgroup: Optional[int] | None = None
+    last_used_at: Optional[datetime] | None = None
+    group_guid: Optional[UUID] | None = None
+    group_name: Optional[str] | None = None
+    faculty_name: Optional[str] | None = None
+
+def check_payload(payload: UserCreate | UserUpdate) -> None:
+    if payload.group_guid is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid group GUID"
+        )
+    if payload.group_name is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid group name"
+        )
+    if payload.faculty_name is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid faculty name"
+        )
 
 @router.get("/", response_model=List[UserRead])
 def list_users(
@@ -101,6 +123,18 @@ def create_user(
     Создать новую статью.
     """
     repo = UserRepository(session)
+    group_repo = GroupRepository(session)
+    if not group_repo.GetById(payload.group_oid):
+        check_payload(payload)
+        group = group_repo.GetOrCreate(
+            Group(
+                id=payload.group_oid,
+                guid=payload.group_guid,
+                name=payload.group_name,
+                faculty_name=payload.faculty_name
+            )
+        )
+
     return repo.GetOrCreate(
         User(
             id=payload.id,
@@ -128,6 +162,18 @@ def update_user(
             detail="User not found"
         )
 
+    group_repo = GroupRepository(session)
+    if not group_repo.GetById(payload.group_oid):
+        check_payload(payload)
+        group = group_repo.GetOrCreateGroup(
+            Group(
+                id=payload.group_oid,
+                guid=payload.group_guid,
+                name=payload.group_name,
+                faculty_name=payload.faculty_name
+            )
+        )
+
     return repo.Update(
         user_id,
         payload.username,
@@ -153,3 +199,21 @@ def update_user_last_used_at(
         )
 
     return repo.UpdateLastUsedAt(user_id)
+
+@router.delete("/{user_id}")
+def delete_user(
+    user_id: int,
+    session: Session = Depends(get_db),
+    _api_key: str = Security(require_api_key)
+):
+    """
+    Удалить статью по ID.
+    """
+    repo = UserRepository(session)
+    if not repo.GetById(user_id):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    return repo.Delete(user_id)
