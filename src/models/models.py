@@ -49,6 +49,7 @@ class Group(SQLModel, table=True):
 
     users: List["User"] = Relationship(back_populates="group")
     lessons: List["Lesson"] = Relationship(
+        back_populates="groups",
         link_model=LessonGroup
     )
 
@@ -206,5 +207,6 @@ class Lesson(SQLModel, table=True):
     auditorium: Optional[Auditorium] = Relationship(back_populates="lessons")
     lecturer: Optional[Lecturer] = Relationship(back_populates="lessons")
     groups: List["Group"] = Relationship(
+        back_populates="lessons",
         link_model=LessonGroup
     )
