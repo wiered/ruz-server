@@ -1,4 +1,5 @@
 ﻿import datetime
+import logging
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy import UUID, func
@@ -7,6 +8,8 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import Session, delete, select, update
 
 from models import Discipline
+
+logger = logging.getLogger(__name__)
 
 class DisciplineRepository:
     def __init__(self, session: Session):
@@ -21,6 +24,8 @@ class DisciplineRepository:
         Returns:
             Discipline: The added discipline.
         """
+        logger.info(f"Creating Discipline {discipline.name}")
+
         self.session.add(discipline)
         self.session.commit()
         return discipline
@@ -34,9 +39,14 @@ class DisciplineRepository:
         Returns:
             Discipline: The existing or newly-created discipline.
         """
+        logger.info(f"Getting or creating Discipline {discipline.name}")
+
         existing = self.GetById(discipline.id)
         if existing:
+            logger.debug(f"Discipline {discipline.name} already exists")
             return existing
+
+        logger.debug(f"Discipline {discipline.name} does not exist, creating")
         return self.Create(discipline)
 
     def ListAll(self):
@@ -45,6 +55,8 @@ class DisciplineRepository:
         Returns:
             List[Discipline]: A list of all disciplines in the database.
         """
+        logger.info("Listing all disciplines")
+
         stmt = select(Discipline)
         return self.session.exec(stmt).all()
 
@@ -57,6 +69,8 @@ class DisciplineRepository:
         Returns:
             Optional[Discipline]: The discipline with the given ID, or None if no such discipline exists.
         """
+        logger.info(f"Getting Discipline {value}")
+
         stmt = select(Discipline).where(Discipline.id == value)
         return self.session.exec(stmt).first()
 
@@ -69,6 +83,8 @@ class DisciplineRepository:
         Returns:
             Optional[Discipline]: The discipline with the given name, or None if no such discipline exists.
         """
+        logger.info(f"Getting Discipline {value}")
+
         stmt = select(Discipline).where(Discipline.name == value)
         return self.session.exec(stmt).first()
 
@@ -81,6 +97,8 @@ class DisciplineRepository:
         Returns:
             List[Discipline]: A list of all disciplines with the given exam type.
         """
+        logger.info(f"Getting Discipline {value}")
+
         stmt = select(Discipline).where(Discipline.examtype == value)
         return self.session.exec(stmt).all()
 
@@ -96,18 +114,23 @@ class DisciplineRepository:
         Returns:
             bool: True if the update was successful, False otherwise.
         """
+        logger.info(f"Updating Discipline {value}")
 
         try:
             current = self.GetById(value)
 
             if current is None:
+                logger.error(f"Discipline {value} does not exist")
                 return False
 
             if name is None:
+                logger.debug(f"Discipline {value} does not have a name")
                 name = current.name
             if examtype is None:
+                logger.debug(f"Discipline {value} does not have an exam type")
                 examtype = current.examtype
             if has_labs is None:
+                logger.debug(f"Discipline {value} does not have a has_labs")
                 has_labs = current.has_labs
 
             stmt = (
@@ -117,8 +140,10 @@ class DisciplineRepository:
             )
             result = self.session.exec(stmt)
             self.session.commit()
+            logger.debug(f"Discipline {value} updated")
             return result.rowcount > 0
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
+            logger.error(f"Discipline {value} update failed: \n{e}")
             self.session.rollback()
             return False
 
@@ -131,11 +156,14 @@ class DisciplineRepository:
         Returns:
             bool: True if the deletion was successful, False otherwise.
         """
+        logger.info(f"Deleting Discipline {value}")
         try:
             stmt = delete(Discipline).where(Discipline.id == value)
             result = self.session.exec(stmt)
             self.session.commit()
+            logger.debug(f"Discipline {value} deleted")
             return result.rowcount > 0
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
+            logger.error(f"Discipline {value} delete failed: \n{e}")
             self.session.rollback()
             return False
