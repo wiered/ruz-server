@@ -65,6 +65,37 @@ def _check_payload(payload: UserCreate | UserUpdate) -> None:
             detail="Invalid faculty name"
         )
 
+@router.post("/", response_model=UserRead, status_code=status.HTTP_201_CREATED)
+def create_user(
+    payload: UserCreate,
+    session: Session =  Depends(get_db),
+    _api_key: str = Security(require_api_key)
+):
+    """
+    Создать новую статью.
+    """
+    repo = UserRepository(session)
+    group_repo = GroupRepository(session)
+    if not group_repo.GetById(payload.group_oid):
+        _check_payload(payload)
+        group = group_repo.GetOrCreate(
+            Group(
+                id=payload.group_oid,
+                guid=payload.group_guid,
+                name=payload.group_name,
+                faculty_name=payload.faculty_name
+            )
+        )
+
+    return repo.GetOrCreate(
+        User(
+            id=payload.id,
+            username=payload.username,
+            group_oid=payload.group_oid,
+            subgroup=payload.subgroup
+        )
+    )
+
 @router.get("/", response_model=List[UserRead])
 def list_users(
     session: Session = Depends(get_db),
@@ -112,38 +143,6 @@ def get_user_by_username(
         )
     return user
 
-
-@router.post("/", response_model=UserRead, status_code=status.HTTP_201_CREATED)
-def create_user(
-    payload: UserCreate,
-    session: Session =  Depends(get_db),
-    _api_key: str = Security(require_api_key)
-):
-    """
-    Создать новую статью.
-    """
-    repo = UserRepository(session)
-    group_repo = GroupRepository(session)
-    if not group_repo.GetById(payload.group_oid):
-        check_payload(payload)
-        group = group_repo.GetOrCreate(
-            Group(
-                id=payload.group_oid,
-                guid=payload.group_guid,
-                name=payload.group_name,
-                faculty_name=payload.faculty_name
-            )
-        )
-
-    return repo.GetOrCreate(
-        User(
-            id=payload.id,
-            username=payload.username,
-            group_oid=payload.group_oid,
-            subgroup=payload.subgroup
-        )
-    )
-
 @router.put("/{user_id}")
 def update_user(
     user_id: int,
@@ -164,7 +163,7 @@ def update_user(
 
     group_repo = GroupRepository(session)
     if not group_repo.GetById(payload.group_oid):
-        check_payload(payload)
+        _check_payload(payload)
         group = group_repo.GetOrCreateGroup(
             Group(
                 id=payload.group_oid,
