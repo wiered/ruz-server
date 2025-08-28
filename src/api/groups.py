@@ -96,7 +96,13 @@ def create_group(
     Создать новую статью.
     """
     repo = GroupRepository(session)
-    return repo.GetOrCreate(
+    if repo.GetById(payload.id):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Group with this ID already exists"
+        )
+
+    return repo.Create(
         Group(
             id=payload.id,
             guid=payload.guid,
