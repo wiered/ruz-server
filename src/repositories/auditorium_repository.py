@@ -136,10 +136,10 @@ class AuditoriumRepository:
                 return False
 
             if name is None:
-                logger.debug(f"Auditorium {value} does not have a name")
+                logger.debug(f"Payload does not have a name")
                 name = current.name
             if building is None:
-                logger.debug(f"Auditorium {value} does not have a building")
+                logger.debug(f"Payload does not have a building")
                 building = current.building
 
             stmt = (

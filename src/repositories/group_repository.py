@@ -130,10 +130,10 @@ class GroupRepository:
                 return False
 
             if name is None:
-                logger.debug(f"Group {value} does not have a name")
+                logger.debug(f"Payload does not have a name")
                 name = current.name
             if faculty_name is None:
-                logger.debug(f"Group {value} does not have a faculty name")
+                logger.debug(f"Payload does not have a faculty name")
                 faculty_name = current.faculty_name
 
             stmt = (
