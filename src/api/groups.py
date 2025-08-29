@@ -87,7 +87,16 @@ class GroupUpdate(BaseModel):
     faculty_name: str
 
 
-def _ensure_group_doesnot_exists(group_id, session: Session) -> None:
+def _ensure_group_doesnot_exists(group_id: int, session: Session) -> None:
+    """Ensures that the group with the given ID does not exist in the database.
+
+    If the group exists, a 409 error is raised. Otherwise, this function does
+    nothing.
+
+    Args:
+        group_id (int): The ID of the group to check.
+        session (Session): The database session to use for the operation.
+    """
     repo = GroupRepository(session)
     if repo.GetById(group_id):
         raise HTTPException(
@@ -96,6 +105,20 @@ def _ensure_group_doesnot_exists(group_id, session: Session) -> None:
         )
 
 def _ensure_group_exists(value, function) -> Group:
+    """Ensures that the group with the given value exists in the database.
+
+    If the group does not exist, a 404 error is raised. Otherwise, the function
+    returns the group object.
+
+    Args:
+        value: The value to search for a group by (e.g. ID, GUID, etc.).
+        function: A function that takes in a value and returns a group object,
+            or None if the group does not exist.
+
+    Returns:
+        The group object if it exists, or raises a 404 error if it does not.
+    """
+
     group = function(value)
     if not group:
         raise HTTPException(
