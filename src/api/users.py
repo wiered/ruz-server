@@ -67,7 +67,7 @@ def _check_payload(payload: UserCreate | UserUpdate) -> None:
             detail="Invalid faculty name"
         )
 
-def _ensure_group_exists(payload: UserCreate | UserUpdate, session) -> None:
+def _ensure_group_exists(payload: UserCreate | UserUpdate, session: Session) -> None:
     """Ensures that the group with the given OID exists in the database.
 
     If the group does not exist, it is created with the given GUID, name, and
@@ -93,7 +93,7 @@ def _ensure_group_exists(payload: UserCreate | UserUpdate, session) -> None:
             )
         )
 
-def _ensure_user_doesnot_exists(user_id, session) -> None:
+def _ensure_user_doesnot_exists(user_id: int, session: Session) -> None:
     """Ensures that the user with the given ID does not exist in the database.
 
     If the user with the given ID already exists, a 409 error is raised.
