@@ -20,6 +20,23 @@ def ensure_entity_exists(value, function):
 
     return entity
 
+def is_entity_exists(value, function):
+    """Ensures that the object with the given value exists in the database.
+
+    Args:
+        value: The value to search for a corresponding entity by.
+        function: A function that takes in a value and returns an entity object,
+            or None if the entity does not exist.
+
+    Returns:
+        The entity object if it exists, or raises a 404 error if it does not.
+    """
+    entity = function(value)
+    if not entity:
+        raise False
+
+    return True
+
 def ensure_entity_doesnot_exist(value, function) -> None:
     """Ensures that the kind of work with the given ID does not exist in the database.
 
