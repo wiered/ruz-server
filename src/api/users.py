@@ -50,7 +50,12 @@ class UserUpdate(BaseModel):
 
 def _check_payload(payload: UserCreate | UserUpdate) -> None:
     """Validates the given payload and raises a 400 error if any of the essential group
-    fields are missing."""
+    fields are missing.
+
+    Args:
+        payload (UserCreate | UserUpdate): The create or update payload containing
+            the group GUID, name, and faculty name.
+    """
     if payload.group_guid is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -77,9 +82,9 @@ def _ensure_group_exists(payload: UserCreate | UserUpdate, session: Session) -> 
     exist.
 
     Args:
-        payload: The create or update payload containing the group OID and
-            associated fields.
-        session: The database session to use for the operation.
+        payload (UserCreate | UserUpdate): The create or update payload containing
+            the group OID andassociated fields.
+        session (Session): The database session to use for the operation.
     """
     group_repo = GroupRepository(session)
     if not group_repo.GetById(payload.group_oid):
@@ -100,8 +105,8 @@ def _ensure_user_doesnot_exists(user_id: int, session: Session) -> None:
     Otherwise, the function does nothing.
 
     Args:
-        user_id: The ID of the user to check for existence.
-        session: The database session to use for the operation.
+        user_id (int): The ID of the user to check for existence.
+        session (Session): The database session to use for the operation.
     """
     repo = UserRepository(session)
     if repo.GetById(user_id):
