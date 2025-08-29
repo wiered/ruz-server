@@ -1,6 +1,6 @@
 ﻿from fastapi import HTTPException, status
 
-def ensure_exists(value, function):
+def ensure_entity_exists(value, function):
     """Ensures that the object with the given value exists in the database.
 
     Args:
@@ -20,7 +20,7 @@ def ensure_exists(value, function):
 
     return entity
 
-def ensure_doesnot_exist(value, function) -> None:
+def ensure_entity_doesnot_exist(value, function) -> None:
     """Ensures that the kind of work with the given ID does not exist in the database.
 
     If the kind of work with the given ID already exists, a 409 error is raised.
