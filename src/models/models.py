@@ -8,6 +8,23 @@ from sqlalchemy.dialects.postgresql import UUID as SA_UUID
 from sqlmodel import Column, Field, Relationship, SQLModel
 
 
+class LessonGroup(SQLModel, table=True):
+    """Chains lessons to groups"""
+    __tablename__ = "lesson_group"
+    lesson_id: int = Field(
+        sa_column=Column(
+            ForeignKey("lesson.id", ondelete="CASCADE"),
+            primary_key=True
+        )
+    ) # lessonOid
+    group_id: int = Field(
+        sa_column=Column(
+            ForeignKey("groups.id", ondelete="CASCADE"),
+            primary_key=True
+        )
+    ) # groupOid
+
+
 class Group(SQLModel, table=True):
     __tablename__ = "groups"
     id: int = Field(default=None, primary_key=True) # groupOid
@@ -29,7 +46,10 @@ class Group(SQLModel, table=True):
     ))
 
     users: List["User"] = Relationship(back_populates="group")
-    lessons: List["Lesson"] = Relationship(back_populates="group")
+    lessons: List["Lesson"] = Relationship(
+        back_populates="groups",
+        link_model=LessonGroup
+    )
 
 
 class User(SQLModel, table=True):
@@ -145,12 +165,6 @@ class Auditorium(SQLModel, table=True):
 class Lesson(SQLModel, table=True):
     __tablename__ = "lesson"
     id: int = Field(default=None, primary_key=True) # lessonOid
-    group_id: int = Field(
-        sa_column=Column(
-            ForeignKey("groups.id", ondelete="CASCADE"),
-            primary_key=True
-        )
-    ) # groupOid
     kind_of_work_id: int = Field(
         sa_column=Column(
             ForeignKey("kind_of_work.id", ondelete="CASCADE")
@@ -190,4 +204,7 @@ class Lesson(SQLModel, table=True):
     discipline: Optional[Discipline] = Relationship(back_populates="lessons")
     auditorium: Optional[Auditorium] = Relationship(back_populates="lessons")
     lecturer: Optional[Lecturer] = Relationship(back_populates="lessons")
-    group: List["Group"] = Relationship(back_populates="lessons")
+    groups: List["Group"] = Relationship(
+        back_populates="lessons",
+        link_model=LessonGroup
+    )
