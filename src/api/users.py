@@ -201,7 +201,8 @@ def update_user(
     """
     repo = UserRepository(session)
     _ensure_user_exists(user_id, repo.GetById)
-    _ensure_group_exists(payload, session)
+    if payload.group_oid:
+        _ensure_group_exists(payload, session)
 
     return repo.Update(
         user_id,
