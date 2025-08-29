@@ -30,6 +30,18 @@ class LessonRepository:
         self.session.commit()
         return lesson
 
+    def BulkSaveLessons(self, lessons: List[Lesson]) -> None:
+        """Saves a list of lessons to the database.
+
+        Args:
+            lessons (List[Lesson]): A list of lessons to save.
+
+        Returns:
+            None
+        """
+        self.session.bulk_save_objects(lessons)
+        self.session.commit()
+
     def GetOrCreate(self, lesson: Lesson) -> Lesson:
         """Gets a lesson by ID or creates it if it doesn't exist.
 
@@ -336,4 +348,23 @@ class LessonRepository:
         except SQLAlchemyError as e:
             self.session.rollback()
             logger.error(f"Failed to delete Lesson {value}: \n{e}")
+            return False
+
+    def DeleteAll(self) -> bool:
+        """Deletes all lessons from the database.
+
+        Returns:
+            bool: True if the deletion was successful, False otherwise.
+        """
+        logger.info("Deleting all Lessons")
+
+        try:
+            stmt = delete(Lesson)
+            result = self.session.exec(stmt)
+            self.session.commit()
+            logger.debug("Deleted all Lessons")
+            return result.rowcount > 0
+        except SQLAlchemyError as e:
+            self.session.rollback()
+            logger.error(f"Failed to delete all Lessons: \n{e}")
             return False
