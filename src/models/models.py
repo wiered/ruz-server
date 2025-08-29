@@ -8,23 +8,6 @@ from sqlalchemy.dialects.postgresql import UUID as SA_UUID
 from sqlmodel import Column, Field, Relationship, SQLModel
 
 
-class LessonGroup(SQLModel, table=True):
-    """Chains lessons to groups"""
-    __tablename__ = "lesson_group"
-    lesson_id: int = Field(
-        sa_column=Column(
-            ForeignKey("lesson.id", ondelete="CASCADE"),
-            primary_key=True
-        )
-    ) # lessonOid
-    group_id: int = Field(
-        sa_column=Column(
-            ForeignKey("groups.id", ondelete="CASCADE"),
-            primary_key=True
-        )
-    ) # groupOid
-
-
 class Group(SQLModel, table=True):
     __tablename__ = "groups"
     id: int = Field(default=None, primary_key=True) # groupOid
@@ -165,6 +148,12 @@ class Auditorium(SQLModel, table=True):
 class Lesson(SQLModel, table=True):
     __tablename__ = "lesson"
     id: int = Field(default=None, primary_key=True) # lessonOid
+    group_id: int = Field(
+        sa_column=Column(
+            ForeignKey("groups.id", ondelete="CASCADE"),
+            primary_key=True
+        )
+    ) # groupOid
     kind_of_work_id: int = Field(
         sa_column=Column(
             ForeignKey("kind_of_work.id", ondelete="CASCADE")
