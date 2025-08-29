@@ -86,6 +86,25 @@ class GroupUpdate(BaseModel):
     name: str
     faculty_name: str
 
+
+def _ensure_group_doesnot_exists(group_id, session: Session) -> None:
+    repo = GroupRepository(session)
+    if repo.GetById(group_id):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Group with this ID already exists"
+        )
+
+def _ensure_group_exists(value, function) -> Group:
+    group = function(value)
+    if not group:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    return group
+
 @router.post("/", response_model=GroupRead, status_code=status.HTTP_201_CREATED)
 def create_group(
     payload: GroupCreate,
@@ -96,11 +115,7 @@ def create_group(
     Создать новую статью.
     """
     repo = GroupRepository(session)
-    if repo.GetById(payload.id):
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Group with this ID already exists"
-        )
+    _ensure_group_doesnot_exists(payload.id, session)
 
     return repo.Create(
         Group(
@@ -132,13 +147,7 @@ def get_group(
     Получить статью по ID.
     """
     repo = GroupRepository(session)
-    group = repo.GetById(group_id)
-    if not group:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Group not found"
-        )
-    return group
+    return _ensure_group_exists(group_id, repo.GetById)
 
 @router.get("/guid/{group_guid}", response_model=GroupRead)
 def get_group_by_guid(
@@ -150,13 +159,7 @@ def get_group_by_guid(
     Получить статью по GUID.
     """
     repo = GroupRepository(session)
-    group = repo.GetByGUID(group_guid)
-    if not group:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Group not found"
-        )
-    return group
+    return _ensure_group_exists(group_guid, repo.GetByGuid)
 
 @router.put("/{group_id}")
 def update_group(
@@ -169,12 +172,7 @@ def update_group(
     Обновить существующую статью.
     """
     repo = GroupRepository(session)
-    group = repo.GetById(group_id)
-    if not group:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Group not found"
-        )
+    _ensure_group_exists(group_id, repo.GetById)
 
     return repo.Update(group_id, payload.name, payload.faculty_name)
 
@@ -188,10 +186,6 @@ def delete_group(
     Удалить статью по ID.
     """
     repo = GroupRepository(session)
-    if not repo.GetById(group_id):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Group not found"
-        )
+    _ensure_group_exists(group_id, repo.GetById)
 
     return repo.Delete(group_id)
