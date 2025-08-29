@@ -10,6 +10,7 @@ from api.security import require_api_key
 from database import db
 from models import Lecturer
 from repositories import LecturerRepository
+from helpers.api_helpers import ensure_entity_exists, ensure_entity_doesnot_exist
 
 router = APIRouter(prefix="/lecturer", tags=["lecturer"])
 
@@ -55,11 +56,7 @@ def create_lecturer(
     Создать нового лектора.
     """
     repo = LecturerRepository(session)
-    if repo.GetById(payload.id):
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Lecturer with this ID already exists"
-        )
+    ensure_entity_doesnot_exist(payload.id, repo.GetById)
 
     return repo.Create(
         Lecturer(
@@ -92,13 +89,7 @@ def get_lecturer(
     Получить лектора по ID.
     """
     repo = LecturerRepository(session)
-    lecturer = repo.GetById(lecturer_id)
-    if not lecturer:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Lecturer not found"
-        )
-    return lecturer
+    return ensure_entity_exists(lecturer_id, repo.GetById)
 
 @router.get("/guid/{lecturer_guid}", response_model=LecturerRead)
 def get_lecturer_by_guid(
@@ -110,13 +101,7 @@ def get_lecturer_by_guid(
     Получить лектора по GUID.
     """
     repo = LecturerRepository(session)
-    lecturer = repo.GetByGUID(lecturer_guid)
-    if not lecturer:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Lecturer not found"
-        )
-    return lecturer
+    return ensure_entity_exists(lecturer_guid, repo.GetByGUID)
 
 @router.put("/{lecturer_id}")
 def update_lecturer(
@@ -129,12 +114,7 @@ def update_lecturer(
     Обновить существующего лектора.
     """
     repo = LecturerRepository(session)
-    lecturer = repo.GetById(lecturer_id)
-    if not lecturer:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Lecturer not found"
-        )
+    ensure_entity_exists(lecturer_id, repo.GetById)
 
     return repo.Update(
         lecturer_id,
@@ -153,11 +133,6 @@ def delete_lecturer(
     Удалить существующего лектора.
     """
     repo = LecturerRepository(session)
-    lecturer = repo.GetById(lecturer_id)
-    if not lecturer:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Lecturer not found"
-        )
+    ensure_entity_exists(lecturer_id, repo.GetById)
 
     return repo.Delete(lecturer_id)

@@ -10,6 +10,7 @@ from api.security import require_api_key
 from database import db
 from models import KindOfWork
 from repositories import KindOfWorkRepository
+from helpers.api_helpers import ensure_entity_exists, ensure_entity_doesnot_exist
 
 router = APIRouter(prefix="/kind_of_work", tags=["kind_of_work"])
 
@@ -38,6 +39,7 @@ class KindOfWorkUpdate(BaseModel):
     type_of_work: Optional[str] | None = None
     complexity: Optional[int] | None = None
 
+
 @router.post("/", response_model=KindOfWorkRead)
 def create_kind_of_work(
     payload: KindOfWorkCreate,
@@ -54,11 +56,7 @@ def create_kind_of_work(
         KindOfWorkRead: Created or retrieved KindOfWork.
     """
     repo = KindOfWorkRepository(session)
-    if repo.GetById(payload.id):
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="KindOfWork with this ID already exists"
-        )
+    ensure_entity_doesnot_exist(payload.id, repo.GetById)
 
     return repo.Create(
         KindOfWork(
@@ -99,13 +97,7 @@ def get_kind_of_work(
         KindOfWorkRead: The retrieved KindOfWork object.
     """
     repo = KindOfWorkRepository(session)
-    kind_of_work = repo.GetById(id)
-    if not kind_of_work:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="KindOfWork not found"
-        )
-    return kind_of_work
+    return ensure_entity_exists(id, repo.GetById)
 
 @router.put("/{id}")
 def update_kind_of_work(
@@ -125,12 +117,7 @@ def update_kind_of_work(
         KindOfWorkRead: The updated KindOfWork object.
     """
     repo = KindOfWorkRepository(session)
-    kind_of_work = repo.GetById(id)
-    if not kind_of_work:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="KindOfWork not found"
-        )
+    ensure_entity_exists(id, repo.GetById)
 
     return repo.Update(
         id,
@@ -154,12 +141,7 @@ def delete_kind_of_work(
         None
     """
     repo = KindOfWorkRepository(session)
-    kind_of_work = repo.GetById(id)
-    if not kind_of_work:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="KindOfWork not found"
-        )
+    ensure_entity_exists(id, repo.GetById)
 
     return repo.Delete(id)
 

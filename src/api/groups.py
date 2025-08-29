@@ -10,6 +10,7 @@ from api.security import require_api_key
 from database import db
 from models import Group
 from repositories import GroupRepository
+from helpers.api_helpers import ensure_entity_exists, ensure_entity_doesnot_exist
 
 router = APIRouter(prefix="/group", tags=["group"])
 
@@ -87,47 +88,6 @@ class GroupUpdate(BaseModel):
     faculty_name: str
 
 
-def _ensure_group_doesnot_exists(group_id: int, session: Session) -> None:
-    """Ensures that the group with the given ID does not exist in the database.
-
-    If the group exists, a 409 error is raised. Otherwise, this function does
-    nothing.
-
-    Args:
-        group_id (int): The ID of the group to check.
-        session (Session): The database session to use for the operation.
-    """
-    repo = GroupRepository(session)
-    if repo.GetById(group_id):
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Group with this ID already exists"
-        )
-
-def _ensure_group_exists(value, function) -> Group:
-    """Ensures that the group with the given value exists in the database.
-
-    If the group does not exist, a 404 error is raised. Otherwise, the function
-    returns the group object.
-
-    Args:
-        value: The value to search for a group by (e.g. ID, GUID, etc.).
-        function: A function that takes in a value and returns a group object,
-            or None if the group does not exist.
-
-    Returns:
-        The group object if it exists, or raises a 404 error if it does not.
-    """
-
-    group = function(value)
-    if not group:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
-
-    return group
-
 @router.post("/", response_model=GroupRead, status_code=status.HTTP_201_CREATED)
 def create_group(
     payload: GroupCreate,
@@ -138,7 +98,8 @@ def create_group(
     Создать новую статью.
     """
     repo = GroupRepository(session)
-    _ensure_group_doesnot_exists(payload.id, session)
+    ensure_entity_doesnot_exist(payload.id, repo.GetById)
+    ensure_entity_doesnot_exist(payload.name, repo.GetByName)
 
     return repo.Create(
         Group(
@@ -170,7 +131,7 @@ def get_group(
     Получить статью по ID.
     """
     repo = GroupRepository(session)
-    return _ensure_group_exists(group_id, repo.GetById)
+    return ensure_entity_exists(group_id, repo.GetById)
 
 @router.get("/guid/{group_guid}", response_model=GroupRead)
 def get_group_by_guid(
@@ -182,7 +143,7 @@ def get_group_by_guid(
     Получить статью по GUID.
     """
     repo = GroupRepository(session)
-    return _ensure_group_exists(group_guid, repo.GetByGuid)
+    return ensure_entity_exists(group_guid, repo.GetByGUID)
 
 @router.put("/{group_id}")
 def update_group(
@@ -195,7 +156,9 @@ def update_group(
     Обновить существующую статью.
     """
     repo = GroupRepository(session)
-    _ensure_group_exists(group_id, repo.GetById)
+    group = ensure_entity_exists(group_id, repo.GetById)
+    if payload.name != group.name:
+        ensure_entity_doesnot_exist(payload.name, repo.GetByName)
 
     return repo.Update(group_id, payload.name, payload.faculty_name)
 
@@ -209,6 +172,6 @@ def delete_group(
     Удалить статью по ID.
     """
     repo = GroupRepository(session)
-    _ensure_group_exists(group_id, repo.GetById)
+    ensure_entity_exists(group_id, repo.GetById)
 
     return repo.Delete(group_id)

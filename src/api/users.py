@@ -10,6 +10,7 @@ from api.security import require_api_key
 from database import db
 from models import User, Group
 from repositories import UserRepository, GroupRepository
+from helpers.api_helpers import ensure_entity_exists, ensure_entity_doesnot_exist
 
 router = APIRouter(prefix="/user", tags=["user"])
 
@@ -98,45 +99,6 @@ def _ensure_group_exists(payload: UserCreate | UserUpdate, session: Session) -> 
             )
         )
 
-def _ensure_user_doesnot_exists(user_id: int, session: Session) -> None:
-    """Ensures that the user with the given ID does not exist in the database.
-
-    If the user with the given ID already exists, a 409 error is raised.
-    Otherwise, the function does nothing.
-
-    Args:
-        user_id (int): The ID of the user to check for existence.
-        session (Session): The database session to use for the operation.
-    """
-    repo = UserRepository(session)
-    if repo.GetById(user_id):
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="User with this ID already exists"
-        )
-
-def _ensure_user_exists(value, function) -> User:
-    """Ensures that the user with the given value exists in the database.
-
-    If the user does not exist, a 404 error is raised. Otherwise, the function
-    returns the user object.
-
-    Args:
-        value: The value to search for a user by (e.g. ID, GUID, etc.).
-        function: A function that takes in a value and returns a user object,
-            or None if the user does not exist.
-
-    Returns:
-        The user object if it exists, or raises a 404 error if it does not.
-    """
-    user = function(value)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
-    return user
-
 @router.post("/", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 def create_user(
     payload: UserCreate,
@@ -145,7 +107,7 @@ def create_user(
 ):
     repo = UserRepository(session)
     _ensure_group_exists(payload, session)
-    _ensure_user_doesnot_exists(payload.id, session)
+    ensure_entity_doesnot_exist(payload.id, repo.GetById)
 
     return repo.Create(
         User(
@@ -171,7 +133,7 @@ def get_user(
     _api_key: str = Security(require_api_key)
 ):
     repo = UserRepository(session)
-    return _ensure_user_exists(user_id, repo.GetById)
+    return ensure_entity_exists(user_id, repo.GetById)
 
 @router.get("/guid/{user_guid}", response_model=UserRead)
 def get_user_by_username(
@@ -180,7 +142,7 @@ def get_user_by_username(
     _api_key: str = Security(require_api_key)
 ):
     repo = UserRepository(session)
-    return _ensure_user_exists(username, repo.GetByUsername)
+    return ensure_entity_exists(username, repo.GetByUsername)
 
 @router.put("/{user_id}")
 def update_user(
@@ -190,7 +152,7 @@ def update_user(
     _api_key: str = Security(require_api_key)
 ):
     repo = UserRepository(session)
-    _ensure_user_exists(user_id, repo.GetById)
+    ensure_entity_exists(user_id, repo.GetById)
     if payload.group_oid:
         _ensure_group_exists(payload, session)
 
@@ -208,7 +170,7 @@ def update_user_last_used_at(
     _api_key: str = Security(require_api_key)
 ):
     repo = UserRepository(session)
-    _ensure_user_exists(user_id, repo.GetById)
+    ensure_entity_exists(user_id, repo.GetById)
 
     return repo.UpdateLastUsedAt(user_id)
 
@@ -219,6 +181,6 @@ def delete_user(
     _api_key: str = Security(require_api_key)
 ):
     repo = UserRepository(session)
-    _ensure_user_exists(user_id, repo.GetById)
+    ensure_entity_exists(user_id, repo.GetById)
 
     return repo.Delete(user_id)
