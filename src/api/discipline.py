@@ -102,7 +102,7 @@ def update_discipline(
     )
 
 
-@router.delete("/{discipline_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{discipline_id}")
 def delete_discipline(
     discipline_id: int,
     session: Session = Depends(get_db),
