@@ -143,9 +143,6 @@ def create_user(
     session: Session =  Depends(get_db),
     _api_key: str = Security(require_api_key)
 ):
-    """
-    Создать новую статью.
-    """
     repo = UserRepository(session)
     _ensure_group_exists(payload, session)
     _ensure_user_doesnot_exists(payload.id, session)
@@ -164,9 +161,6 @@ def list_users(
     session: Session = Depends(get_db),
     _api_key: str = Security(require_api_key)
 ):
-    """
-    Список всех статей.
-    """
     repo = UserRepository(session)
     return repo.ListAll()
 
@@ -176,9 +170,6 @@ def get_user(
     session: Session = Depends(get_db),
     _api_key: str = Security(require_api_key)
 ):
-    """
-    Получить статью по ID.
-    """
     repo = UserRepository(session)
     return _ensure_user_exists(user_id, repo.GetById)
 
@@ -188,9 +179,6 @@ def get_user_by_username(
     session: Session = Depends(get_db),
     _api_key: str = Security(require_api_key)
 ):
-    """
-    Получить статью по GUID.
-    """
     repo = UserRepository(session)
     return _ensure_user_exists(username, repo.GetByUsername)
 
@@ -201,9 +189,6 @@ def update_user(
     session: Session = Depends(get_db),
     _api_key: str = Security(require_api_key)
 ):
-    """
-    Обновить существующую статью.
-    """
     repo = UserRepository(session)
     _ensure_user_exists(user_id, repo.GetById)
     if payload.group_oid:
@@ -222,9 +207,6 @@ def update_user_last_used_at(
     session: Session = Depends(get_db),
     _api_key: str = Security(require_api_key)
 ):
-    """
-    Обновить существующую статью.
-    """
     repo = UserRepository(session)
     _ensure_user_exists(user_id, repo.GetById)
 
@@ -236,9 +218,6 @@ def delete_user(
     session: Session = Depends(get_db),
     _api_key: str = Security(require_api_key)
 ):
-    """
-    Удалить статью по ID.
-    """
     repo = UserRepository(session)
     _ensure_user_exists(user_id, repo.GetById)
 
