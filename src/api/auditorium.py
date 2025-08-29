@@ -92,7 +92,7 @@ def get_auditorium_by_guid(
     return ensure_entity_exists(auditorium_guid, repo.GetByGuid)
 
 
-@router.put("/{auditorium_id}", response_model=AuditoriumRead)
+@router.put("/{auditorium_id}")
 def update_auditorium(
     auditorium_id: int,
     payload: AuditoriumUpdate,
