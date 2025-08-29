@@ -1,16 +1,15 @@
 ﻿from typing import Generator, List, Optional
-from datetime import datetime
-from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Security, status
+from fastapi import APIRouter, Depends, Security, status
 from pydantic import BaseModel
 from sqlmodel import Session
 
 from api.security import require_api_key
 from database import db
+from helpers.api_helpers import (ensure_entity_doesnot_exist,
+                                 ensure_entity_exists)
 from models import Discipline
 from repositories import DisciplineRepository
-from helpers.api_helpers import ensure_entity_exists, ensure_entity_doesnot_exist
 
 router = APIRouter(prefix="/discipline", tags=["discipline"])
 

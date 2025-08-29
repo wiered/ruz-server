@@ -1,5 +1,5 @@
-﻿from typing import Generator, List, Optional
-from datetime import datetime
+﻿from datetime import datetime
+from typing import Generator, List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Security, status
@@ -8,9 +8,10 @@ from sqlmodel import Session
 
 from api.security import require_api_key
 from database import db
-from models import User, Group
-from repositories import UserRepository, GroupRepository
-from helpers.api_helpers import ensure_entity_exists, ensure_entity_doesnot_exist
+from helpers.api_helpers import (ensure_entity_doesnot_exist,
+                                 ensure_entity_exists)
+from models import Group, User
+from repositories import GroupRepository, UserRepository
 
 router = APIRouter(prefix="/user", tags=["user"])
 
