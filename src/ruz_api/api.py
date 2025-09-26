@@ -3,12 +3,43 @@ import calendar
 import logging
 from datetime import datetime, timedelta
 from typing import List
+from uuid import UUID
 
 import aiohttp
+from pydantic import BaseModel
 
 from database import db
 
 logger = logging.getLogger(__name__)
+
+
+class LessonCreate(BaseModel):
+    """Create schema for Lesson entity. Used to create a new lesson record."""
+    id: int # lessonOid
+    lecturer_id: int
+    lecturer_guid: UUID
+    lecturer_full_name: str
+    lecturer_short_name: str
+    lecturer_rank: str
+
+    kind_of_work_id: int
+    type_of_work: str
+    complexity: int
+
+    discipline_id: int # lesson Oid
+    discipline_name: str
+
+    auditorium_id: int
+    auditorium_guid: UUID
+    auditorium_name: str
+    auditorium_building: str
+
+    date: datetime.date
+    begin_lesson: datetime.time
+    end_lesson: datetime.time
+
+    group_id: int
+    sub_group: int = 0
 
 
 class RuzAPI:
@@ -89,9 +120,38 @@ class RuzAPI:
             if list_sub:
                 subgroup = int(list_sub[0].get("subgroup")[-1])
 
-            lesson["group_id"] = group_id
-            lesson["subgroup"] = subgroup
-            lesson["update_time"] = update_time
+            full_name = lesson["listOfLecturers"][0]["lecturer_title"]
+            lesson_date = datetime.strptime(lesson["date"], "%Y.%m.%d").date()
+            begin_lesson = datetime.strptime(lesson["beginLesson"], "%H:%M").time()
+            end_lesson = datetime.strptime(lesson["endLesson"], "%H:%M").time()
+
+            lesson = LessonCreate(
+                id = lesson["lessonOid"],
+                lecturer_id = lesson["lecturerOid"],
+                lecturer_guid = lesson["lecturerCustomUID"],
+                lecturer_full_name = full_name,
+                lecturer_short_name = lesson["lecturer"],
+                lecturer_rank = lesson["lecturer_rank"],
+
+                kind_of_work_id = lesson["kindOfWorkOid"],
+                type_of_work = lesson["typeOfWork"],
+                complexity = lesson["kindOfWorkComplexity"],
+
+                discipline_id = lesson["disciplineOid"],
+                discipline_name = lesson["discipline"],
+
+                auditorium_id = lesson["auditoriumOid"],
+                auditorium_guid = lesson["auditoriumGUID"],
+                auditorium_name = lesson["auditorium"],
+                auditorium_building = lesson["building"],
+
+                date = lesson_date,
+                begin_lesson = begin_lesson,
+                end_lesson = end_lesson,
+                group_id=group_id,
+                sub_group=subgroup
+            )
+
             processed.append(lesson)
 
         return processed

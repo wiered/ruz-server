@@ -37,6 +37,15 @@ def is_entity_exists(value, function):
 
     return True
 
+def create_if_not_exists(
+    repository,
+    value,
+    function,
+    kwargs
+):
+    if not is_entity_exists(value, function):
+        repository.Create(**kwargs) 
+
 def ensure_entity_doesnot_exist(value, function) -> None:
     """Ensures that the kind of work with the given ID does not exist in the database.
 
