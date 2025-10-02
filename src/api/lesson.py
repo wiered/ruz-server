@@ -1,10 +1,11 @@
-﻿import datetime
-import logging
+﻿import logging
+from datetime import time, date
+from datetime import datetime as dt
 from typing import Generator, List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Security, status
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlmodel import Session
 
 from api.security import require_api_key
@@ -32,14 +33,13 @@ class LessonRead(BaseModel):
     discipline_id: int
     auditorium_id: int
     lecturer_id: int
-    date: datetime.date
-    begin_lesson: datetime.time
-    end_lesson: datetime.time
-    updated_at: datetime
+    date: date
+    begin_lesson: time
+    end_lesson: time
+    updated_at: dt
     sub_group: int
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class LessonCreate(BaseModel):
@@ -63,9 +63,9 @@ class LessonCreate(BaseModel):
     auditorium_name: str
     auditorium_building: str
 
-    date: datetime.date
-    begin_lesson: datetime.time
-    end_lesson: datetime.time
+    date: date
+    begin_lesson: time
+    end_lesson: time
 
     group_id: int
     sub_group: int = 0
@@ -77,11 +77,11 @@ class LessonUpdate(BaseModel):
     discipline_id: Optional[int] | None = None
     auditorium_id: Optional[int] | None = None
     lecturer_id: Optional[int] | None = None
-    date: Optional[datetime.date] | None = None
-    begin_lesson: Optional[datetime.time] | None = None
-    end_lesson: Optional[datetime.time] | None = None
+    date: Optional[date] | None = None
+    begin_lesson: Optional[time] | None = None
+    end_lesson: Optional[time] | None = None
     sub_group: Optional[int] | None = None
-    updated_at: Optional[datetime.datetime] | None = None
+    updated_at: Optional[dt] | None = None
 
 
 def _set_has_labs_and_examtype(payload: LessonCreate, session: Session):
