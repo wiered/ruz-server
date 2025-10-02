@@ -1,7 +1,7 @@
 ﻿import asyncio
 import calendar
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time, date
 from typing import List
 from uuid import UUID
 
@@ -34,9 +34,9 @@ class LessonCreate(BaseModel):
     auditorium_name: str
     auditorium_building: str
 
-    date: datetime.date
-    begin_lesson: datetime.time
-    end_lesson: datetime.time
+    date: date
+    begin_lesson: time
+    end_lesson: time
 
     group_id: int
     sub_group: int = 0
