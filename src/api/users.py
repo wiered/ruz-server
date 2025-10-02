@@ -3,7 +3,7 @@ from typing import Generator, List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Security, status
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlmodel import Session
 
 from api.security import require_api_key
@@ -27,8 +27,7 @@ class UserRead(BaseModel):
     created_at: datetime
     last_used_at: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class UserCreate(BaseModel):
     """Create schema for User entity. Used to create a new user record."""

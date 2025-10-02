@@ -1,7 +1,7 @@
 ﻿from typing import Generator, List, Optional
 
 from fastapi import APIRouter, Depends, Security, status
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlmodel import Session
 
 from api.security import require_api_key
@@ -24,8 +24,7 @@ class DisciplineRead(BaseModel):
     examtype: Optional[str] = None
     has_labs: bool = False
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class DisciplineCreate(BaseModel):

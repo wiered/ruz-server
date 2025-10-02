@@ -1,7 +1,7 @@
 ﻿from typing import Generator, List, Optional
 
 from fastapi import APIRouter, Depends, Security
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlmodel import Session
 
 from api.security import require_api_key
@@ -22,8 +22,7 @@ class KindOfWorkRead(BaseModel):
     type_of_work: str
     complexity: int
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class KindOfWorkCreate(BaseModel):

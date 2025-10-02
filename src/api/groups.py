@@ -2,7 +2,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Security, status
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlmodel import Session
 
 from api.security import require_api_key
@@ -42,8 +42,7 @@ class GroupRead(BaseModel):
     name: str
     faculty_name: str
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class GroupCreate(BaseModel):
     """
