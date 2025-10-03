@@ -12,11 +12,6 @@ from logging_config import LOGGING_CONFIG, ColoredFormatter
 dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger(__name__)
 
-root_logger = logging.getLogger()
-for handler in root_logger.handlers:
-    if type(handler) is logging.StreamHandler:
-        handler.setFormatter(ColoredFormatter('%(levelname)s:     %(asctime)s %(name)s - %(message)s'))
-
 app = FastAPI()
 app.include_router(api_router, prefix="/api")
 
@@ -30,6 +25,6 @@ async def public():
     return {"message": "public ok"}
 
 @app.get("/protected")
-async def protected(_api_key: str = Security(require_api_key)):
+async def protected(_: None = Security(require_api_key)):
     logger.info("protected ok")
     return {"message": "protected ok"}

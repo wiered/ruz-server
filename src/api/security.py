@@ -20,7 +20,7 @@ async def require_api_key(api_key: str = Security(api_key_header)) -> str:
     # проверяем на совпадение с любым из допустимых ключей
 
     if compare_digest(api_key, settings.valid_api_key):
-        return api_key
+        return None
 
     # неверный ключ
     raise HTTPException(
