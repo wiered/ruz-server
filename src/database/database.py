@@ -9,15 +9,12 @@ __version__ = "1.0"
 __author__ = "Wiered"
 
 import logging
-import os
 from typing import Generator
 
-from dotenv import load_dotenv
 from sqlmodel import Session, SQLModel, create_engine
 
 import models as models
-
-load_dotenv()
+from settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -57,4 +54,4 @@ class DataBase:
 
         SQLModel.metadata.drop_all(self.engine)
 
-db = DataBase(os.environ.get("POSTGRESQL_URI"))
+db = DataBase(settings.postgresql_uri)

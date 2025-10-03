@@ -2,12 +2,10 @@
 import logging
 from logging.config import dictConfig
 
-from dotenv import load_dotenv
+from settings import settings
 
-load_dotenv()
-
-console_handler_level = os.getenv('LOGGING_LEVEL', 'INFO')
-console_handler_format = os.getenv('LOGGING_FORMAT', 'standard')
+console_handler_level = settings.logging_level
+console_handler_format = settings.logging_format
 
 LOGGING_CONFIG = {
     'version': 1,
