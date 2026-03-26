@@ -168,3 +168,4 @@ cython_debug/
 test.md
 trash/
 .vscode/
+install_make.ps1
