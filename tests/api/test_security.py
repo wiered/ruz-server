@@ -3,13 +3,10 @@
 import pytest
 from fastapi import HTTPException
 
-import sys
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from api.security import require_api_key
-from settings import settings
+from ruz_server.api.security import require_api_key
+from ruz_server.settings import settings
 
 
 @pytest.mark.api

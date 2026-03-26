@@ -4,21 +4,17 @@ import pytest
 from unittest.mock import MagicMock, patch
 from sqlalchemy.exc import SQLAlchemyError
 
-import sys
-from pathlib import Path
 
-# Добавляем src в путь для импортов
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from repositories.user_repository import UserRepository # noqa: F401
-from repositories.group_repository import GroupRepository # noqa: F401
-from repositories.auditorium_repository import AuditoriumRepository # noqa: F401
-from repositories.discipline_repository import DisciplineRepository # noqa: F401
-from repositories.kind_of_work_repository import KindOfWorkRepository # noqa: F401
-from repositories.lecturer_repository import LecturerRepository # noqa: F401
-from repositories.lesson_group_repository import LessonGroupRepository # noqa: F401
-from repositories.lesson_repository import LessonRepository # noqa: F401
-from models.models import User, Group, Auditorium, Discipline, KindOfWork, Lecturer, LessonGroup, Lesson # noqa: F401
+from ruz_server.repositories.user_repository import UserRepository # noqa: F401
+from ruz_server.repositories.group_repository import GroupRepository # noqa: F401
+from ruz_server.repositories.auditorium_repository import AuditoriumRepository # noqa: F401
+from ruz_server.repositories.discipline_repository import DisciplineRepository # noqa: F401
+from ruz_server.repositories.kind_of_work_repository import KindOfWorkRepository # noqa: F401
+from ruz_server.repositories.lecturer_repository import LecturerRepository # noqa: F401
+from ruz_server.repositories.lesson_group_repository import LessonGroupRepository # noqa: F401
+from ruz_server.repositories.lesson_repository import LessonRepository # noqa: F401
+from ruz_server.models.models import User, Group, Auditorium, Discipline, KindOfWork, Lecturer, LessonGroup, Lesson # noqa: F401
 
 
 @pytest.fixture

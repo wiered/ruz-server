@@ -5,14 +5,10 @@ from unittest.mock import MagicMock
 from sqlalchemy.exc import SQLAlchemyError
 import uuid
 
-import sys
-from pathlib import Path
 
-# Добавляем src в путь для импортов
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from repositories.group_repository import GroupRepository
-from models.models import Group
+from ruz_server.repositories.group_repository import GroupRepository
+from ruz_server.models.models import Group
 
 
 @pytest.mark.repositories
