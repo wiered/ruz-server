@@ -21,6 +21,10 @@ markers = [
     "slow: marks tests as slow"
 ]
 
+[tool.coverage.report]
+fail_under = 70
+show_missing = true
+
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
