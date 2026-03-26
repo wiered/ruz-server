@@ -1,11 +1,12 @@
-﻿import logging
-from typing import List, Optional
+import logging
+import datetime
+from typing import Iterable, List, Optional
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload
 from sqlmodel import Session, delete, select
 
-from ruz_server.models import LessonGroup
+from ruz_server.models import Lesson, LessonGroup
 
 logger = logging.getLogger(__name__)
 
@@ -165,6 +166,55 @@ class LessonGroupRepository:
             .options(selectinload(LessonGroup.lesson))
         )
         return self.session.exec(stmt).all()
+
+    def BulkGetOrCreate(self, lesson_groups: Iterable[LessonGroup]) -> int:
+        """Create missing lesson-group links without committing.
+
+        Returns:
+            int: number of newly created links
+        """
+        created_count = 0
+        for link in lesson_groups:
+            existing = self.GetByIds(link.lesson_id, link.group_id)
+            if existing is None:
+                self.session.add(link)
+                created_count += 1
+        return created_count
+
+    def ListPairsInDateRange(self, start: datetime.date, end: datetime.date) -> List[tuple[int, int]]:
+        """List (lesson_id, group_id) pairs linked to lessons in date range."""
+        stmt = (
+            select(LessonGroup.lesson_id, LessonGroup.group_id)
+            .join(Lesson, Lesson.id == LessonGroup.lesson_id)
+            .where(Lesson.date >= start, Lesson.date <= end)
+        )
+        return list(self.session.exec(stmt).all())
+
+    def DeleteMissingPairsInDateRange(
+        self,
+        incoming_pairs: set[tuple[int, int]],
+        start,
+        end,
+    ) -> int:
+        """Delete lesson-group pairs in date range missing from incoming snapshot.
+
+        Returns:
+            int: number of deleted rows
+        """
+        existing_pairs = set(self.ListPairsInDateRange(start, end))
+        stale_pairs = existing_pairs - incoming_pairs
+        if not stale_pairs:
+            return 0
+
+        deleted = 0
+        for lesson_id, group_id in stale_pairs:
+            stmt = delete(LessonGroup).where(
+                LessonGroup.lesson_id == lesson_id,
+                LessonGroup.group_id == group_id,
+            )
+            result = self.session.exec(stmt)
+            deleted += int(result.rowcount or 0)
+        return deleted
 
     def Delete(self, lesson_id: int, group_id: int) -> bool:
         """Deletes an association by composite key.

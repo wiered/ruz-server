@@ -203,6 +203,39 @@ class TestLessonRepository:
         assert lesson_repository.DeleteAll() is False
         mock_session.rollback.assert_called_once()
 
+    def test_upsert_create(self, lesson_repository, sample_lesson_static):
+        lesson_repository.GetById = MagicMock(return_value=None)
+        saved, created = lesson_repository.Upsert(sample_lesson_static)
+        assert created is True
+        assert saved.id == sample_lesson_static.id
+
+    def test_upsert_update(self, lesson_repository, sample_lesson_static):
+        existing = Lesson(**sample_lesson_static.model_dump())
+        lesson_repository.GetById = MagicMock(return_value=existing)
+        updated_payload = Lesson(
+            **{
+                **sample_lesson_static.model_dump(),
+                "sub_group": 3,
+            }
+        )
+        saved, created = lesson_repository.Upsert(updated_payload)
+        assert created is False
+        assert saved.sub_group == 3
+
+    def test_list_ids_in_date_range(self, lesson_repository, mock_session):
+        mock_result = MagicMock()
+        mock_result.all.return_value = [1, 2, 3]
+        mock_session.exec.return_value = mock_result
+        ids = lesson_repository.ListIdsInDateRange(datetime.date(2025, 1, 1), datetime.date(2025, 1, 3))
+        assert ids == [1, 2, 3]
+
+    def test_delete_by_ids(self, lesson_repository, mock_session):
+        mock_result = MagicMock()
+        mock_result.rowcount = 2
+        mock_session.exec.return_value = mock_result
+        deleted = lesson_repository.DeleteByIds([1, 2])
+        assert deleted == 2
+
 
 @pytest.mark.repositories
 @pytest.mark.integration
@@ -255,3 +288,36 @@ class TestLessonRepositoryIntegration:
             lesson_repository_clean.Create(lesson)
         assert lesson_repository_clean.DeleteAll() is True
         assert len(lesson_repository_clean.ListAll()) == 0
+
+    def test_bulk_upsert_and_prune(self, lesson_repository_clean, multiple_lessons):
+        for lesson in multiple_lessons:
+            lesson_repository_clean.Create(lesson)
+
+        source = multiple_lessons[0]
+        modified = Lesson(
+            id=source.id,
+            kind_of_work_id=source.kind_of_work_id,
+            discipline_id=source.discipline_id,
+            auditorium_id=source.auditorium_id,
+            lecturer_id=source.lecturer_id,
+            date=source.date,
+            begin_lesson=source.begin_lesson,
+            end_lesson=source.end_lesson,
+            sub_group=5,
+        )
+        created, updated = lesson_repository_clean.BulkUpsert([modified])
+        lesson_repository_clean.session.commit()
+
+        assert created == 0
+        assert updated == 1
+        updated_lesson = lesson_repository_clean.GetById(modified.id)
+        assert updated_lesson is not None
+        assert updated_lesson.sub_group == 5
+
+        ids = lesson_repository_clean.ListIdsInDateRange(datetime.date(2025, 1, 1), datetime.date(2025, 1, 3))
+        assert len(ids) == 3
+
+        deleted = lesson_repository_clean.DeleteByIds([multiple_lessons[1].id, multiple_lessons[2].id])
+        lesson_repository_clean.session.commit()
+        assert deleted == 2
+        assert len(lesson_repository_clean.ListAll()) == 1

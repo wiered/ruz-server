@@ -1,5 +1,6 @@
 """Unit tests for LessonGroupRepository."""
 
+import datetime
 import pytest
 from unittest.mock import MagicMock
 from sqlalchemy.exc import SQLAlchemyError
@@ -259,6 +260,23 @@ class TestLessonGroupRepository:
         assert result is False
         mock_session.rollback.assert_called_once()
 
+    def test_bulk_get_or_create(self, lesson_group_repository, sample_lesson_group, sample_lesson_group_alt):
+        lesson_group_repository.GetByIds = MagicMock(side_effect=[None, sample_lesson_group_alt])
+        created = lesson_group_repository.BulkGetOrCreate([sample_lesson_group, sample_lesson_group_alt])
+        assert created == 1
+
+    def test_delete_missing_pairs_in_date_range(self, lesson_group_repository):
+        lesson_group_repository.ListPairsInDateRange = MagicMock(return_value=[(1, 1), (2, 1)])
+        mock_result = MagicMock()
+        mock_result.rowcount = 1
+        lesson_group_repository.session.exec.return_value = mock_result
+        deleted = lesson_group_repository.DeleteMissingPairsInDateRange(
+            incoming_pairs={(1, 1)},
+            start=datetime.date(2025, 1, 1),
+            end=datetime.date(2025, 1, 31),
+        )
+        assert deleted == 1
+
 
 @pytest.mark.repositories
 @pytest.mark.integration
@@ -358,3 +376,8 @@ class TestLessonGroupRepositoryIntegration:
         assert result is True
         remaining = lesson_group_repository_clean.ListByGroupId(1)
         assert len(remaining) == 0
+
+    def test_bulk_create_and_prune(self, lesson_group_repository_clean, multiple_lesson_groups):
+        lesson_group_repository_clean.BulkGetOrCreate(multiple_lesson_groups)
+        lesson_group_repository_clean.session.commit()
+        assert len(lesson_group_repository_clean.ListAll()) == len(multiple_lesson_groups)

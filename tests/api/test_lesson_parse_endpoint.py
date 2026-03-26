@@ -119,15 +119,22 @@ async def test_parse_lessons_success_and_idempotent(client, monkeypatch):
     assert first_body["groups_total"] == 2
     assert first_body["groups_processed"] == 2
     assert first_body["lessons_received"] == 3
+    assert first_body["lessons_upserted"] == 3
     assert first_body["lessons_created"] == 3
+    assert first_body["lessons_updated"] == 0
+    assert first_body["links_created"] == 3
+    assert first_body["links_pruned"] == 0
+    assert first_body["lessons_pruned"] == 0
     assert first_body["lessons_skipped"] == 0
     assert first_body["errors"] == []
 
     second = await client.put("/api/lesson/parse")
     assert second.status_code == 200
     second_body = second.json()
+    assert second_body["lessons_upserted"] == 3
     assert second_body["lessons_created"] == 0
-    assert second_body["lessons_skipped"] == 3
+    assert second_body["lessons_updated"] == 3
+    assert second_body["lessons_skipped"] == 0
 
     with Session(client.engine) as session:
         assert len(session.exec(select(Lesson)).all()) == 3
@@ -162,6 +169,7 @@ async def test_parse_lessons_skips_invalid_payload_and_continues(client, monkeyp
 
     assert body["groups_processed"] == 2
     assert body["lessons_received"] == 2
+    assert body["lessons_upserted"] == 1
     assert body["lessons_created"] == 1
     assert body["lessons_skipped"] == 1
     assert any(error["stage"] == "map" for error in body["errors"])
@@ -193,6 +201,7 @@ async def test_parse_lessons_fetch_error_in_one_group_does_not_stop_others(clien
 
     assert body["groups_total"] == 2
     assert body["groups_processed"] == 1
+    assert body["lessons_upserted"] == 1
     assert body["lessons_created"] == 1
     assert body["lessons_skipped"] == 0
     assert any(error["stage"] == "fetch" for error in body["errors"])
@@ -204,3 +213,68 @@ async def test_parse_lessons_fetch_error_in_one_group_does_not_stop_others(clien
         assert lessons[0].id == 40001
         assert len(lesson_groups) == 1
         assert lesson_groups[0].group_id == 5002
+        assert len(session.exec(select(Group)).all()) == 2
+
+
+@pytest.mark.api
+@pytest.mark.asyncio
+async def test_parse_lessons_prunes_removed_lessons(client, monkeypatch):
+    _seed_groups(client.engine)
+
+    async def fake_borders(self):
+        return "2025.01.01", "2025.03.31"
+
+    async def fake_get_first(self, group, start, end):
+        if int(group) == 5001:
+            return [_raw_lesson(50001, 7101)]
+        return [_raw_lesson(50002, 7102)]
+
+    monkeypatch.setattr("ruz_server.api.lesson.RuzAPI._get_borders_for_schedule", fake_borders)
+    monkeypatch.setattr("ruz_server.api.lesson.RuzAPI.get", fake_get_first)
+    first = await client.put("/api/lesson/parse")
+    assert first.status_code == 200
+
+    async def fake_get_second(self, group, start, end):
+        if int(group) == 5001:
+            return [_raw_lesson(50001, 7101)]
+        return []
+
+    monkeypatch.setattr("ruz_server.api.lesson.RuzAPI.get", fake_get_second)
+    second = await client.put("/api/lesson/parse")
+    assert second.status_code == 200
+    body = second.json()
+    assert body["lessons_pruned"] == 1
+    assert body["links_pruned"] == 1
+
+    with Session(client.engine) as session:
+        lessons = session.exec(select(Lesson)).all()
+        assert len(lessons) == 1
+        assert lessons[0].id == 50001
+
+
+@pytest.mark.api
+@pytest.mark.asyncio
+async def test_parse_lessons_rolls_back_on_transaction_error(client, monkeypatch):
+    _seed_groups(client.engine)
+
+    async def fake_borders(self):
+        return "2025.01.01", "2025.03.31"
+
+    async def fake_get(self, group, start, end):
+        return [_raw_lesson(60001, 7201)]
+
+    monkeypatch.setattr("ruz_server.api.lesson.RuzAPI._get_borders_for_schedule", fake_borders)
+    monkeypatch.setattr("ruz_server.api.lesson.RuzAPI.get", fake_get)
+
+    def explode(*args, **kwargs):
+        raise RuntimeError("forced transaction failure")
+
+    monkeypatch.setattr("ruz_server.api.lesson._upsert_reference_entities", explode)
+
+    with pytest.raises(RuntimeError, match="forced transaction failure"):
+        await client.put("/api/lesson/parse")
+
+    with Session(client.engine) as session:
+        assert len(session.exec(select(Lesson)).all()) == 0
+        assert len(session.exec(select(LessonGroup)).all()) == 0
+        assert len(session.exec(select(Group)).all()) == 2

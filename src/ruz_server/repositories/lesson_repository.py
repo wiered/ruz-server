@@ -1,6 +1,6 @@
-﻿import datetime
+import datetime
 import logging
-from typing import List, Optional
+from typing import Iterable, List, Optional
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload
@@ -209,6 +209,66 @@ class LessonRepository:
 
         stmt = select(Lesson).where(Lesson.sub_group == value)
         return self.session.exec(stmt).all()
+
+    def Upsert(self, lesson: Lesson) -> tuple[Lesson, bool]:
+        """Insert or update a lesson by primary key without committing.
+
+        Returns:
+            tuple[Lesson, bool]: (lesson, created_flag)
+        """
+        logger.info(f"Upserting lesson {lesson.id}")
+        existing = self.GetById(lesson.id)
+        if existing is None:
+            self.session.add(lesson)
+            return lesson, True
+
+        existing.kind_of_work_id = lesson.kind_of_work_id
+        existing.discipline_id = lesson.discipline_id
+        existing.auditorium_id = lesson.auditorium_id
+        existing.lecturer_id = lesson.lecturer_id
+        existing.date = lesson.date
+        existing.begin_lesson = lesson.begin_lesson
+        existing.end_lesson = lesson.end_lesson
+        existing.sub_group = lesson.sub_group
+        existing.updated_at = datetime.datetime.now(datetime.timezone.utc)
+        self.session.add(existing)
+        return existing, False
+
+    def BulkUpsert(self, lessons: Iterable[Lesson]) -> tuple[int, int]:
+        """Upsert lessons collection without committing.
+
+        Returns:
+            tuple[int, int]: (created_count, updated_count)
+        """
+        created_count = 0
+        updated_count = 0
+        for lesson in lessons:
+            _, created = self.Upsert(lesson)
+            if created:
+                created_count += 1
+            else:
+                updated_count += 1
+        return created_count, updated_count
+
+    def ListIdsInDateRange(self, start: datetime.date, end: datetime.date) -> List[int]:
+        """List lesson IDs inside date range (inclusive)."""
+        logger.info(f"Listing lesson IDs for date range {start} to {end}")
+        stmt = select(Lesson.id).where(Lesson.date >= start, Lesson.date <= end)
+        return list(self.session.exec(stmt).all())
+
+    def DeleteByIds(self, lesson_ids: Iterable[int]) -> int:
+        """Delete lessons by IDs without committing.
+
+        Returns:
+            int: number of deleted rows
+        """
+        ids = list(lesson_ids)
+        if not ids:
+            return 0
+        logger.info(f"Deleting {len(ids)} lessons by IDs")
+        stmt = delete(Lesson).where(Lesson.id.in_(ids))
+        result = self.session.exec(stmt)
+        return int(result.rowcount or 0)
 
     def Update(
         self,
