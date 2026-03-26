@@ -4,12 +4,9 @@ import pytest
 from fastapi import HTTPException
 from unittest.mock import MagicMock
 
-import sys
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from helpers.api_helpers import (
+from ruz_server.helpers.api_helpers import (
     ensure_entity_exists,
     is_entity_exists,
     create_if_not_exists,

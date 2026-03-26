@@ -10,13 +10,9 @@ import pytest
 from sqlalchemy import create_engine
 from sqlmodel import Session, SQLModel
 
-import sys
-from pathlib import Path
 
-# Добавляем src в путь для импортов
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from models.models import User, Group, Auditorium, Discipline, KindOfWork, Lecturer, LessonGroup, Lesson
+from ruz_server.models.models import User, Group, Auditorium, Discipline, KindOfWork, Lecturer, LessonGroup, Lesson
 
 
 @pytest.fixture(scope="session")

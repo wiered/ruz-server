@@ -1,19 +1,17 @@
 """Smoke and contract tests for infrastructure modules."""
 
-import importlib.util
-import sys
 from pathlib import Path
+import importlib.util
 
 import pytest
 import uvicorn
 from fastapi import FastAPI
 from sqlmodel import Session
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from database.database import DataBase
-from logging_config.logging_config import ColoredFormatter, LOGGING_CONFIG, LOGS_DIR
-from settings import ROOT, settings
+from ruz_server.database import DataBase, db
+from ruz_server.logging_config.logging_config import ColoredFormatter, LOGGING_CONFIG, LOGS_DIR
+from ruz_server.settings import ROOT, settings
 
 
 @pytest.mark.integration
@@ -64,7 +62,7 @@ class TestInfrastructure:
         assert "INFO" in message
 
     def test_main_module_exposes_app_and_settings(self, monkeypatch):
-        main_path = Path(__file__).parent.parent / "src" / "main.py"
+        main_path = Path(__file__).parent.parent / "src" / "ruz_server" / "main.py"
         spec = importlib.util.spec_from_file_location("ruz_main_module", main_path)
         main_module = importlib.util.module_from_spec(spec)
         uvicorn_run_called = False

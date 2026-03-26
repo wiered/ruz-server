@@ -5,12 +5,9 @@ import uuid
 import pytest
 import aiohttp
 
-import sys
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from ruz_api.api import RuzAPI, LessonCreate
+from ruz_server.ruz_api.api import RuzAPI, LessonCreate
 
 
 class FakeResponse:
@@ -65,7 +62,7 @@ class TestRuzApi:
         async def fake_sleep(value):
             delays.append(value)
 
-        monkeypatch.setattr("ruz_api.api.asyncio.sleep", fake_sleep)
+        monkeypatch.setattr("ruz_server.ruz_api.api.asyncio.sleep", fake_sleep)
         response = FakeResponse(status=429, headers={"Retry-After": "3"})
 
         backoff = await api._sleep(response, 1)
@@ -81,7 +78,7 @@ class TestRuzApi:
         async def fake_sleep(value):
             delays.append(value)
 
-        monkeypatch.setattr("ruz_api.api.asyncio.sleep", fake_sleep)
+        monkeypatch.setattr("ruz_server.ruz_api.api.asyncio.sleep", fake_sleep)
         response = FakeResponse(status=429, headers={})
 
         backoff = await api._sleep(response, 4)
@@ -153,7 +150,7 @@ class TestRuzApi:
         async def fake_sleep(value):
             sleeps.append(value)
 
-        monkeypatch.setattr("ruz_api.api.asyncio.sleep", fake_sleep)
+        monkeypatch.setattr("ruz_server.ruz_api.api.asyncio.sleep", fake_sleep)
 
         data = await api._fetch(client, "http://test")
 
@@ -169,7 +166,7 @@ class TestRuzApi:
         async def fake_sleep(value):
             return None
 
-        monkeypatch.setattr("ruz_api.api.asyncio.sleep", fake_sleep)
+        monkeypatch.setattr("ruz_server.ruz_api.api.asyncio.sleep", fake_sleep)
 
         with pytest.raises(aiohttp.ClientError):
             await api._fetch(client, "http://test")

@@ -1,13 +1,10 @@
 """Contract tests for API router registration."""
 
-import sys
-from pathlib import Path
 
 import pytest
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from api import api_router
+from ruz_server.api import api_router
 
 
 @pytest.mark.api

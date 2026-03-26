@@ -4,14 +4,10 @@ import pytest
 from unittest.mock import MagicMock
 from sqlalchemy.exc import SQLAlchemyError
 
-import sys
-from pathlib import Path
 
-# Добавляем src в путь для импортов
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from repositories.kind_of_work_repository import KindOfWorkRepository
-from models.models import KindOfWork
+from ruz_server.repositories.kind_of_work_repository import KindOfWorkRepository
+from ruz_server.models.models import KindOfWork
 
 
 @pytest.mark.repositories

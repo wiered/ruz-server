@@ -9,15 +9,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool
 from sqlmodel import SQLModel, Session, select
 
-import sys
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from api.app import app
-from api import lesson
-from api.security import require_api_key
-from models.models import Lecturer, KindOfWork, Discipline, Auditorium, Lesson
+from ruz_server.api.app import app
+from ruz_server.api import lesson
+from ruz_server.api.security import require_api_key
+from ruz_server.models.models import Lecturer, KindOfWork, Discipline, Auditorium, Lesson
 
 
 @pytest_asyncio.fixture

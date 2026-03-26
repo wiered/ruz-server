@@ -1,8 +1,8 @@
 """Integration test for importing lessons from RUZ JSON examples."""
 
+from pathlib import Path
 import json
 import re
-from pathlib import Path
 
 import pytest
 import pytest_asyncio
@@ -11,15 +11,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool
 from sqlmodel import SQLModel, Session, select
 
-import sys
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from api.app import app
-from api import lesson
-from api.security import require_api_key
-from helpers.ruz_mapper import map_ruz_lessons_to_payloads
-from models.models import Auditorium, Discipline, KindOfWork, Lecturer, Lesson
+from ruz_server.api.app import app
+from ruz_server.api import lesson
+from ruz_server.api.security import require_api_key
+from ruz_server.helpers.ruz_mapper import map_ruz_lessons_to_payloads
+from ruz_server.models.models import Auditorium, Discipline, KindOfWork, Lecturer, Lesson
 
 
 def _load_relaxed_json(file_path: Path) -> dict:
