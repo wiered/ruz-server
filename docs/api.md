@@ -11,6 +11,8 @@
 - [Disciplines](#disciplines)
 - [Auditoriums](#auditoriums)
 - [Kind of Work](#kind-of-work)
+- [Schedule](#schedule)
+- [Search](#search)
 - [Общие ошибки](#общие-ошибки)
 
 ## Общая информация
@@ -27,19 +29,11 @@
 
 ### Ошибки аутентификации
 
-**Response 401** - Отсутствует API ключ
+**Response 401** - Отсутствует или неверный API ключ
 
 ```json
 {
-  "detail": "Missing API key"
-}
-```
-
-**Response 403** - Неверный API ключ
-
-```json
-{
-  "detail": "Invalid API key"
+  "detail": "Unauthorized"
 }
 ```
 
@@ -61,11 +55,7 @@
 {
   "id": 123456789,
   "username": "user123",
-  "group_oid": 1,
-  "subgroup": 0,
-  "group_guid": "550e8400-e29b-41d4-a716-446655440000",
-  "group_name": "ИУ5-11",
-  "faculty_name": "Факультет"
+  "group_oid": 1
 }
 ```
 
@@ -75,36 +65,19 @@
 | `username`     | string        | Да          | Имя пользователя Telegram  |
 | `group_oid`    | integer       | Да          | ID группы пользователя     |
 | `subgroup`     | integer       | Нет         | Подгруппа (по умолчанию 0) |
-| `group_guid`   | string (UUID) | Да          | GUID группы                |
-| `group_name`   | string        | Да          | Название группы            |
-| `faculty_name` | string        | Да          | Название факультета        |
+| `group_guid`   | string        | Нет         | GUID группы                |
+| `group_name`   | string        | Нет         | Название группы            |
+| `faculty_name` | string        | Нет         | Название факультета        |
 
 **Response 201**
 
 ```json
 {
   "id": 123456789,
-  "group_oid": 1,
-  "subgroup": 0,
+  "subgroup": 1,
   "username": "user123",
   "created_at": "2024-01-15T10:30:00Z",
   "last_used_at": "2024-01-15T10:30:00Z"
-}
-```
-
-**Response 400** - Неверные данные группы
-
-```json
-{
-  "detail": "Invalid group GUID"
-}
-```
-
-**Response 409** - Пользователь уже существует
-
-```json
-{
-  "detail": "Error: Conflict"
 }
 ```
 
@@ -157,14 +130,19 @@
 }
 ```
 
-### GET `/api/user/guid/{username}`
+### GET `/api/user/guid/{user_guid}`
 
-Получение пользователя по username.
+Получение пользователя по GUID (в URL). Поиск выполняется по query-параметру `username`.
 
 **Path Parameters**
 | Параметр | Тип | Описание |
 |----------|-----|----------|
-| `username` | string | Имя пользователя Telegram |
+| `user_guid` | string (UUID) | GUID пользователя |
+
+**Query Parameters**
+| Параметр | Тип | Обязательно | Описание |
+|----------|-----|-------------|----------|
+| `username` | string | Да | Имя пользователя Telegram |
 
 **Response 200**
 
@@ -211,21 +189,24 @@
 }
 ```
 
-### PUT `/api/user/last_used_at/{user_id}`
+### PUT `/api/user/last_used_at/{user_guid}`
 
 Обновление времени последнего использования пользователя.
 
 **Path Parameters**
 | Параметр | Тип | Описание |
 |----------|-----|----------|
-| `user_id` | integer | ID пользователя |
+| `user_guid` | string (UUID) | GUID пользователя |
+
+**Query Parameters**
+| Параметр | Тип | Обязательно | Описание |
+|----------|-----|-------------|----------|
+| `user_id` | integer | Да | ID пользователя |
 
 **Response 200**
 
 ```json
-{
-  "success": true
-}
+true
 ```
 
 ### DELETE `/api/user/{user_id}`
@@ -1076,42 +1057,212 @@
 }
 ```
 
+## Schedule
+### GET `/api/schedule/user/{user_id}/day`
+
+Получение расписания пользователя за указанный день.
+
+**Path Parameters**
+| Параметр | Тип | Описание |
+|----------|-----|----------|
+| `user_id` | integer | ID пользователя |
+
+**Query Parameters**
+| Параметр | Тип | Обязательно | Описание |
+|----------|-----|-------------|----------|
+| `date` | string (YYYY-MM-DD) | Да | Дата для выборки |
+
+**Response 200**
+```json
+[
+  {
+    "lesson_id": 1,
+    "date": "2026-03-26",
+    "begin_lesson": "08:30:00",
+    "end_lesson": "09:50:00",
+    "sub_group": 0,
+    "discipline_name": "Математика",
+    "kind_of_work": "Лекция",
+    "lecturer_short_name": "Иванов",
+    "auditorium_name": "101",
+    "building": "ГЗ",
+    "group_id": 1
+  }
+]
+```
+
+### GET `/api/schedule/user/{user_id}/week`
+
+Получение расписания пользователя за неделю (с понедельника по воскресенье), привязанную к дате `date`.
+
+**Path Parameters**
+| Параметр | Тип | Описание |
+|----------|-----|----------|
+| `user_id` | integer | ID пользователя |
+
+**Query Parameters**
+| Параметр | Тип | Обязательно | Описание |
+|----------|-----|-------------|----------|
+| `date` | string (YYYY-MM-DD) | Да | Анкерная дата внутри недели |
+
+**Response 200**
+```json
+[
+  {
+    "lesson_id": 1,
+    "date": "2026-03-24",
+    "begin_lesson": "08:30:00",
+    "end_lesson": "09:50:00",
+    "sub_group": 0,
+    "discipline_name": "Математика",
+    "kind_of_work": "Лекция",
+    "lecturer_short_name": "Иванов",
+    "auditorium_name": "101",
+    "building": "ГЗ",
+    "group_id": 1
+  }
+]
+```
+
+## Search
+### GET `/api/search/lecturer/day`
+
+Поиск занятий по преподавателю за указанный день.
+
+**Query Parameters**
+| Параметр | Тип | Обязательно | Описание |
+|----------|-----|-------------|----------|
+| `lecturer_id` | integer | Да | ID преподавателя |
+| `date` | string (YYYY-MM-DD) | Да | Дата для выборки |
+| `group_id` | integer | Нет | Фильтр по группе |
+| `sub_group` | integer | Нет | Фильтр по подгруппе |
+
+**Response 200**
+```json
+[
+  {
+    "lesson_id": 1,
+    "date": "2026-03-26",
+    "begin_lesson": "08:30:00",
+    "end_lesson": "09:50:00",
+    "sub_group": 0,
+    "discipline_name": "Математика",
+    "kind_of_work": "Лекция",
+    "lecturer_short_name": "Иванов",
+    "auditorium_name": "101",
+    "building": "ГЗ",
+    "group_id": 1
+  }
+]
+```
+
+### GET `/api/search/lecturer/week`
+
+Поиск занятий по преподавателю за неделю (с понедельника по воскресенье), привязанную к дате `date`.
+
+**Query Parameters**
+| Параметр | Тип | Обязательно | Описание |
+|----------|-----|-------------|----------|
+| `lecturer_id` | integer | Да | ID преподавателя |
+| `date` | string (YYYY-MM-DD) | Да | Анкерная дата внутри недели |
+| `group_id` | integer | Нет | Фильтр по группе |
+| `sub_group` | integer | Нет | Фильтр по подгруппе |
+
+**Response 200**
+```json
+[
+  {
+    "lesson_id": 1,
+    "date": "2026-03-24",
+    "begin_lesson": "08:30:00",
+    "end_lesson": "09:50:00",
+    "sub_group": 0,
+    "discipline_name": "Математика",
+    "kind_of_work": "Лекция",
+    "lecturer_short_name": "Иванов",
+    "auditorium_name": "101",
+    "building": "ГЗ",
+    "group_id": 1
+  }
+]
+```
+
+### GET `/api/search/discipline/day`
+
+Поиск занятий по дисциплине за указанный день.
+
+**Query Parameters**
+| Параметр | Тип | Обязательно | Описание |
+|----------|-----|-------------|----------|
+| `discipline_id` | integer | Да | ID дисциплины |
+| `date` | string (YYYY-MM-DD) | Да | Дата для выборки |
+| `group_id` | integer | Нет | Фильтр по группе |
+| `sub_group` | integer | Нет | Фильтр по подгруппе |
+
+**Response 200**
+```json
+[
+  {
+    "lesson_id": 1,
+    "date": "2026-03-26",
+    "begin_lesson": "08:30:00",
+    "end_lesson": "09:50:00",
+    "sub_group": 0,
+    "discipline_name": "Математика",
+    "kind_of_work": "Лекция",
+    "lecturer_short_name": "Иванов",
+    "auditorium_name": "101",
+    "building": "ГЗ",
+    "group_id": 1
+  }
+]
+```
+
+### GET `/api/search/discipline/week`
+
+Поиск занятий по дисциплине за неделю (с понедельника по воскресенье), привязанную к дате `date`.
+
+**Query Parameters**
+| Параметр | Тип | Обязательно | Описание |
+|----------|-----|-------------|----------|
+| `discipline_id` | integer | Да | ID дисциплины |
+| `date` | string (YYYY-MM-DD) | Да | Анкерная дата внутри недели |
+| `group_id` | integer | Нет | Фильтр по группе |
+| `sub_group` | integer | Нет | Фильтр по подгруппе |
+
+**Response 200**
+```json
+[
+  {
+    "lesson_id": 1,
+    "date": "2026-03-24",
+    "begin_lesson": "08:30:00",
+    "end_lesson": "09:50:00",
+    "sub_group": 0,
+    "discipline_name": "Математика",
+    "kind_of_work": "Лекция",
+    "lecturer_short_name": "Иванов",
+    "auditorium_name": "101",
+    "building": "ГЗ",
+    "group_id": 1
+  }
+]
+```
+
 ## Общие ошибки
 
-### Response 404 - Не найдено
+### GET `/`
+Root
+**Response 200**
 
-```json
-{
-  "detail": "Error: Not Found"
-}
-```
+### GET `/healthz`
+Healthz
+**Response 200**
 
-### Response 409 - Конфликт (сущность уже существует)
+### GET `/protected`
+Protected
+**Response 200**
 
-```json
-{
-  "detail": "Error: Conflict"
-}
-```
-
-### Response 422 - Ошибка валидации
-
-```json
-{
-  "detail": [
-    {
-      "loc": ["body", "field_name"],
-      "msg": "field required",
-      "type": "value_error.missing"
-    }
-  ]
-}
-```
-
-### Response 500 - Внутренняя ошибка сервера
-
-```json
-{
-  "detail": "Internal Server Error"
-}
-```
+### GET `/public`
+Public
+**Response 200**
