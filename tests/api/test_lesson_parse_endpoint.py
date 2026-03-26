@@ -278,3 +278,38 @@ async def test_parse_lessons_rolls_back_on_transaction_error(client, monkeypatch
         assert len(session.exec(select(Lesson)).all()) == 0
         assert len(session.exec(select(LessonGroup)).all()) == 0
         assert len(session.exec(select(Group)).all()) == 2
+
+
+@pytest.mark.api
+@pytest.mark.asyncio
+async def test_parse_lessons_rolls_back_when_failure_happens_mid_transaction(client, monkeypatch):
+    _seed_groups(client.engine)
+
+    async def fake_borders(self):
+        return "2025.01.01", "2025.03.31"
+
+    async def fake_get(self, group, start, end):
+        if int(group) == 5001:
+            return [_raw_lesson(70001, 7301)]
+        return [_raw_lesson(70002, 7302)]
+
+    monkeypatch.setattr("ruz_server.api.lesson.RuzAPI._get_borders_for_schedule", fake_borders)
+    monkeypatch.setattr("ruz_server.api.lesson.RuzAPI.get", fake_get)
+
+    original_upsert = lesson.LessonRepository.Upsert
+    calls = {"count": 0}
+
+    def explode_on_second(self, lesson_model):
+        calls["count"] += 1
+        if calls["count"] == 2:
+            raise RuntimeError("mid-transaction failure")
+        return original_upsert(self, lesson_model)
+
+    monkeypatch.setattr("ruz_server.api.lesson.LessonRepository.Upsert", explode_on_second)
+
+    with pytest.raises(RuntimeError, match="mid-transaction failure"):
+        await client.put("/api/lesson/parse")
+
+    with Session(client.engine) as session:
+        assert len(session.exec(select(Lesson)).all()) == 0
+        assert len(session.exec(select(LessonGroup)).all()) == 0

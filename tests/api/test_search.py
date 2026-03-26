@@ -156,9 +156,25 @@ class TestSearchAPI:
             params={"lecturer_id": 9001, "date": "2025-01-14"},
         )
         assert response.status_code == 200
-        lesson_ids = [row["lesson_id"] for row in response.json()]
+        data = response.json()
+        lesson_ids = [row["lesson_id"] for row in data]
+        assert lesson_ids == [1101, 1102]
         assert 1101 in lesson_ids and 1102 in lesson_ids
         assert 1104 not in lesson_ids
+        expected_keys = {
+            "lesson_id",
+            "date",
+            "begin_lesson",
+            "end_lesson",
+            "sub_group",
+            "discipline_name",
+            "kind_of_work",
+            "lecturer_short_name",
+            "auditorium_name",
+            "building",
+            "group_id",
+        }
+        assert set(data[0].keys()) == expected_keys
 
     @pytest.mark.asyncio
     async def test_discipline_day(self, client):
@@ -234,3 +250,14 @@ class TestSearchAPI:
             params={"lecturer_id": 9001, "date": "2025-13-99"},
         )
         assert response.status_code == 422
+
+    @pytest.mark.asyncio
+    async def test_search_week_boundary_excludes_next_week(self, client):
+        _seed_search_data(client.engine)
+        response = await client.get(
+            "/api/search/discipline/week",
+            params={"discipline_id": 7101, "date": "2025-01-19"},
+        )
+        assert response.status_code == 200
+        lesson_ids = [row["lesson_id"] for row in response.json()]
+        assert 1104 not in lesson_ids

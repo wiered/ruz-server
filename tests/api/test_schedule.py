@@ -166,8 +166,11 @@ class TestScheduleAPI:
         assert response.status_code == 200
         data = response.json()
         lesson_ids = [row["lesson_id"] for row in data]
+        assert lesson_ids == [1001, 1002, 1004]
         assert 1004 in lesson_ids
         assert 1005 not in lesson_ids
+        assert data[0]["date"] <= data[-1]["date"]
+        assert data[0]["begin_lesson"] <= data[1]["begin_lesson"]
 
     @pytest.mark.asyncio
     async def test_subgroup_policy_includes_common_and_user_only(self, client):
@@ -196,3 +199,33 @@ class TestScheduleAPI:
         response = await client.get("/api/schedule/user/123456/day", params={"date": "2025-02-01"})
         assert response.status_code == 200
         assert response.json() == []
+
+    @pytest.mark.asyncio
+    async def test_day_response_has_expected_dto_fields(self, client):
+        _seed_user_and_lessons(client.engine)
+        response = await client.get("/api/schedule/user/123456/day", params={"date": "2025-01-13"})
+        assert response.status_code == 200
+        first = response.json()[0]
+        expected_keys = {
+            "lesson_id",
+            "date",
+            "begin_lesson",
+            "end_lesson",
+            "sub_group",
+            "discipline_name",
+            "kind_of_work",
+            "lecturer_short_name",
+            "auditorium_name",
+            "building",
+            "group_id",
+        }
+        assert set(first.keys()) == expected_keys
+        assert first["group_id"] == 7001
+
+    @pytest.mark.asyncio
+    async def test_week_boundary_excludes_next_week_lessons(self, client):
+        _seed_user_and_lessons(client.engine)
+        response = await client.get("/api/schedule/user/123456/week", params={"date": "2025-01-19"})
+        assert response.status_code == 200
+        lesson_ids = [row["lesson_id"] for row in response.json()]
+        assert 1005 not in lesson_ids

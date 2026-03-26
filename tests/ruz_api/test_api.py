@@ -96,6 +96,34 @@ class TestRuzApi:
         assert start_str <= end_str
 
     @pytest.mark.asyncio
+    async def test_get_borders_for_schedule_january_edge(self, monkeypatch):
+        class FixedDateTime(datetime.datetime):
+            @classmethod
+            def today(cls):
+                return cls(2025, 1, 10)
+
+        monkeypatch.setattr("ruz_server.ruz_api.api.datetime", FixedDateTime)
+        api = RuzAPI()
+        start_str, end_str = await api._get_borders_for_schedule()
+
+        assert start_str == "2024.12.01"
+        assert end_str == "2025.02.28"
+
+    @pytest.mark.asyncio
+    async def test_get_borders_for_schedule_leap_year_february_edge(self, monkeypatch):
+        class FixedDateTime(datetime.datetime):
+            @classmethod
+            def today(cls):
+                return cls(2024, 2, 15)
+
+        monkeypatch.setattr("ruz_server.ruz_api.api.datetime", FixedDateTime)
+        api = RuzAPI()
+        start_str, end_str = await api._get_borders_for_schedule()
+
+        assert start_str == "2024.01.01"
+        assert end_str == "2024.03.31"
+
+    @pytest.mark.asyncio
     async def test_parse_lessons_success(self):
         api = RuzAPI()
         raw = [{
