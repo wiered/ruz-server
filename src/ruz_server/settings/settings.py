@@ -30,4 +30,3 @@ class Settings(BaseSettings):
     env: str = "prod"
 
 settings = Settings()  # бросит ValidationError, если ключа нет
-print(settings.postgresql_uri)
