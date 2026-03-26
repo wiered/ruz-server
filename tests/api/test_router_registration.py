@@ -19,6 +19,8 @@ class TestApiRouterRegistration:
             "/discipline/",
             "/auditorium/",
             "/lesson/",
+            "/schedule/user/{user_id}/day",
+            "/schedule/user/{user_id}/week",
         }
         assert expected.issubset(paths)
 
@@ -36,3 +38,5 @@ class TestApiRouterRegistration:
         assert route_tags["/discipline/"] == {"discipline"}
         assert route_tags["/auditorium/"] == {"auditorium"}
         assert route_tags["/lesson/"] == {"lesson"}
+        assert route_tags["/schedule/user/{user_id}/day"] == {"schedule"}
+        assert route_tags["/schedule/user/{user_id}/week"] == {"schedule"}

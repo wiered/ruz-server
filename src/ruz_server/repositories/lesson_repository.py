@@ -6,7 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload
 from sqlmodel import Session, delete, select, update
 
-from ruz_server.models import Lesson
+from ruz_server.models import Lesson, LessonGroup
 
 logger = logging.getLogger(__name__)
 
@@ -139,6 +139,45 @@ class LessonRepository:
 
         stmt = select(Lesson).where(Lesson.date >= start, Lesson.date <= end)
         return self.session.exec(stmt).all()
+
+    def ListForUserByDateRange(
+        self,
+        group_id: int,
+        subgroup: int,
+        start: datetime.date,
+        end: datetime.date,
+    ) -> List[Lesson]:
+        """Return lessons for a user's group/date range with subgroup policy.
+
+        Subgroup policy: include common lessons (`sub_group=0`) and lessons
+        for the user's subgroup.
+        """
+        logger.info(
+            "Listing user lessons for group %s in range %s..%s",
+            group_id,
+            start,
+            end,
+        )
+        stmt = (
+            select(Lesson)
+            .join(LessonGroup, LessonGroup.lesson_id == Lesson.id)
+            .where(
+                LessonGroup.group_id == group_id,
+                Lesson.date >= start,
+                Lesson.date <= end,
+                Lesson.sub_group.in_([0, subgroup]),
+            )
+            .order_by(Lesson.date, Lesson.begin_lesson)
+            .options(
+                selectinload(Lesson.kind_of_work),
+                selectinload(Lesson.discipline),
+                selectinload(Lesson.auditorium),
+                selectinload(Lesson.lecturer),
+                selectinload(Lesson.lesson_groups),
+            )
+        )
+        # One lesson may be linked multiple times in joins; return unique rows.
+        return list(self.session.exec(stmt).unique().all())
 
     def ListByLecturerId(self, value: int) -> List[Lesson]:
         """Returns a list of lessons by lecturer ID.
