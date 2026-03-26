@@ -281,10 +281,7 @@ def create_lesson(
     lesson, _ = _create_lesson_with_relations(payload, session)
     return lesson
 
-@router.put("/parse")
-async def parse_lessons(
-    session: Session = Depends(get_db)
-):
+async def parse_lessons_core(session: Session) -> dict[str, Any]:
     group_repository = GroupRepository(session)
     lesson_group_repository = LessonGroupRepository(session)
     lesson_repository = LessonRepository(session)
@@ -410,6 +407,15 @@ async def parse_lessons(
         raise
 
     return stats
+
+
+@router.put("/parse")
+async def parse_lessons(
+    session: Session = Depends(get_db)
+):
+    from ruz_server.services.refresh_scheduler import run_refresh_with_session
+
+    return await run_refresh_with_session(session=session, source="api")
 
 
 @router.get("/", response_model=List[LessonRead])

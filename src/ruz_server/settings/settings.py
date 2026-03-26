@@ -1,4 +1,4 @@
-﻿from pathlib import Path
+from pathlib import Path
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -28,5 +28,10 @@ class Settings(BaseSettings):
     workers: int = 1
     log_level: str = "info"
     env: str = "prod"
+    doupdate: bool = Field(default=False, alias="DOUPDATE")
+    refresh_hour: int = 2
+    refresh_minute: int = 0
+    refresh_timezone: str = "Europe/Moscow"
+    refresh_lock_file: str = str(ROOT / "logs" / "refresh.lock")
 
 settings = Settings()  # бросит ValidationError, если ключа нет

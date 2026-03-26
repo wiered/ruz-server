@@ -40,6 +40,7 @@ name = "ruz-server"
 version = "0.1.0"
 description = "RUZ Server API"
 dependencies = [
+    "apscheduler",
     "annotated-types==0.7.0",
     "anyio==4.6.0",
     "click==8.1.7",
