@@ -193,6 +193,78 @@ class LessonRepository:
         stmt = select(Lesson).where(Lesson.lecturer_id == value)
         return self.session.exec(stmt).all()
 
+    def _build_search_stmt(
+        self,
+        *,
+        lecturer_id: Optional[int] = None,
+        discipline_id: Optional[int] = None,
+        start: datetime.date,
+        end: datetime.date,
+        group_id: Optional[int] = None,
+        sub_group: Optional[int] = None,
+    ):
+        stmt = select(Lesson)
+        if group_id is not None:
+            stmt = stmt.join(LessonGroup, LessonGroup.lesson_id == Lesson.id)
+
+        conditions = [
+            Lesson.date >= start,
+            Lesson.date <= end,
+        ]
+        if lecturer_id is not None:
+            conditions.append(Lesson.lecturer_id == lecturer_id)
+        if discipline_id is not None:
+            conditions.append(Lesson.discipline_id == discipline_id)
+        if group_id is not None:
+            conditions.append(LessonGroup.group_id == group_id)
+        if sub_group is not None:
+            conditions.append(Lesson.sub_group == sub_group)
+
+        stmt = (
+            stmt.where(*conditions)
+            .order_by(Lesson.date, Lesson.begin_lesson)
+            .options(
+                selectinload(Lesson.kind_of_work),
+                selectinload(Lesson.discipline),
+                selectinload(Lesson.auditorium),
+                selectinload(Lesson.lecturer),
+                selectinload(Lesson.lesson_groups),
+            )
+        )
+        return stmt
+
+    def ListByLecturerAndDate(
+        self,
+        lecturer_id: int,
+        value: datetime.date,
+        group_id: Optional[int] = None,
+        sub_group: Optional[int] = None,
+    ) -> List[Lesson]:
+        return self.ListByLecturerAndDateRange(
+            lecturer_id=lecturer_id,
+            start=value,
+            end=value,
+            group_id=group_id,
+            sub_group=sub_group,
+        )
+
+    def ListByLecturerAndDateRange(
+        self,
+        lecturer_id: int,
+        start: datetime.date,
+        end: datetime.date,
+        group_id: Optional[int] = None,
+        sub_group: Optional[int] = None,
+    ) -> List[Lesson]:
+        stmt = self._build_search_stmt(
+            lecturer_id=lecturer_id,
+            start=start,
+            end=end,
+            group_id=group_id,
+            sub_group=sub_group,
+        )
+        return list(self.session.exec(stmt).unique().all())
+
     def ListByDisciplineId(self, value: int) -> List[Lesson]:
         """Returns a list of lessons by discipline ID.
 
@@ -206,6 +278,38 @@ class LessonRepository:
 
         stmt = select(Lesson).where(Lesson.discipline_id == value)
         return self.session.exec(stmt).all()
+
+    def ListByDisciplineAndDate(
+        self,
+        discipline_id: int,
+        value: datetime.date,
+        group_id: Optional[int] = None,
+        sub_group: Optional[int] = None,
+    ) -> List[Lesson]:
+        return self.ListByDisciplineAndDateRange(
+            discipline_id=discipline_id,
+            start=value,
+            end=value,
+            group_id=group_id,
+            sub_group=sub_group,
+        )
+
+    def ListByDisciplineAndDateRange(
+        self,
+        discipline_id: int,
+        start: datetime.date,
+        end: datetime.date,
+        group_id: Optional[int] = None,
+        sub_group: Optional[int] = None,
+    ) -> List[Lesson]:
+        stmt = self._build_search_stmt(
+            discipline_id=discipline_id,
+            start=start,
+            end=end,
+            group_id=group_id,
+            sub_group=sub_group,
+        )
+        return list(self.session.exec(stmt).unique().all())
 
     def ListByAuditoriumId(self, value: int) -> List[Lesson]:
         """Returns a list of lessons by auditorium ID.

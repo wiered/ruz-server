@@ -30,13 +30,20 @@ class UserScheduleLessonRead(BaseModel):
     group_id: int
 
 
-def _week_range(anchor_date: datetime.date) -> tuple[datetime.date, datetime.date]:
+def get_week_range(anchor_date: datetime.date) -> tuple[datetime.date, datetime.date]:
     start = anchor_date - datetime.timedelta(days=anchor_date.weekday())
     end = start + datetime.timedelta(days=6)
     return start, end
 
 
-def _to_schedule_dto(lesson: Lesson, group_id: int) -> UserScheduleLessonRead:
+def map_lesson_to_schedule_dto(
+    lesson: Lesson,
+    group_id: int | None = None,
+) -> UserScheduleLessonRead:
+    resolved_group_id = group_id
+    if resolved_group_id is None:
+        resolved_group_id = lesson.lesson_groups[0].group_id if lesson.lesson_groups else 0
+
     return UserScheduleLessonRead(
         lesson_id=lesson.id,
         date=lesson.date,
@@ -48,7 +55,7 @@ def _to_schedule_dto(lesson: Lesson, group_id: int) -> UserScheduleLessonRead:
         lecturer_short_name=(lesson.lecturer.short_name if lesson.lecturer else ""),
         auditorium_name=(lesson.auditorium.name if lesson.auditorium else ""),
         building=(lesson.auditorium.building if lesson.auditorium else ""),
-        group_id=group_id,
+        group_id=resolved_group_id,
     )
 
 
@@ -82,7 +89,7 @@ def get_user_schedule_day(
         start=date,
         end=date,
     )
-    return [_to_schedule_dto(lesson, group_id) for lesson in lessons]
+    return [map_lesson_to_schedule_dto(lesson, group_id) for lesson in lessons]
 
 
 @router.get("/user/{user_id}/week", response_model=List[UserScheduleLessonRead])
@@ -92,7 +99,7 @@ def get_user_schedule_week(
     session: Session = Depends(get_db),
 ):
     group_id, subgroup = _get_user_group_and_subgroup(user_id, session)
-    start, end = _week_range(date)
+    start, end = get_week_range(date)
     lesson_repo = LessonRepository(session)
     lessons = lesson_repo.ListForUserByDateRange(
         group_id=group_id,
@@ -100,4 +107,4 @@ def get_user_schedule_week(
         start=start,
         end=end,
     )
-    return [_to_schedule_dto(lesson, group_id) for lesson in lessons]
+    return [map_lesson_to_schedule_dto(lesson, group_id) for lesson in lessons]

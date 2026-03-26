@@ -7,6 +7,7 @@ from ruz_server.api.discipline import router as discipline_router
 from ruz_server.api.auditorium import router as auditorium_router
 from ruz_server.api.lesson import router as lesson_router
 from ruz_server.api.schedule import router as schedule_router
+from ruz_server.api.search import router as search_router
 
 api_router = APIRouter()
 api_router.include_router(groups_router, tags=["group"])
@@ -17,3 +18,4 @@ api_router.include_router(discipline_router, tags=["discipline"])
 api_router.include_router(auditorium_router, tags=["auditorium"])
 api_router.include_router(lesson_router, tags=["lesson"])
 api_router.include_router(schedule_router, tags=["schedule"])
+api_router.include_router(search_router, tags=["search"])

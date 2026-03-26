@@ -21,6 +21,10 @@ class TestApiRouterRegistration:
             "/lesson/",
             "/schedule/user/{user_id}/day",
             "/schedule/user/{user_id}/week",
+            "/search/lecturer/day",
+            "/search/lecturer/week",
+            "/search/discipline/day",
+            "/search/discipline/week",
         }
         assert expected.issubset(paths)
 
@@ -40,3 +44,7 @@ class TestApiRouterRegistration:
         assert route_tags["/lesson/"] == {"lesson"}
         assert route_tags["/schedule/user/{user_id}/day"] == {"schedule"}
         assert route_tags["/schedule/user/{user_id}/week"] == {"schedule"}
+        assert route_tags["/search/lecturer/day"] == {"search"}
+        assert route_tags["/search/lecturer/week"] == {"search"}
+        assert route_tags["/search/discipline/day"] == {"search"}
+        assert route_tags["/search/discipline/week"] == {"search"}

@@ -91,13 +91,43 @@ class TestUsersAPI:
             "faculty_name": "Updated Faculty",
         })
         assert response.status_code == 200
-        assert response.json() is True
+        updated_body = response.json()
+        assert updated_body["id"] == 7004
+        assert updated_body["username"] == "updated_user"
+        assert updated_body["group_oid"] == 6002
+        assert updated_body["subgroup"] == 2
 
         get_response = await client.get("/api/user/7004")
         body = get_response.json()
         assert body["username"] == "updated_user"
         assert body["group_oid"] == 6002
         assert body["subgroup"] == 2
+
+    @pytest.mark.asyncio
+    async def test_update_user_invalid_subgroup_returns_400(self, client):
+        await client.post("/api/user/", json=user_payload(7011))
+        response = await client.put("/api/user/7011", json={
+            "subgroup": 3
+        })
+        assert response.status_code == 400
+        assert response.json()["detail"] == "invalid subgroup"
+
+    @pytest.mark.asyncio
+    async def test_update_user_autocreates_missing_group(self, client):
+        await client.post("/api/user/", json=user_payload(7012, group_id=6101))
+        new_group_guid = str(uuid.uuid4())
+        response = await client.put("/api/user/7012", json={
+            "group_oid": 6102,
+            "subgroup": 1,
+            "group_guid": new_group_guid,
+            "group_name": "IU8-6102",
+            "faculty_name": "Informatics",
+        })
+        assert response.status_code == 200
+        updated_body = response.json()
+        assert updated_body["id"] == 7012
+        assert updated_body["group_oid"] == 6102
+        assert updated_body["subgroup"] == 1
 
     @pytest.mark.asyncio
     async def test_delete_user(self, client):

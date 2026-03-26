@@ -1,4 +1,4 @@
-﻿from datetime import datetime
+from datetime import datetime
 from typing import Generator, List, Optional
 from uuid import UUID
 
@@ -62,6 +62,16 @@ class UserUpdate(BaseModel):
     group_guid: Optional[UUID] | None = None
     group_name: Optional[str] | None = None
     faculty_name: Optional[str] | None = None
+
+
+def _validate_subgroup(subgroup: Optional[int]) -> None:
+    if subgroup is None:
+        return
+    if subgroup not in {0, 1, 2}:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="invalid subgroup"
+        )
 
 def _check_payload(payload: UserCreate | UserUpdate) -> None:
     """Validates the given payload and raises a 400 error if any of the essential group
@@ -154,7 +164,7 @@ def get_user_by_username(
     repo = UserRepository(session)
     return ensure_entity_exists(username, repo.GetByUsername)
 
-@router.put("/{user_id}")
+@router.put("/{user_id}", response_model=UserRead)
 def update_user(
     user_id: int,
     payload: UserUpdate,
@@ -162,15 +172,22 @@ def update_user(
 ):
     repo = UserRepository(session)
     ensure_entity_exists(user_id, repo.GetById)
+    _validate_subgroup(payload.subgroup)
     if payload.group_oid:
         _ensure_group_exists(payload, session)
 
-    return repo.Update(
+    updated = repo.Update(
         user_id,
         payload.username,
         payload.group_oid,
         payload.subgroup
     )
+    if not updated:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error: Update Failed"
+        )
+    return ensure_entity_exists(user_id, repo.GetById)
 
 @router.put("/last_used_at/{user_guid}")
 def update_user_last_used_at(
