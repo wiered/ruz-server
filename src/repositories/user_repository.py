@@ -24,6 +24,12 @@ class UserRepository:
         Returns:
             User: созданный пользователь
         """
+        if isinstance(user, dict):
+            user = User(**user)
+
+        if not isinstance(user, User):
+            raise ValueError("User must be a User object")
+
         logger.info(f"Creating user {user}")
 
         self.session.add(user)
@@ -40,6 +46,12 @@ class UserRepository:
             User: созданный или полученный пользователь
         """
         logger.info(f"Getting or creating user {user}")
+
+        if isinstance(user, dict):
+            user = User(**user)
+
+        if not isinstance(user, User):
+            raise ValueError("User must be a User object")
 
         existing = self.GetById(user.id)
         if existing:
@@ -69,6 +81,9 @@ class UserRepository:
         Returns:
             List[User]: список пользователей
         """
+        if not isinstance(value, int):
+            raise ValueError("GroupOid must be an integer")
+
         logger.info(f"Listing users by group {value}")
 
         stmt = select(User).where(User.group_oid == value)
@@ -85,6 +100,9 @@ class UserRepository:
         """
         logger.info(f"Getting user {value}")
 
+        if not isinstance(value, int):
+            raise ValueError("UserId must be an integer")
+
         stmt = select(User).where(User.id == value)
         return self.session.exec(stmt).first()
 
@@ -99,6 +117,9 @@ class UserRepository:
         """
         logger.info(f"Getting user {value}")
 
+        if not isinstance(value, str):
+            raise ValueError("Username must be a string")
+
         stmt = select(User).where(User.username == value)
         return self.session.exec(stmt).first()
 
@@ -112,6 +133,9 @@ class UserRepository:
             Optional[User]: пользователь
         """
         logger.info(f"Getting user {value} with group")
+
+        if not isinstance(value, int):
+            raise ValueError("UserId must be an integer")
 
         stmt = select(User).where(User.id == value).options(selectinload(User.group))
         return self.session.exec(stmt).first()
@@ -136,6 +160,18 @@ class UserRepository:
         """
         logger.info(f"Updating user {value}")
 
+        if not isinstance(value, int):
+            raise ValueError("UserId must be an integer")
+
+        if username is not None and not isinstance(username, str):
+            raise ValueError("Username must be a string")
+
+        if group_oid is not None and not isinstance(group_oid, int):
+            raise ValueError("GroupOid must be an integer")
+
+        if subgroup is not None and not isinstance(subgroup, int):
+            raise ValueError("Subgroup must be an integer")
+
         try:
             current = self.GetById(value)
 
@@ -146,9 +182,11 @@ class UserRepository:
             if username is None:
                 logger.debug(f"Payload does not have a username")
                 username = current.username
+
             if group_oid is None:
                 logger.debug(f"Payload does not have a group_oid")
                 group_oid = current.group_oid
+
             if subgroup is None:
                 logger.debug(f"Payload does not have a subgroup")
                 subgroup = current.subgroup
@@ -174,6 +212,9 @@ class UserRepository:
         """
         logger.info(f"Updating last used at for user {value}")
 
+        if not isinstance(value, int):
+            raise ValueError("UserId must be an integer")
+
         try:
             stmt = (
                 update(User)
@@ -198,6 +239,9 @@ class UserRepository:
             bool: True if the deletion was successful, False otherwise.
         """
         logger.info(f"Deleting user {value}")
+
+        if not isinstance(value, int):
+            raise ValueError("UserId must be an integer")
 
         try:
             stmt = delete(User).where(User.id == value)
