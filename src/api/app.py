@@ -13,7 +13,7 @@ dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
-app.include_router(api_router, prefix="/api")
+app.include_router(api_router, prefix="/api", dependencies=[Security(require_api_key)])
 
 @app.get("/")
 async def root(request: Request):
@@ -28,3 +28,7 @@ async def public():
 async def protected(_: None = Security(require_api_key)):
     logger.info("protected ok")
     return {"message": "protected ok"}
+
+@app.get("/healthz")
+async def healthz():
+    return {"status": "ok"}
