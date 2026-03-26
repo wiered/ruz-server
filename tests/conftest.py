@@ -16,7 +16,7 @@ from pathlib import Path
 # Добавляем src в путь для импортов
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from models.models import User, Group, Auditorium, Discipline
+from models.models import User, Group, Auditorium, Discipline, KindOfWork, Lecturer, LessonGroup, Lesson
 
 
 @pytest.fixture(scope="session")
@@ -208,6 +208,125 @@ def sample_discipline_static():
         name="Linear Algebra",
         examtype="exam",
         has_labs=True
+    )
+
+
+@pytest.fixture
+def unique_kind_of_work_id():
+    """Generate unique kind-of-work ID for each test."""
+    import time
+    import random
+    return int(time.time() * 1000) % 100000 + random.randint(100, 999)
+
+
+@pytest.fixture
+def sample_kind_of_work(unique_kind_of_work_id):
+    """Create a sample KindOfWork object with unique ID."""
+    return KindOfWork(
+        id=unique_kind_of_work_id,
+        type_of_work=f"Type {unique_kind_of_work_id}",
+        complexity=3
+    )
+
+
+@pytest.fixture
+def sample_kind_of_work_static():
+    """Create a static sample KindOfWork object for unit tests."""
+    return KindOfWork(
+        id=1,
+        type_of_work="Lecture",
+        complexity=2
+    )
+
+
+@pytest.fixture
+def unique_lecturer_id():
+    """Generate unique lecturer ID for each test."""
+    import time
+    import random
+    return int(time.time() * 1000) % 100000 + random.randint(100, 999)
+
+
+@pytest.fixture
+def sample_lecturer(unique_lecturer_id):
+    """Create a sample Lecturer object with unique ID."""
+    import uuid
+    return Lecturer(
+        id=unique_lecturer_id,
+        guid=uuid.uuid4(),
+        full_name=f"Lecturer {unique_lecturer_id}",
+        short_name=f"L{unique_lecturer_id}",
+        rank="Professor"
+    )
+
+
+@pytest.fixture
+def sample_lecturer_static():
+    """Create a static sample Lecturer object for unit tests."""
+    return Lecturer(
+        id=1,
+        guid="550e8400-e29b-41d4-a716-446655440000",
+        full_name="John Smith",
+        short_name="J. Smith",
+        rank="Associate Professor"
+    )
+
+
+@pytest.fixture
+def sample_lesson_group():
+    """Create a sample LessonGroup association object."""
+    return LessonGroup(
+        lesson_id=1,
+        group_id=1
+    )
+
+
+@pytest.fixture
+def sample_lesson_group_alt():
+    """Create an alternative LessonGroup association object."""
+    return LessonGroup(
+        lesson_id=1,
+        group_id=2
+    )
+
+
+@pytest.fixture
+def unique_lesson_id():
+    """Generate unique lesson ID for each test."""
+    import time
+    import random
+    return int(time.time() * 1000) % 100000 + random.randint(100, 999)
+
+
+@pytest.fixture
+def sample_lesson(unique_lesson_id):
+    """Create a sample Lesson object with unique ID."""
+    return Lesson(
+        id=unique_lesson_id,
+        kind_of_work_id=1,
+        discipline_id=1,
+        auditorium_id=1,
+        lecturer_id=1,
+        date=datetime.date.today(),
+        begin_lesson=datetime.time(9, 0),
+        end_lesson=datetime.time(10, 30),
+        sub_group=1,
+    )
+
+
+@pytest.fixture
+def sample_lesson_static():
+    """Create a static sample Lesson object for unit tests."""
+    return Lesson(
+        id=1,
+        kind_of_work_id=1,
+        discipline_id=1,
+        auditorium_id=1,
+        lecturer_id=1,
+        date=datetime.date(2025, 1, 1),
+        begin_lesson=datetime.time(9, 0),
+        end_lesson=datetime.time(10, 30),
+        sub_group=1,
     )
 
 
