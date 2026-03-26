@@ -1,11 +1,13 @@
-﻿import os
+import os
 import logging
 from logging.config import dictConfig
 
-from settings import settings
+from settings import ROOT, settings
 
 console_handler_level = settings.logging_level
 console_handler_format = settings.logging_format
+LOGS_DIR = ROOT / "logs"
+os.makedirs(LOGS_DIR, exist_ok=True)
 
 LOGGING_CONFIG = {
     'version': 1,
@@ -29,7 +31,7 @@ LOGGING_CONFIG = {
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'detailed',
             'level': 'DEBUG',
-            'filename': 'debug.log',
+            'filename': str(LOGS_DIR / 'debug.log'),
             'maxBytes': 1024*1024*5,
             'backupCount': 3,
             'encoding': 'utf8',
@@ -38,7 +40,7 @@ LOGGING_CONFIG = {
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'detailed',
             'level': 'ERROR',
-            'filename': 'error.log',
+            'filename': str(LOGS_DIR / 'error.log'),
             'maxBytes': 1024*1024*5,
             'backupCount': 3,
             'encoding': 'utf8',
