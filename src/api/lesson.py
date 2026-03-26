@@ -123,7 +123,7 @@ def create_lesson(
         lecturer_repository,
         payload.lecturer_id,
         lecturer_repository.GetById,
-        dict(
+        Lecturer(
             id=payload.lecturer_id,
             guid=payload.lecturer_guid,
             full_name=payload.lecturer_full_name,
@@ -137,7 +137,7 @@ def create_lesson(
         kind_of_work_repository,
         payload.kind_of_work_id,
         kind_of_work_repository.GetById,
-        dict(
+        KindOfWork(
             id=payload.kind_of_work_id,
             type_of_work=payload.type_of_work,
             complexity=payload.complexity
@@ -149,7 +149,7 @@ def create_lesson(
         discipline_repository,
         payload.discipline_id,
         discipline_repository.GetById,
-        dict(
+        Discipline(
             id=payload.discipline_id,
             name=payload.discipline_name,
             examtype="Неизв.",
@@ -163,7 +163,7 @@ def create_lesson(
         auditorium_repository,
         payload.auditorium_id,
         auditorium_repository.GetById,
-        dict(
+        Auditorium(
             id=payload.auditorium_id,
             guid=payload.auditorium_guid,
             name=payload.auditorium_name,
