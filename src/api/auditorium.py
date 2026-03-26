@@ -42,8 +42,7 @@ class AuditoriumUpdate(BaseModel):
 @router.post("/", response_model=AuditoriumRead, status_code=status.HTTP_201_CREATED)
 def create_auditorium(
     payload: AuditoriumCreate,
-    session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    session: Session = Depends(get_db)
 ):
     """Create a new Auditorium entity and return the persisted record."""
     repo = AuditoriumRepository(session)
@@ -61,8 +60,7 @@ def create_auditorium(
 
 @router.get("/", response_model=List[AuditoriumRead])
 def list_auditoriums(
-    session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    session: Session = Depends(get_db)
 ):
     """List all Auditorium entities."""
     repo = AuditoriumRepository(session)
@@ -72,8 +70,7 @@ def list_auditoriums(
 @router.get("/{auditorium_id}", response_model=AuditoriumRead)
 def get_auditorium(
     auditorium_id: int,
-    session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    session: Session = Depends(get_db)
 ):
     """Retrieve a single Auditorium by its numeric identifier."""
     repo = AuditoriumRepository(session)
@@ -83,8 +80,7 @@ def get_auditorium(
 @router.get("/guid/{auditorium_guid}", response_model=AuditoriumRead)
 def get_auditorium_by_guid(
     auditorium_guid: UUID,
-    session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    session: Session = Depends(get_db)
 ):
     """Retrieve a single Auditorium by its GUID."""
     repo = AuditoriumRepository(session)
@@ -95,8 +91,7 @@ def get_auditorium_by_guid(
 def update_auditorium(
     auditorium_id: int,
     payload: AuditoriumUpdate,
-    session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    session: Session = Depends(get_db)
 ):
     """Update mutable fields of an Auditorium and return the updated entity."""
     repo = AuditoriumRepository(session)
@@ -112,8 +107,7 @@ def update_auditorium(
 @router.delete("/{auditorium_id}")
 def delete_auditorium(
     auditorium_id: int,
-    session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    session: Session = Depends(get_db)
 ):
     """Delete an Auditorium by its identifier."""
     repo = AuditoriumRepository(session)

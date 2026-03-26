@@ -13,6 +13,20 @@ from helpers.api_helpers import (ensure_entity_doesnot_exist,
 from models import Group, User
 from repositories import GroupRepository, UserRepository
 
+
+# Setup logging
+import logging
+from logging.config import dictConfig
+from logging_config import LOGGING_CONFIG, ColoredFormatter
+
+dictConfig(LOGGING_CONFIG)
+logger = logging.getLogger(__name__)
+
+root_logger = logging.getLogger()
+for handler in root_logger.handlers:
+    if type(handler) is logging.StreamHandler:
+        handler.setFormatter(ColoredFormatter('%(levelname)s:     %(asctime)s %(name)s - %(message)s'))
+
 router = APIRouter(prefix="/user", tags=["user"])
 
 def get_db() -> Generator[Session, None, None]:
@@ -102,8 +116,7 @@ def _ensure_group_exists(payload: UserCreate | UserUpdate, session: Session) -> 
 @router.post("/", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 def create_user(
     payload: UserCreate,
-    session: Session =  Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    session: Session =  Depends(get_db)
 ):
     repo = UserRepository(session)
     _ensure_group_exists(payload, session)
@@ -120,8 +133,7 @@ def create_user(
 
 @router.get("/", response_model=List[UserRead])
 def list_users(
-    session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    session: Session = Depends(get_db)
 ):
     repo = UserRepository(session)
     return repo.ListAll()
@@ -129,8 +141,7 @@ def list_users(
 @router.get("/{user_id}", response_model=UserRead)
 def get_user(
     user_id: int,
-    session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    session: Session = Depends(get_db)
 ):
     repo = UserRepository(session)
     return ensure_entity_exists(user_id, repo.GetById)
@@ -138,8 +149,7 @@ def get_user(
 @router.get("/guid/{user_guid}", response_model=UserRead)
 def get_user_by_username(
     username: str,
-    session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    session: Session = Depends(get_db)
 ):
     repo = UserRepository(session)
     return ensure_entity_exists(username, repo.GetByUsername)
@@ -148,8 +158,7 @@ def get_user_by_username(
 def update_user(
     user_id: int,
     payload: UserUpdate,
-    session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    session: Session = Depends(get_db)
 ):
     repo = UserRepository(session)
     ensure_entity_exists(user_id, repo.GetById)
@@ -166,8 +175,7 @@ def update_user(
 @router.put("/last_used_at/{user_guid}")
 def update_user_last_used_at(
     user_id: int,
-    session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    session: Session = Depends(get_db)
 ):
     repo = UserRepository(session)
     ensure_entity_exists(user_id, repo.GetById)
@@ -177,8 +185,7 @@ def update_user_last_used_at(
 @router.delete("/{user_id}")
 def delete_user(
     user_id: int,
-    session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    session: Session = Depends(get_db)
 ):
     repo = UserRepository(session)
     ensure_entity_exists(user_id, repo.GetById)
