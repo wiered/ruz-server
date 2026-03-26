@@ -1,5 +1,6 @@
-﻿import logging
+import logging
 from datetime import time, date
+from datetime import date as datetime_date
 from datetime import datetime as dt
 from typing import Generator, List, Optional
 from uuid import UUID
@@ -77,7 +78,7 @@ class LessonUpdate(BaseModel):
     discipline_id: Optional[int] | None = None
     auditorium_id: Optional[int] | None = None
     lecturer_id: Optional[int] | None = None
-    date: Optional[date] | None = None
+    date: Optional[datetime_date] | None = None
     begin_lesson: Optional[time] | None = None
     end_lesson: Optional[time] | None = None
     sub_group: Optional[int] | None = None
@@ -92,12 +93,12 @@ def _set_has_labs_and_examtype(payload: LessonCreate, session: Session):
     examtype = discipline.examtype
     is_changed = False
 
-    if not has_labs and payload.kind_of_work == "Лабораторная работа":
+    if not has_labs and payload.type_of_work == "Лабораторная работа":
         has_labs = True
         is_changed = True
 
-    if examtype == "Неизв." and payload.kind_of_work in EXAM_TYPES:
-        examtype = payload.kind_of_work
+    if examtype == "Неизв." and payload.type_of_work in EXAM_TYPES:
+        examtype = payload.type_of_work
         is_changed = True
 
     if is_changed:
@@ -111,8 +112,7 @@ def _set_has_labs_and_examtype(payload: LessonCreate, session: Session):
 @router.post("/", response_model=LessonRead, status_code=status.HTTP_201_CREATED)
 def create_lesson(
     payload: LessonCreate,
-    session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    session: Session = Depends(get_db)
 ):
     """Create a new Lesson entity and return the persisted record."""
     repo = LessonRepository(session)
@@ -186,8 +186,7 @@ def create_lesson(
 
 @router.put("/parse")
 def parse_lessons(
-    session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    session: Session = Depends(get_db)
 ):
     repo = LessonRepository(session)
     group_repository = GroupRepository(session)
@@ -202,8 +201,7 @@ def parse_lessons(
 
 @router.get("/", response_model=List[LessonRead])
 def list_lessons(
-    session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    session: Session = Depends(get_db)
 ):
     """List all Lesson entities."""
     repo = LessonRepository(session)
@@ -213,8 +211,7 @@ def list_lessons(
 @router.get("/{lesson_id}", response_model=LessonRead)
 def get_lesson(
     lesson_id: int,
-    session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    session: Session = Depends(get_db)
 ):
     """Retrieve a single Lesson by its numeric identifier."""
     repo = LessonRepository(session)
@@ -225,14 +222,13 @@ def get_lesson(
 def update_lesson(
     lesson_id: int,
     payload: LessonUpdate,
-    session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    session: Session = Depends(get_db)
 ):
     """Update mutable fields of a Lesson and return the updated entity."""
     repo = LessonRepository(session)
     ensure_entity_exists(lesson_id, repo.GetById)
 
-    return repo.Update(
+    repo.Update(
         lesson_id,
         payload.kind_of_work_id,
         payload.discipline_id,
@@ -241,16 +237,15 @@ def update_lesson(
         payload.date,
         payload.begin_lesson,
         payload.end_lesson,
-        payload.sub_group,
-        payload.updated_at
+        payload.sub_group
     )
+    return ensure_entity_exists(lesson_id, repo.GetById)
 
 
 @router.delete("/{lesson_id}")
 def delete_lesson(
     lesson_id: int,
-    session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    session: Session = Depends(get_db)
 ):
     """Delete a Lesson by its identifier."""
     repo = LessonRepository(session)
