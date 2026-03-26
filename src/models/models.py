@@ -1,4 +1,4 @@
-﻿import datetime
+import datetime
 from datetime import timezone
 from typing import List, Optional
 from uuid import UUID
@@ -24,6 +24,15 @@ class LessonGroup(SQLModel, table=True):
         )
     ) # groupOid
 
+    lesson: Optional["Lesson"] = Relationship(
+        back_populates="lesson_groups",
+        sa_relationship_kwargs={"overlaps": "groups,lessons"},
+    )
+    group: Optional["Group"] = Relationship(
+        back_populates="lesson_groups",
+        sa_relationship_kwargs={"overlaps": "groups,lessons"},
+    )
+
 
 class Group(SQLModel, table=True):
     __tablename__ = "groups"
@@ -46,9 +55,14 @@ class Group(SQLModel, table=True):
     ))
 
     users: List["User"] = Relationship(back_populates="group")
+    lesson_groups: List["LessonGroup"] = Relationship(
+        back_populates="group",
+        sa_relationship_kwargs={"overlaps": "lessons,groups"},
+    )
     lessons: List["Lesson"] = Relationship(
         back_populates="groups",
-        link_model=LessonGroup
+        link_model=LessonGroup,
+        sa_relationship_kwargs={"overlaps": "group,lesson,lesson_groups"},
     )
 
 
@@ -204,7 +218,12 @@ class Lesson(SQLModel, table=True):
     discipline: Optional[Discipline] = Relationship(back_populates="lessons")
     auditorium: Optional[Auditorium] = Relationship(back_populates="lessons")
     lecturer: Optional[Lecturer] = Relationship(back_populates="lessons")
+    lesson_groups: List["LessonGroup"] = Relationship(
+        back_populates="lesson",
+        sa_relationship_kwargs={"overlaps": "lessons,groups"},
+    )
     groups: List["Group"] = Relationship(
         back_populates="lessons",
-        link_model=LessonGroup
+        link_model=LessonGroup,
+        sa_relationship_kwargs={"overlaps": "group,lesson,lesson_groups"},
     )
