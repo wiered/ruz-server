@@ -201,12 +201,13 @@ class Lesson(SQLModel, table=True):
     )
     date: datetime.date = Field(default=datetime.datetime.now(timezone.utc))
 
-    begin_lesson: datetime.date = Field(sa_column=Column(
+    # SQL column type is TIME, so the Python-side type must be datetime.time.
+    begin_lesson: datetime.time = Field(sa_column=Column(
         "begin_lesson",
         Time,
         nullable=False
     ))
-    end_lesson: datetime.date = Field(sa_column=Column(
+    end_lesson: datetime.time = Field(sa_column=Column(
         "end_lesson",
         Time,
         nullable=False
