@@ -135,3 +135,35 @@ class TestDisciplineAPI:
 
         get_response = await client.get("/api/discipline/2005")
         assert get_response.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_create_discipline_duplicate_returns_409(self, client):
+        payload = {
+            "id": 2010,
+            "name": "Duplicate",
+            "examtype": "exam",
+            "has_labs": True,
+        }
+        await client.post("/api/discipline/", json=payload)
+        response = await client.post("/api/discipline/", json=payload)
+        assert response.status_code == 409
+
+    @pytest.mark.asyncio
+    async def test_get_discipline_not_found_returns_404(self, client):
+        response = await client.get("/api/discipline/999999")
+        assert response.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_update_discipline_not_found_returns_404(self, client):
+        response = await client.put("/api/discipline/999999", json={"name": "X"})
+        assert response.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_delete_discipline_not_found_returns_404(self, client):
+        response = await client.delete("/api/discipline/999999")
+        assert response.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_create_discipline_invalid_payload_returns_422(self, client):
+        response = await client.post("/api/discipline/", json={"id": 1})
+        assert response.status_code == 422

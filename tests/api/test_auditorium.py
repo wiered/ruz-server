@@ -145,3 +145,35 @@ class TestAuditoriumAPI:
 
         get_response = await client.get("/api/auditorium/1006")
         assert get_response.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_create_auditorium_duplicate_returns_409(self, client):
+        payload = {
+            "id": 1010,
+            "guid": str(uuid.uuid4()),
+            "name": "DUP",
+            "building": "Main",
+        }
+        await client.post("/api/auditorium/", json=payload)
+        response = await client.post("/api/auditorium/", json=payload)
+        assert response.status_code == 409
+
+    @pytest.mark.asyncio
+    async def test_get_auditorium_not_found_returns_404(self, client):
+        response = await client.get("/api/auditorium/999999")
+        assert response.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_update_auditorium_not_found_returns_404(self, client):
+        response = await client.put("/api/auditorium/999999", json={"name": "X", "building": "Y"})
+        assert response.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_delete_auditorium_not_found_returns_404(self, client):
+        response = await client.delete("/api/auditorium/999999")
+        assert response.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_create_auditorium_invalid_payload_returns_422(self, client):
+        response = await client.post("/api/auditorium/", json={"id": 1})
+        assert response.status_code == 422

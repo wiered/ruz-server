@@ -111,3 +111,30 @@ class TestUsersAPI:
 
         get_response = await client.get("/api/user/7005")
         assert get_response.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_create_user_duplicate_returns_409(self, client):
+        payload = user_payload(7010)
+        await client.post("/api/user/", json=payload)
+        response = await client.post("/api/user/", json=payload)
+        assert response.status_code == 409
+
+    @pytest.mark.asyncio
+    async def test_get_user_not_found_returns_404(self, client):
+        response = await client.get("/api/user/999999")
+        assert response.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_update_user_not_found_returns_404(self, client):
+        response = await client.put("/api/user/999999", json={"username": "x"})
+        assert response.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_delete_user_not_found_returns_404(self, client):
+        response = await client.delete("/api/user/999999")
+        assert response.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_create_user_invalid_payload_returns_422(self, client):
+        response = await client.post("/api/user/", json={"id": 1})
+        assert response.status_code == 422

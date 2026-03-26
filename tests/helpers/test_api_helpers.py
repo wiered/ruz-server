@@ -45,31 +45,29 @@ class TestApiHelpers:
         assert result is True
         lookup.assert_called_once_with(2)
 
-    def test_is_entity_exists_raises_type_error_when_missing(self):
-        # Current implementation does `raise False`, which produces TypeError.
+    def test_is_entity_exists_returns_false_when_missing(self):
         lookup = MagicMock(return_value=None)
 
-        with pytest.raises(TypeError):
-            is_entity_exists(999, lookup)
+        result = is_entity_exists(999, lookup)
+
+        assert result is False
 
     def test_create_if_not_exists_no_create_when_entity_exists(self):
         repository = MagicMock()
         lookup = MagicMock(return_value={"id": 3})
-        payload = {"id": 3, "name": "exists"}
+        entity = MagicMock(id=3, name="exists")
 
-        create_if_not_exists(repository, 3, lookup, payload)
+        create_if_not_exists(repository, 3, lookup, entity)
 
         repository.Create.assert_not_called()
 
-    def test_create_if_not_exists_propagates_type_error_when_missing(self):
+    def test_create_if_not_exists_creates_when_missing(self):
         repository = MagicMock()
         lookup = MagicMock(return_value=None)
-        payload = {"id": 4, "name": "new"}
+        entity = MagicMock(id=4, name="new")
 
-        with pytest.raises(TypeError):
-            create_if_not_exists(repository, 4, lookup, payload)
-
-        repository.Create.assert_not_called()
+        create_if_not_exists(repository, 4, lookup, entity)
+        repository.Create.assert_called_once_with(entity)
 
     def test_ensure_entity_doesnot_exist_no_error_when_missing(self):
         lookup = MagicMock(return_value=None)

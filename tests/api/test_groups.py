@@ -133,3 +133,53 @@ class TestGroupsAPI:
         assert response.json() is True
         get_response = await client.get("/api/group/3006")
         assert get_response.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_create_group_duplicate_id_returns_409(self, client):
+        payload = {
+            "id": 3010,
+            "guid": str(uuid.uuid4()),
+            "name": "IU8-DUP-1",
+            "faculty_name": "Informatics",
+        }
+        await client.post("/api/group/", json=payload)
+        response = await client.post("/api/group/", json=payload)
+        assert response.status_code == 409
+
+    @pytest.mark.asyncio
+    async def test_create_group_duplicate_name_returns_409(self, client):
+        payload1 = {
+            "id": 3011,
+            "guid": str(uuid.uuid4()),
+            "name": "IU8-DUP-2",
+            "faculty_name": "Informatics",
+        }
+        payload2 = {
+            "id": 3012,
+            "guid": str(uuid.uuid4()),
+            "name": "IU8-DUP-2",
+            "faculty_name": "Informatics",
+        }
+        await client.post("/api/group/", json=payload1)
+        response = await client.post("/api/group/", json=payload2)
+        assert response.status_code == 409
+
+    @pytest.mark.asyncio
+    async def test_get_group_not_found_returns_404(self, client):
+        response = await client.get("/api/group/999999")
+        assert response.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_update_group_not_found_returns_404(self, client):
+        response = await client.put("/api/group/999999", json={"name": "X", "faculty_name": "Y"})
+        assert response.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_delete_group_not_found_returns_404(self, client):
+        response = await client.delete("/api/group/999999")
+        assert response.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_create_group_invalid_payload_returns_422(self, client):
+        response = await client.post("/api/group/", json={"id": 1})
+        assert response.status_code == 422

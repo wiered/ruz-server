@@ -21,6 +21,12 @@ async def client():
         yield test_client
     app.dependency_overrides.clear()
 
+@pytest_asyncio.fixture
+async def client_no_auth():
+    """Create client without API key override."""
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as test_client:
+        yield test_client
+
 
 @pytest.mark.api
 class TestAppAPI:
@@ -47,3 +53,8 @@ class TestAppAPI:
         response = await client.get("/healthz")
         assert response.status_code == 200
         assert response.json() == {"status": "ok"}
+
+    @pytest.mark.asyncio
+    async def test_api_route_requires_api_key(self, client_no_auth):
+        response = await client_no_auth.get("/api/group/")
+        assert response.status_code == 401

@@ -7,7 +7,7 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool
-from sqlmodel import SQLModel, Session
+from sqlmodel import SQLModel, Session, select
 
 import sys
 from pathlib import Path
@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 from api.app import app
 from api import lesson
 from api.security import require_api_key
-from models.models import Lecturer, KindOfWork, Discipline, Auditorium, Group
+from models.models import Lecturer, KindOfWork, Discipline, Auditorium, Lesson
 
 
 @pytest_asyncio.fixture
@@ -29,53 +29,6 @@ async def client():
     )
     SQLModel.metadata.create_all(engine)
 
-    # Seed required related entities so create_lesson doesn't hit broken helper path.
-    seed_session = Session(engine)
-    try:
-        seed_session.add(
-            Lecturer(
-                id=9001,
-                guid=uuid.uuid4(),
-                full_name="Seed Lecturer",
-                short_name="S. Lecturer",
-                rank="Professor",
-            )
-        )
-        seed_session.add(
-            KindOfWork(
-                id=8001,
-                type_of_work="Лекция",
-                complexity=3,
-            )
-        )
-        seed_session.add(
-            Discipline(
-                id=7001,
-                name="Seed Discipline",
-                examtype="Неизв.",
-                has_labs=False,
-            )
-        )
-        seed_session.add(
-            Auditorium(
-                id=6001,
-                guid=uuid.uuid4(),
-                name="A-101",
-                building="Main",
-            )
-        )
-        seed_session.add(
-            Group(
-                id=5001,
-                guid=uuid.uuid4(),
-                name="IU8-5001",
-                faculty_name="Informatics",
-            )
-        )
-        seed_session.commit()
-    finally:
-        seed_session.close()
-
     def override_get_db():
         session = Session(engine)
         try:
@@ -86,6 +39,7 @@ async def client():
     app.dependency_overrides[require_api_key] = lambda: None
     app.dependency_overrides[lesson.get_db] = override_get_db
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as test_client:
+        test_client.engine = engine
         yield test_client
     app.dependency_overrides.clear()
     SQLModel.metadata.drop_all(engine)
@@ -129,6 +83,42 @@ class TestLessonAPI:
         assert body["lecturer_id"] == 9001
 
     @pytest.mark.asyncio
+    async def test_create_lesson_autocreates_related_entities(self, client):
+        await client.post("/api/lesson/", json=lesson_payload(10011))
+
+        with Session(client.engine) as session:
+            assert session.exec(select(Lecturer).where(Lecturer.id == 9001)).first() is not None
+            assert session.exec(select(KindOfWork).where(KindOfWork.id == 8001)).first() is not None
+            assert session.exec(select(Discipline).where(Discipline.id == 7001)).first() is not None
+            assert session.exec(select(Auditorium).where(Auditorium.id == 6001)).first() is not None
+
+    @pytest.mark.asyncio
+    async def test_create_lesson_sets_has_labs_for_lab(self, client):
+        payload = lesson_payload(10012)
+        payload["type_of_work"] = "Лабораторная работа"
+
+        response = await client.post("/api/lesson/", json=payload)
+        assert response.status_code == 201
+
+        with Session(client.engine) as session:
+            discipline = session.exec(select(Discipline).where(Discipline.id == 7001)).first()
+            assert discipline is not None
+            assert discipline.has_labs is True
+
+    @pytest.mark.asyncio
+    async def test_create_lesson_sets_examtype_from_unknown(self, client):
+        payload = lesson_payload(10013)
+        payload["type_of_work"] = "Зачёт"
+
+        response = await client.post("/api/lesson/", json=payload)
+        assert response.status_code == 201
+
+        with Session(client.engine) as session:
+            discipline = session.exec(select(Discipline).where(Discipline.id == 7001)).first()
+            assert discipline is not None
+            assert discipline.examtype == "Зачёт"
+
+    @pytest.mark.asyncio
     async def test_list_lessons(self, client):
         await client.post("/api/lesson/", json=lesson_payload(10002))
         response = await client.get("/api/lesson/")
@@ -151,6 +141,7 @@ class TestLessonAPI:
     async def test_update_lesson(self, client):
         await client.post("/api/lesson/", json=lesson_payload(10004))
         lesson_id = (await client.get("/api/lesson/")).json()[0]["id"]
+        before_update = (await client.get(f"/api/lesson/{lesson_id}")).json()["updated_at"]
 
         response = await client.put(
             f"/api/lesson/{lesson_id}",
@@ -165,6 +156,23 @@ class TestLessonAPI:
         body = response.json()
         assert body["id"] == lesson_id
         assert body["sub_group"] == 2
+        assert body["updated_at"] != before_update
+
+    @pytest.mark.asyncio
+    async def test_partial_update_keeps_other_fields(self, client):
+        await client.post("/api/lesson/", json=lesson_payload(10014))
+        lesson_id = (await client.get("/api/lesson/")).json()[0]["id"]
+        before = (await client.get(f"/api/lesson/{lesson_id}")).json()
+
+        response = await client.put(f"/api/lesson/{lesson_id}", json={"sub_group": 9})
+        assert response.status_code == 200
+        after = response.json()
+
+        assert after["sub_group"] == 9
+        assert after["discipline_id"] == before["discipline_id"]
+        assert after["lecturer_id"] == before["lecturer_id"]
+        assert after["kind_of_work_id"] == before["kind_of_work_id"]
+        assert after["updated_at"] != before["updated_at"]
 
     @pytest.mark.asyncio
     async def test_delete_lesson(self, client):
@@ -177,3 +185,23 @@ class TestLessonAPI:
 
         get_response = await client.get(f"/api/lesson/{lesson_id}")
         assert get_response.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_get_lesson_not_found_returns_404(self, client):
+        response = await client.get("/api/lesson/999999")
+        assert response.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_update_lesson_not_found_returns_404(self, client):
+        response = await client.put("/api/lesson/999999", json={"sub_group": 2})
+        assert response.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_delete_lesson_not_found_returns_404(self, client):
+        response = await client.delete("/api/lesson/999999")
+        assert response.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_create_lesson_invalid_payload_returns_422(self, client):
+        response = await client.post("/api/lesson/", json={"id": 1})
+        assert response.status_code == 422

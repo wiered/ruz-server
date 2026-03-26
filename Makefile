@@ -1,9 +1,10 @@
-.PHONY: help test test-repositories test-api test-helpers test-models test-ruzapi test-unit test-integration test-coverage install-test-deps clean
+.PHONY: help test test-fast test-repositories test-api test-helpers test-models test-ruzapi test-unit test-integration test-coverage install-test-deps clean
 
 # Forward extra CLI args to pytest, e.g.:
 # make test -- -q
 # make test-api -- -q -k users
 PYTEST_ARGS = $(filter-out $@,$(MAKECMDGOALS))
+COVERAGE_MIN ?= 70
 
 help: ## Show this help message
 	@echo "Available commands:"
@@ -36,8 +37,8 @@ test-unit: ## Run unit tests only
 test-integration: ## Run integration tests only
 	pytest -m integration $(PYTEST_ARGS)
 
-test-coverage: ## Run tests with coverage report
-	pytest --cov=src --cov-report=html --cov-report=term $(PYTEST_ARGS)
+test-coverage: ## Run tests with coverage report and threshold
+	pytest --cov=src --cov-report=html --cov-report=term --cov-fail-under=$(COVERAGE_MIN) $(PYTEST_ARGS)
 
 test-fast: ## Run fast tests (exclude slow tests)
 	pytest -m "not slow" $(PYTEST_ARGS)
