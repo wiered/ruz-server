@@ -6,11 +6,12 @@ from logging.config import dictConfig
 from zoneinfo import ZoneInfo
 
 from fastapi import FastAPI, Request, Security
+from fastapi.responses import JSONResponse
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from ruz_server.api.security import require_api_key
 from ruz_server.api import api_router
-from ruz_server.services.refresh_scheduler import run_refresh_job
+from ruz_server.services.refresh_scheduler import get_last_refresh_state, run_refresh_job
 from ruz_server.settings import settings
 
 from ruz_server.logging_config import LOGGING_CONFIG, ColoredFormatter
@@ -65,4 +66,22 @@ async def protected(_: None = Security(require_api_key)):
 
 @app.get("/healthz")
 async def healthz():
-    return {"status": "ok"}
+    state = get_last_refresh_state()
+    last_refresh_at = state["last_refresh_at"]
+    last_refresh_status = state["last_refresh_status"]
+
+    if last_refresh_status in ("never", "error"):
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "degraded",
+                "last_refresh_at": last_refresh_at.isoformat() if last_refresh_at else None,
+                "last_refresh_status": last_refresh_status,
+            },
+        )
+
+    return {
+        "status": "ok",
+        "last_refresh_at": last_refresh_at.isoformat() if last_refresh_at else None,
+        "last_refresh_status": last_refresh_status,
+    }

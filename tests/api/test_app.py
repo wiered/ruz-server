@@ -48,8 +48,12 @@ class TestAppAPI:
     @pytest.mark.asyncio
     async def test_healthz(self, client):
         response = await client.get("/healthz")
-        assert response.status_code == 200
-        assert response.json() == {"status": "ok"}
+        assert response.status_code == 503
+        assert response.json() == {
+            "status": "degraded",
+            "last_refresh_at": None,
+            "last_refresh_status": "never",
+        }
 
     @pytest.mark.asyncio
     async def test_api_route_requires_api_key(self, client_no_auth):
