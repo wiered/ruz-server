@@ -1,9 +1,16 @@
-﻿from typing import Generator, List
+import logging
+from typing import Generator, List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Security, status
-from pydantic import BaseModel, ConfigDict
+import aiohttp
+from fastapi import APIRouter, Depends, HTTPException, Query, Security, status
+from pydantic import BaseModel, ConfigDict, Field
 from sqlmodel import Session
+
+from ruz_server.ruz_api.api import RuzAPI
+from ruz_server.ruz_api.group_search import parse_ruz_group_search_response
+
+logger = logging.getLogger(__name__)
 
 from ruz_server.api.security import require_api_key
 from ruz_server.database import db
@@ -75,6 +82,88 @@ class GroupUpdate(BaseModel):
 
     name: str
     faculty_name: str
+
+
+class GroupSearchHit(BaseModel):
+    """Результат объединённого поиска группы в локальной БД и на ruz.mstuca.ru."""
+
+    oid: int = Field(description="Идентификатор группы в RUZ (groupOid), совпадает с Group.id в БД")
+    name: str
+    guid: UUID
+    faculty_name: Optional[str] = Field(
+        default=None,
+        description="Факультет из локальной БД; для строк только из RUZ — null",
+    )
+
+
+@router.get("/search", response_model=List[GroupSearchHit])
+async def search_groups_by_name_db_and_ruz(
+    q: str = Query(
+        ...,
+        min_length=1,
+        description="Строка поиска: точное имя группы для выборки из БД (GetByName), подстрока для поиска на ruz.mstuca.ru",
+    ),
+    session: Session = Depends(get_db),
+    _api_key: str = Security(require_api_key),
+):
+    """
+    Поиск групп по имени одновременно в БД и на ruz.mstuca.ru.
+
+    Сначала возвращаются совпадения из БД (`GetByName` по точному имени), затем дополняются
+    уникальные по `oid` результаты из API RUZ (как в `/api/search?type=group`).
+    """
+    term = q.strip()
+    if not term:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Query must not be empty or whitespace-only",
+        )
+
+    repo = GroupRepository(session)
+    db_groups = repo.GetByName(term)
+
+    seen: set[int] = set()
+    out: List[GroupSearchHit] = []
+
+    for g in db_groups:
+        seen.add(g.id)
+        out.append(
+            GroupSearchHit(
+                oid=g.id,
+                name=g.name,
+                guid=g.guid,
+                faculty_name=g.faculty_name,
+            )
+        )
+
+    try:
+        raw = await RuzAPI().getGroup(term)
+    except aiohttp.ClientError as exc:
+        logger.warning("RUZ group search failed: %s", exc)
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Failed to reach ruz.mstuca.ru",
+        ) from exc
+
+    if not isinstance(raw, list):
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Unexpected response from RUZ search",
+        )
+
+    for item in parse_ruz_group_search_response(raw):
+        if item.oid in seen:
+            continue
+        seen.add(item.oid)
+        out.append(
+            GroupSearchHit(
+                oid=item.oid,
+                name=item.name,
+                guid=item.guid,
+                faculty_name=None,
+            )
+        )
+    return out
 
 
 @router.post("/", response_model=GroupRead, status_code=status.HTTP_201_CREATED)

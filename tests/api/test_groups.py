@@ -13,6 +13,7 @@ from sqlmodel import SQLModel, Session
 from ruz_server.api.app import app
 from ruz_server.api import groups
 from ruz_server.api.security import require_api_key
+from ruz_server.ruz_api.api import RuzAPI
 
 
 @pytest_asyncio.fixture
@@ -180,3 +181,91 @@ class TestGroupsAPI:
     async def test_create_group_invalid_payload_returns_422(self, client):
         response = await client.post("/api/group/", json={"id": 1})
         assert response.status_code == 422
+
+    @pytest.mark.asyncio
+    async def test_search_groups_ruz_only(self, client, monkeypatch):
+        gid_a = uuid.UUID("c72c7026-7e2d-4a76-af57-f1247a6d2e25")
+        gid_b = uuid.UUID("f07651c5-4709-4190-b82a-269c7078e6b7")
+
+        async def fake_get_group(self, group_name: str):
+            assert group_name == "ИС22"
+            return [
+                {
+                    "type": "group",
+                    "id": "841",
+                    "label": "ИС221",
+                    "description": "4",
+                    "guid": str(gid_a),
+                },
+                {
+                    "type": "group",
+                    "id": "839",
+                    "label": "БИС221",
+                    "description": "4",
+                    "guid": str(gid_b),
+                },
+            ]
+
+        monkeypatch.setattr(RuzAPI, "getGroup", fake_get_group)
+
+        response = await client.get("/api/group/search", params={"q": "ИС22"})
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 2
+        assert data[0] == {
+            "oid": 841,
+            "name": "ИС221",
+            "guid": str(gid_a),
+            "faculty_name": None,
+        }
+        assert data[1] == {
+            "oid": 839,
+            "name": "БИС221",
+            "guid": str(gid_b),
+            "faculty_name": None,
+        }
+
+    @pytest.mark.asyncio
+    async def test_search_groups_db_then_ruz_skips_duplicate_oid(self, client, monkeypatch):
+        gid_a = uuid.UUID("c72c7026-7e2d-4a76-af57-f1247a6d2e25")
+        gid_b = uuid.UUID("f07651c5-4709-4190-b82a-269c7078e6b7")
+
+        await client.post(
+            "/api/group/",
+            json={
+                "id": 841,
+                "guid": str(gid_a),
+                "name": "ИС221",
+                "faculty_name": "Факультет 4",
+            },
+        )
+
+        async def fake_get_group(self, group_name: str):
+            assert group_name == "ИС221"
+            return [
+                {
+                    "type": "group",
+                    "id": "841",
+                    "label": "ИС221",
+                    "description": "4",
+                    "guid": str(gid_a),
+                },
+                {
+                    "type": "group",
+                    "id": "839",
+                    "label": "БИС221",
+                    "description": "4",
+                    "guid": str(gid_b),
+                },
+            ]
+
+        monkeypatch.setattr(RuzAPI, "getGroup", fake_get_group)
+
+        response = await client.get("/api/group/search", params={"q": "ИС221"})
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 2
+        assert data[0]["oid"] == 841
+        assert data[0]["faculty_name"] == "Факультет 4"
+        assert data[1]["oid"] == 839
+        assert data[1]["faculty_name"] is None
