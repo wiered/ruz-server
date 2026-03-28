@@ -4,11 +4,19 @@ from typing import Iterable, List, Optional
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload
+from sqlalchemy import or_
 from sqlmodel import Session, delete, select, update
 
 from ruz_server.models import Lesson, LessonGroup
 
 logger = logging.getLogger(__name__)
+
+
+def _sub_group_sql_condition(requested_sub_group: int):
+    """SQL condition: requested 0 → no subgroup restriction; else common (0) or same subgroup."""
+    if requested_sub_group == 0:
+        return None
+    return or_(Lesson.sub_group == 0, Lesson.sub_group == requested_sub_group)
 
 
 class LessonRepository:
@@ -158,8 +166,9 @@ class LessonRepository:
     ) -> List[Lesson]:
         """Return lessons for a user's group/date range with subgroup policy.
 
-        Subgroup policy: include common lessons (`sub_group=0`) and lessons
-        for the user's subgroup.
+        Subgroup policy: if user ``subgroup`` is 0, return all lessons for the group
+        in range. Otherwise include common lessons (``sub_group=0``) and lessons whose
+        ``sub_group`` matches the user's subgroup.
         """
         logger.info(
             "Listing user lessons for group %s in range %s..%s",
@@ -167,15 +176,18 @@ class LessonRepository:
             start,
             end,
         )
+        where_parts = [
+            LessonGroup.group_id == group_id,
+            Lesson.date >= start,
+            Lesson.date <= end,
+        ]
+        sg = _sub_group_sql_condition(subgroup)
+        if sg is not None:
+            where_parts.append(sg)
         stmt = (
             select(Lesson)
             .join(LessonGroup, LessonGroup.lesson_id == Lesson.id)
-            .where(
-                LessonGroup.group_id == group_id,
-                Lesson.date >= start,
-                Lesson.date <= end,
-                Lesson.sub_group.in_([0, subgroup]),
-            )
+            .where(*where_parts)
             .order_by(Lesson.date, Lesson.begin_lesson)
             .options(
                 selectinload(Lesson.kind_of_work),
@@ -212,6 +224,12 @@ class LessonRepository:
         group_id: Optional[int] = None,
         sub_group: Optional[int] = None,
     ):
+        """Build lecturer/discipline search query (used by ListByLecturer* / ListByDiscipline*).
+
+        ``sub_group``: if omitted, no subgroup filter. If ``0``, no restriction on ``Lesson.sub_group``.
+        Otherwise require ``Lesson.sub_group == 0`` (общее) or match the requested value
+        (same policy as :meth:`ListForUserByDateRange`).
+        """
         stmt = select(Lesson)
         if group_id is not None:
             stmt = stmt.join(LessonGroup, LessonGroup.lesson_id == Lesson.id)
@@ -227,7 +245,9 @@ class LessonRepository:
         if group_id is not None:
             conditions.append(LessonGroup.group_id == group_id)
         if sub_group is not None:
-            conditions.append(Lesson.sub_group == sub_group)
+            sg = _sub_group_sql_condition(sub_group)
+            if sg is not None:
+                conditions.append(sg)
 
         stmt = (
             stmt.where(*conditions)
@@ -249,6 +269,7 @@ class LessonRepository:
         group_id: Optional[int] = None,
         sub_group: Optional[int] = None,
     ) -> List[Lesson]:
+        """Lecturer lessons for one day; ``sub_group`` uses :meth:`_build_search_stmt` policy."""
         return self.ListByLecturerAndDateRange(
             lecturer_id=lecturer_id,
             start=value,
@@ -265,6 +286,7 @@ class LessonRepository:
         group_id: Optional[int] = None,
         sub_group: Optional[int] = None,
     ) -> List[Lesson]:
+        """Lecturer lessons in date range; ``sub_group`` uses :meth:`_build_search_stmt` policy."""
         stmt = self._build_search_stmt(
             lecturer_id=lecturer_id,
             start=start,
@@ -295,6 +317,7 @@ class LessonRepository:
         group_id: Optional[int] = None,
         sub_group: Optional[int] = None,
     ) -> List[Lesson]:
+        """Discipline lessons for one day; ``sub_group`` uses :meth:`_build_search_stmt` policy."""
         return self.ListByDisciplineAndDateRange(
             discipline_id=discipline_id,
             start=value,
@@ -311,6 +334,7 @@ class LessonRepository:
         group_id: Optional[int] = None,
         sub_group: Optional[int] = None,
     ) -> List[Lesson]:
+        """Discipline lessons in date range; ``sub_group`` uses :meth:`_build_search_stmt` policy."""
         stmt = self._build_search_stmt(
             discipline_id=discipline_id,
             start=start,

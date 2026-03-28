@@ -82,6 +82,30 @@ def test_list_for_user_by_date_range_applies_subgroup_policy_and_order(session: 
 
 
 @pytest.mark.repositories
+def test_list_for_user_by_date_range_subgroup_zero_returns_all_sub_groups(session: Session):
+    _seed_entities(session)
+    lessons = [
+        _lesson(1003, sub_group=2, day=13, begin_hour=12),
+        _lesson(1001, sub_group=0, day=13, begin_hour=8),
+        _lesson(1002, sub_group=1, day=13, begin_hour=10),
+        _lesson(1004, sub_group=1, day=14, begin_hour=9),
+    ]
+    session.add_all(lessons)
+    session.add_all([LessonGroup(lesson_id=lesson.id, group_id=7001) for lesson in lessons])
+    session.commit()
+
+    repo = LessonRepository(session)
+    result = repo.ListForUserByDateRange(
+        group_id=7001,
+        subgroup=0,
+        start=datetime.date(2025, 1, 13),
+        end=datetime.date(2025, 1, 14),
+    )
+
+    assert [lesson.id for lesson in result] == [1001, 1002, 1003, 1004]
+
+
+@pytest.mark.repositories
 def test_list_by_lecturer_and_date_range_applies_filters_and_sorting(session: Session):
     _seed_entities(session)
     lessons = [
@@ -109,3 +133,117 @@ def test_list_by_lecturer_and_date_range_applies_filters_and_sorting(session: Se
     )
 
     assert [lesson.id for lesson in result] == [2001, 2003]
+
+
+@pytest.mark.repositories
+def test_list_by_lecturer_and_date_range_sub_group_zero_returns_all(session: Session):
+    _seed_entities(session)
+    lessons = [
+        _lesson(2002, sub_group=2, day=13, begin_hour=11),
+        _lesson(2001, sub_group=1, day=13, begin_hour=9),
+        _lesson(2003, sub_group=1, day=14, begin_hour=8),
+    ]
+    session.add_all(lessons)
+    session.add_all(
+        [
+            LessonGroup(lesson_id=2001, group_id=7001),
+            LessonGroup(lesson_id=2002, group_id=7001),
+            LessonGroup(lesson_id=2003, group_id=7001),
+        ]
+    )
+    session.commit()
+
+    repo = LessonRepository(session)
+    result = repo.ListByLecturerAndDateRange(
+        lecturer_id=9001,
+        start=datetime.date(2025, 1, 13),
+        end=datetime.date(2025, 1, 14),
+        group_id=7001,
+        sub_group=0,
+    )
+
+    assert [lesson.id for lesson in result] == [2001, 2002, 2003]
+
+
+@pytest.mark.repositories
+def test_list_by_lecturer_and_date_range_includes_common_sub_group_zero_lessons(session: Session):
+    _seed_entities(session)
+    lessons = [
+        _lesson(3001, sub_group=0, day=13, begin_hour=8),
+        _lesson(3002, sub_group=2, day=13, begin_hour=11),
+    ]
+    session.add_all(lessons)
+    session.add_all(
+        [
+            LessonGroup(lesson_id=3001, group_id=7001),
+            LessonGroup(lesson_id=3002, group_id=7001),
+        ]
+    )
+    session.commit()
+
+    repo = LessonRepository(session)
+    result = repo.ListByLecturerAndDateRange(
+        lecturer_id=9001,
+        start=datetime.date(2025, 1, 13),
+        end=datetime.date(2025, 1, 13),
+        group_id=7001,
+        sub_group=2,
+    )
+
+    assert [lesson.id for lesson in result] == [3001, 3002]
+
+
+@pytest.mark.repositories
+def test_list_by_discipline_and_date_range_sub_group_zero_returns_all(session: Session):
+    _seed_entities(session)
+    lessons = [
+        _lesson(4002, sub_group=2, day=13, begin_hour=11),
+        _lesson(4001, sub_group=1, day=13, begin_hour=9),
+    ]
+    session.add_all(lessons)
+    session.add_all(
+        [
+            LessonGroup(lesson_id=4001, group_id=7001),
+            LessonGroup(lesson_id=4002, group_id=7001),
+        ]
+    )
+    session.commit()
+
+    repo = LessonRepository(session)
+    result = repo.ListByDisciplineAndDateRange(
+        discipline_id=7101,
+        start=datetime.date(2025, 1, 13),
+        end=datetime.date(2025, 1, 13),
+        group_id=7001,
+        sub_group=0,
+    )
+
+    assert [lesson.id for lesson in result] == [4001, 4002]
+
+
+@pytest.mark.repositories
+def test_list_by_discipline_and_date_range_includes_common_sub_group_zero_lessons(session: Session):
+    _seed_entities(session)
+    lessons = [
+        _lesson(5001, sub_group=0, day=13, begin_hour=8),
+        _lesson(5002, sub_group=2, day=13, begin_hour=11),
+    ]
+    session.add_all(lessons)
+    session.add_all(
+        [
+            LessonGroup(lesson_id=5001, group_id=7001),
+            LessonGroup(lesson_id=5002, group_id=7001),
+        ]
+    )
+    session.commit()
+
+    repo = LessonRepository(session)
+    result = repo.ListByDisciplineAndDateRange(
+        discipline_id=7101,
+        start=datetime.date(2025, 1, 13),
+        end=datetime.date(2025, 1, 13),
+        group_id=7001,
+        sub_group=2,
+    )
+
+    assert [lesson.id for lesson in result] == [5001, 5002]
