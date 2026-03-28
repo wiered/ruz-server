@@ -11,6 +11,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from ruz_server.api.security import require_api_key
 from ruz_server.api import api_router
+from ruz_server.database.database import db
 from ruz_server.services.refresh_scheduler import get_last_refresh_state, run_refresh_job
 from ruz_server.settings import settings
 
@@ -22,6 +23,8 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    await asyncio.to_thread(db.createAllTables)
+
     tz = ZoneInfo(settings.refresh_timezone)
     scheduler = AsyncIOScheduler(timezone=tz)
     scheduler.add_job(
