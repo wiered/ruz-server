@@ -170,6 +170,8 @@ class TestSearchAPI:
             "discipline_name",
             "kind_of_work",
             "lecturer_short_name",
+            "lecturer_id",
+            "discipline_id",
             "auditorium_name",
             "building",
             "group_id",

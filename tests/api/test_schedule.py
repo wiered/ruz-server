@@ -215,12 +215,16 @@ class TestScheduleAPI:
             "discipline_name",
             "kind_of_work",
             "lecturer_short_name",
+            "lecturer_id",
+            "discipline_id",
             "auditorium_name",
             "building",
             "group_id",
         }
         assert set(first.keys()) == expected_keys
         assert first["group_id"] == 7001
+        assert first["lecturer_id"] == 9001
+        assert first["discipline_id"] == 7001
 
     @pytest.mark.asyncio
     async def test_week_boundary_excludes_next_week_lessons(self, client):

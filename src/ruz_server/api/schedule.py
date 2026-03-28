@@ -31,6 +31,8 @@ class UserScheduleLessonRead(BaseModel):
         discipline_name (str): Name of the discipline.
         kind_of_work (str): Type of work or lesson (e.g., lecture, practice).
         lecturer_short_name (str): Short name of the lecturer.
+        lecturer_id (int): ID преподавателя.
+        discipline_id (int): ID дисциплины.
         auditorium_name (str): Name of the auditorium.
         building (str): Building where the lesson is held.
         group_id (int): Group identifier associated with the lesson.
@@ -44,6 +46,8 @@ class UserScheduleLessonRead(BaseModel):
     discipline_name: str
     kind_of_work: str
     lecturer_short_name: str
+    lecturer_id: int
+    discipline_id: int
     auditorium_name: str
     building: str
     group_id: int
@@ -90,6 +94,8 @@ def map_lesson_to_schedule_dto(
         discipline_name=(lesson.discipline.name if lesson.discipline else ""),
         kind_of_work=(lesson.kind_of_work.type_of_work if lesson.kind_of_work else ""),
         lecturer_short_name=(lesson.lecturer.short_name if lesson.lecturer else ""),
+        lecturer_id=lesson.lecturer_id,
+        discipline_id=lesson.discipline_id,
         auditorium_name=(lesson.auditorium.name if lesson.auditorium else ""),
         building=(lesson.auditorium.building if lesson.auditorium else ""),
         group_id=resolved_group_id,
