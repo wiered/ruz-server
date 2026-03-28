@@ -169,3 +169,8 @@ test.md
 trash/
 .vscode/
 install_make.ps1
+.cursorignore
+openapi.*
+*full_documentation.*
+beautif.*
+logs/
