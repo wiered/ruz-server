@@ -27,6 +27,19 @@ def search_lecturer_day(
     sub_group: Optional[int] = Query(None),
     session: Session = Depends(get_db),
 ):
+    """
+    Search for lessons scheduled for a specific lecturer on a given day.
+
+    Args:
+        lecturer_id (int): The unique identifier of the lecturer.
+        date (datetime.date): The specific date to search lessons for.
+        group_id (Optional[int]): The optional group identifier to filter lessons (default: None).
+        sub_group (Optional[int]): The optional subgroup identifier to filter lessons (default: None).
+        session (Session): The database session dependency.
+
+    Returns:
+        List[UserScheduleLessonRead]: List of lessons matching the criteria, formatted for user schedule output.
+    """
     repo = LessonRepository(session)
     lessons = repo.ListByLecturerAndDate(
         lecturer_id=lecturer_id,
@@ -45,6 +58,19 @@ def search_lecturer_week(
     sub_group: Optional[int] = Query(None),
     session: Session = Depends(get_db),
 ):
+    """
+    Search for lessons scheduled for a specific lecturer during a given week.
+
+    Args:
+        lecturer_id (int): The unique identifier of the lecturer.
+        date (datetime.date): The specific date for which to determine the week range.
+        group_id (Optional[int]): The optional group identifier to filter lessons (default: None).
+        sub_group (Optional[int]): The optional subgroup identifier to filter lessons (default: None).
+        session (Session): The database session dependency.
+
+    Returns:
+        List[UserScheduleLessonRead]: List of lessons matching the criteria, formatted for user schedule output.
+    """
     start, end = get_week_range(date)
     repo = LessonRepository(session)
     lessons = repo.ListByLecturerAndDateRange(
@@ -65,6 +91,19 @@ def search_discipline_day(
     sub_group: Optional[int] = Query(None),
     session: Session = Depends(get_db),
 ):
+    """
+    Search for lessons scheduled for a specific discipline on a particular day.
+
+    Args:
+        discipline_id (int): The unique identifier of the discipline.
+        date (datetime.date): The specific day to filter lessons.
+        group_id (Optional[int]): The optional group identifier to filter lessons (default: None).
+        sub_group (Optional[int]): The optional subgroup identifier to filter lessons (default: None).
+        session (Session): The database session dependency.
+
+    Returns:
+        List[UserScheduleLessonRead]: List of lessons matching the criteria, formatted for user schedule output.
+    """
     repo = LessonRepository(session)
     lessons = repo.ListByDisciplineAndDate(
         discipline_id=discipline_id,
@@ -83,6 +122,19 @@ def search_discipline_week(
     sub_group: Optional[int] = Query(None),
     session: Session = Depends(get_db),
 ):
+    """
+    Search for lessons scheduled for a specific discipline during the week of the given date.
+
+    Args:
+        discipline_id (int): The unique identifier of the discipline.
+        date (datetime.date): The date for which the week is calculated.
+        group_id (Optional[int]): The optional group identifier to filter lessons (default: None).
+        sub_group (Optional[int]): The optional subgroup identifier to filter lessons (default: None).
+        session (Session): The database session dependency.
+
+    Returns:
+        List[UserScheduleLessonRead]: List of lessons matching the criteria, formatted for user schedule output.
+    """
     start, end = get_week_range(date)
     repo = LessonRepository(session)
     lessons = repo.ListByDisciplineAndDateRange(

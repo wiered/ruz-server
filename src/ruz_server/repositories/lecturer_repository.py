@@ -12,6 +12,17 @@ logger = logging.getLogger(__name__)
 
 
 class LecturerRepository:
+    """
+    LecturerRepository handles operations related to Lecturer entities.
+    This repository provides methods for managing Lecturer objects in the database,
+    including creation, retrieval, and listing of records.
+
+    Args:
+        session (Session): The database session to be used for operations.
+
+    Returns:
+        LecturerRepository: An instance for interacting with Lecturer data.
+    """
     def __init__(self, session: Session):
         self.session = session
 

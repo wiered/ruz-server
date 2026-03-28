@@ -28,6 +28,15 @@ LAST_REFRESH_STATUS: str = "never"  # never|success|error|skipped
 
 
 def _acquire_file_lock(lock_path: str) -> int | None:
+    """
+    Attempt to acquire a file-based lock for the refresh process.
+
+    Args:
+        lock_path (str): The file path to the lock file.
+
+    Returns:
+        int | None: File descriptor if the lock was acquired successfully, or None if the lock already exists.
+    """
     path = Path(lock_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY
@@ -38,6 +47,16 @@ def _acquire_file_lock(lock_path: str) -> int | None:
 
 
 def _release_file_lock(lock_path: str, fd: int | None) -> None:
+    """
+    Release the file-based lock for the refresh process.
+
+    Args:
+        lock_path (str): The file path to the lock file.
+        fd (int | None): File descriptor of the lock file, or None if lock was not acquired.
+
+    Returns:
+        None
+    """
     if fd is None:
         return
     try:
@@ -47,7 +66,21 @@ def _release_file_lock(lock_path: str, fd: int | None) -> None:
 
 
 def get_last_refresh_state() -> dict[str, Any]:
-    """Expose current refresh freshness state for /healthz."""
+    """
+    Get the last completed refresh state.
+    This function provides the current refresh status and timestamp,
+    which is used by the `/healthz` endpoint to report the freshness
+    and outcome (success, error, or never) of the last attempted data refresh.
+
+    Args:
+        None
+
+    Returns:
+        dict[str, Any]: Dictionary containing:
+            - last_refresh_at (datetime | None): Timestamp of the last completed refresh attempt.
+            - last_refresh_status (str): Status string indicating the outcome of the last refresh
+              ("never", "success", "error", or "skipped").
+    """
     return {
         "last_refresh_at": LAST_REFRESH_AT,
         "last_refresh_status": LAST_REFRESH_STATUS,
@@ -55,6 +88,18 @@ def get_last_refresh_state() -> dict[str, Any]:
 
 
 def _safe_int(value: Any, default: int = 0) -> int:
+    """
+    Safely convert a value to an integer, returning a default if conversion fails
+    or if the value is None or a boolean. Used for robust type coercion in contexts
+    where a value is expected to be an integer but may be missing or invalid.
+
+    Args:
+        value (Any): The value to be converted to int.
+        default (int, optional): The value to return if conversion fails. Defaults to 0.
+
+    Returns:
+        int: The converted integer value, or the default if conversion was not possible.
+    """
     try:
         if value is None or isinstance(value, bool):
             return default
@@ -64,7 +109,16 @@ def _safe_int(value: Any, default: int = 0) -> int:
 
 
 def _aggregate_errors_by_group(result: dict[str, Any]) -> dict[str, int]:
-    """Convert parsed refresh errors into counts per group_id."""
+    """
+    About:
+        Convert parsed refresh errors into counts per group_id.
+
+    Args:
+        result (dict[str, Any]): The result of the refresh attempt.
+
+    Returns:
+        dict[str, int]: Dictionary containing the count of errors by group_id.
+    """
     errors = result.get("errors", [])
     if not isinstance(errors, list):
         return {}
@@ -86,7 +140,22 @@ async def run_refresh_with_session(
     source: str,
     refresh_runner: RefreshRunner | None = None,
 ) -> dict[str, Any]:
-    """Run refresh with lock protection; skip when another run is active."""
+    """
+    About:
+        Runs the refresh procedure using the provided database session and optional refresh runner.
+        Ensures that only one refresh can run at a time by using in-process and file locks.
+        Handles logging and lock management, and returns a status dictionary describing the outcome.
+        If no refresh runner is provided, uses the default lesson parser.
+
+    Args:
+        session (Session): The database session for database operations during refresh.
+        source (str): A descriptive source string which triggered the refresh.
+        refresh_runner (RefreshRunner | None, optional): A coroutine or callable performing the refresh logic.
+            If None, uses the default lessons refresh routine.
+
+    Returns:
+        dict[str, Any]: A dictionary indicating the status of the refresh (e.g., "skipped", "completed", or error details).
+    """
     run_id = uuid.uuid4().hex
     skip_at = datetime.now(timezone.utc)
 
@@ -189,7 +258,15 @@ async def run_refresh_with_session(
 
 
 async def run_refresh_job(source: str = "scheduler") -> dict[str, Any]:
-    """Create DB session and run refresh through shared orchestrator."""
+    """
+    Create DB session and run refresh through shared orchestrator.
+
+    Args:
+        source (str): The source of the refresh (e.g., "scheduler" or "startup_doupdate"). Defaults to "scheduler".
+
+    Returns:
+        dict[str, Any]: Dictionary containing the result of the refresh.
+    """
     session_gen = db.get_session()
     session = next(session_gen)
     try:

@@ -5,6 +5,15 @@ from ruz_server.api.app import app
 from ruz_server.settings import settings
 
 if __name__ == "__main__":
+    """
+    Runs the FastAPI application using uvicorn server.
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
     host = settings.host
     port = settings.port
 

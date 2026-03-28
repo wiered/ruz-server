@@ -19,7 +19,16 @@ def get_db() -> Generator[Session, None, None]:
 
 
 class LecturerRead(BaseModel):
-    """Read schema for Lecturer entity. Mirrors persisted fields for API responses."""
+    """
+    Schema for reading Lecturer information.
+
+    Attributes:
+        id (int): Unique identifier for the lecturer.
+        guid (UUID): Universally unique identifier for the lecturer.
+        full_name (str): Full name of the lecturer.
+        short_name (str): Shortened or preferred name of the lecturer.
+        rank (str): Academic or professional rank of the lecturer.
+    """
     id: int
     guid: UUID
     full_name: str
@@ -30,7 +39,19 @@ class LecturerRead(BaseModel):
 
 
 class LecturerCreate(BaseModel):
-    """Create schema for Lecturer entity. Used to create a new lecturer record."""
+    """
+    Schema for creating a new Lecturer entity.
+
+    Args:
+        id (int): Unique identifier for the lecturer.
+        guid (UUID): Universally unique identifier for the lecturer.
+        full_name (str): Full name of the lecturer.
+        short_name (str): Shortened or preferred name of the lecturer.
+        rank (str): Academic or professional rank of the lecturer.
+
+    Returns:
+        LecturerCreate: Instance representing the new lecturer to be created.
+    """
     id: int
     guid: UUID
     full_name: str
@@ -39,7 +60,17 @@ class LecturerCreate(BaseModel):
 
 
 class LecturerUpdate(BaseModel):
-    """Update schema for Lecturer entity. All fields are optional for partial updates."""
+    """
+    Schema for updating Lecturer information.
+
+    Args:
+        full_name (Optional[str] | None): Full name of the lecturer. If not provided, it will not be updated.
+        short_name (Optional[str] | None): Shortened or preferred name of the lecturer. If not provided, it will not be updated.
+        rank (Optional[str] | None): Academic or professional rank of the lecturer. If not provided, it will not be updated.
+
+    Returns:
+        LecturerUpdate: An instance containing the fields to update for the lecturer.
+    """
     full_name: Optional[str] | None = None
     short_name: Optional[str] | None = None
     rank: Optional[str] | None = None
@@ -52,7 +83,15 @@ def create_lecturer(
     _api_key: str = Security(require_api_key)
 ):
     """
-    Создать нового лектора.
+    Create a new lecturer entity in the system.
+
+    Args:
+        payload (LecturerCreate): Data required for creating a new lecturer.
+        session (Session): Database session dependency.
+        _api_key (str): API key for authorization (injected by Security dependency).
+
+    Returns:
+        LecturerRead: The created lecturer's data.
     """
     repo = LecturerRepository(session)
     ensure_entity_doesnot_exist(payload.id, repo.GetById)
@@ -73,7 +112,14 @@ def list_lecturers(
     _api_key: str = Security(require_api_key)
 ):
     """
-    Список всех лекторов.
+    Retrieve a list of all lecturers.
+
+    Args:
+        session (Session): Database session dependency.
+        _api_key (str): API key for authorization (injected by Security dependency).
+
+    Returns:
+        List[LecturerRead]: A list containing the data for all lecturers.
     """
     repo = LecturerRepository(session)
     return repo.ListAll()
@@ -85,7 +131,13 @@ def get_lecturer(
     _api_key: str = Security(require_api_key)
 ):
     """
-    Получить лектора по ID.
+    Retrieve a lecturer by their ID.
+
+    Args:
+        lecturer_id (int): The unique identifier of the lecturer.
+
+    Returns:
+        LecturerRead: The data of the lecturer with the specified ID.
     """
     repo = LecturerRepository(session)
     return ensure_entity_exists(lecturer_id, repo.GetById)
@@ -97,7 +149,15 @@ def get_lecturer_by_guid(
     _api_key: str = Security(require_api_key)
 ):
     """
-    Получить лектора по GUID.
+    Retrieve a lecturer by their GUID.
+
+    Args:
+        lecturer_guid (UUID): The unique GUID of the lecturer.
+        session (Session): Database session dependency.
+        _api_key (str): API key for authorization (injected by Security dependency).
+
+    Returns:
+        LecturerRead: The data of the lecturer with the specified GUID.
     """
     repo = LecturerRepository(session)
     return ensure_entity_exists(lecturer_guid, repo.GetByGUID)
@@ -110,7 +170,16 @@ def update_lecturer(
     _api_key: str = Security(require_api_key)
 ):
     """
-    Обновить существующего лектора.
+    Update an existing lecturer.
+
+    Args:
+        lecturer_id (int): The unique identifier of the lecturer to update.
+        payload (LecturerUpdate): The updated data for the lecturer.
+        session (Session): Database session dependency.
+        _api_key (str): API key for authorization (injected by Security dependency).
+
+    Returns:
+        LecturerRead: The updated lecturer data.
     """
     repo = LecturerRepository(session)
     ensure_entity_exists(lecturer_id, repo.GetById)
@@ -129,7 +198,15 @@ def delete_lecturer(
     _api_key: str = Security(require_api_key)
 ):
     """
-    Удалить существующего лектора.
+    Delete an existing lecturer.
+
+    Args:
+        lecturer_id (int): The unique identifier of the lecturer to delete.
+        session (Session): Database session dependency.
+        _api_key (str): API key for authorization (injected by Security dependency).
+
+    Returns:
+        Any: The result of the delete operation.
     """
     repo = LecturerRepository(session)
     ensure_entity_exists(lecturer_id, repo.GetById)

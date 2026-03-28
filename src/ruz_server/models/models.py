@@ -9,7 +9,16 @@ from sqlmodel import Column, Field, Relationship, SQLModel
 
 
 class LessonGroup(SQLModel, table=True):
-    """Chains lessons to groups"""
+    """
+    LessonGroup model represents the association table between lessons and groups.
+
+    Args:
+        lesson_id (int): ID of the associated lesson.
+        group_id (int): ID of the associated group.
+
+    Returns:
+        LessonGroup: The association between a lesson and a group.
+    """
     __tablename__ = "lesson_group"
     lesson_id: int = Field(
         sa_column=Column(
@@ -35,6 +44,18 @@ class LessonGroup(SQLModel, table=True):
 
 
 class Group(SQLModel, table=True):
+    """
+    Group model represents a student group within the university.
+
+    Args:
+        id (int): The unique identifier of the group (groupOid).
+        guid (UUID): The unique UUID of the group.
+        name (str): The name of the group.
+        faculty_name (str): The name of the faculty this group belongs to.
+
+    Returns:
+        Group: An instance representing a university group.
+    """
     __tablename__ = "groups"
     id: int = Field(default=None, primary_key=True) # groupOid
     guid: UUID = Field(
@@ -67,6 +88,20 @@ class Group(SQLModel, table=True):
 
 
 class User(SQLModel, table=True):
+    """
+    User model represents a user within the system, typically corresponding to a Telegram user.
+
+    Args:
+        id (int): The unique identifier of the user (Telegram ID).
+        group_oid (int): The unique identifier (OID) for the user's group. May be null if not assigned.
+        subgroup (int): The subgroup number the user belongs to.
+        username (str): The username of the user.
+        created_at (datetime.datetime): The timestamp when the user was created in the system.
+        last_used_at (datetime.datetime): The timestamp when the user last interacted with the system.
+
+    Returns:
+        User: An instance representing a user in the system.
+    """
     __tablename__ = "users"
     id: int = Field(
         sa_column=Column(
@@ -94,6 +129,19 @@ class User(SQLModel, table=True):
 
 
 class Lecturer(SQLModel, table=True):
+    """
+    Lecturer model represents a lecturer entity in the system.
+
+    Args:
+        id (int): The unique identifier for the lecturer (lecturerOid).
+        guid (UUID): The globally unique identifier for the lecturer (lecturerGUID).
+        full_name (str): The full name of the lecturer.
+        short_name (str): The short name or abbreviated name of the lecturer.
+        rank (str): The academic or professional rank of the lecturer.
+
+    Returns:
+        Lecturer: An instance representing a lecturer in the system.
+    """
     __tablename__ = "lecturer"
     id: int = Field(default=None, primary_key=True) # lecturerOid
     guid: UUID = Field(
@@ -121,6 +169,17 @@ class Lecturer(SQLModel, table=True):
 
 
 class KindOfWork(SQLModel, table=True):
+    """
+    KindOfWork model represents a type of work (for example, lecture, seminar, lab work) associated with lessons.
+
+    Args:
+        id (int): The unique identifier for the kind of work (kindOfWorkOid).
+        type_of_work (str): A string describing the type of work.
+        complexity (int): An integer representing the complexity level of the work.
+
+    Returns:
+        KindOfWork: An instance representing a type of work associated with lessons.
+    """
     __tablename__ = "kind_of_work"
     id: int = Field(default=None, primary_key=True) # kindOfWorkOid
     type_of_work: str = Field(sa_column=Column(
@@ -138,6 +197,18 @@ class KindOfWork(SQLModel, table=True):
 
 
 class Discipline(SQLModel, table=True):
+    """
+    Discipline model represents an academic discipline or subject, such as Mathematics, Physics, etc.
+
+    Args:
+        id (int): The unique identifier for the discipline (disciplineOid).
+        name (str): The name of the discipline.
+        examtype (str): The type of exam associated with the discipline.
+        has_labs (bool): Indicates whether the discipline includes laboratory works.
+
+    Returns:
+        Discipline: An instance representing an academic discipline.
+    """
     __tablename__ = "discipline"
     id: int = Field(default=None, primary_key=True) # disciplineOid
     name: str = Field(sa_column=Column(
@@ -155,6 +226,18 @@ class Discipline(SQLModel, table=True):
 
 
 class Auditorium(SQLModel, table=True):
+    """
+    Auditorium model represents a physical location where lessons or events are held, such as classrooms, lecture halls, or laboratories.
+
+    Args:
+        id (int): Unique identifier for the auditorium (auditoriumOid).
+        guid (UUID): Globally unique identifier for the auditorium (auditoriumGUID).
+        name (str): Name of the auditorium.
+        building (str): Building to which the auditorium belongs.
+
+    Returns:
+        Auditorium: An instance representing a physical place where lessons occur.
+    """
     __tablename__ = "auditorium"
     id: int = Field(default=None, primary_key=True) # auditoriumOid
     guid: UUID = Field(
@@ -177,6 +260,30 @@ class Auditorium(SQLModel, table=True):
 
 
 class Lesson(SQLModel, table=True):
+    """
+    Lesson model represents a scheduled class, lecture, or educational event.
+
+    Args:
+        id (int): Unique identifier for the lesson (lessonOid).
+        kind_of_work_id (int): Foreign key referencing the kind of work for the lesson.
+        discipline_id (int): Foreign key referencing the discipline associated with the lesson.
+        auditorium_id (int): Foreign key referencing the auditorium where the lesson is held.
+        lecturer_id (int): Foreign key referencing the lecturer giving the lesson.
+        date (datetime.date): Date when the lesson takes place.
+        begin_lesson (datetime.time): Time when the lesson begins.
+        end_lesson (datetime.time): Time when the lesson ends.
+        updated_at (datetime.datetime): Timestamp when the lesson was last updated.
+        sub_group (int): Subgroup identifier for the lesson (default is 0).
+        kind_of_work (Optional[KindOfWork]): Relationship to the kind of work entity.
+        discipline (Optional[Discipline]): Relationship to the discipline entity.
+        auditorium (Optional[Auditorium]): Relationship to the auditorium entity.
+        lecturer (Optional[Lecturer]): Relationship to the lecturer entity.
+        lesson_groups (List["LessonGroup"]): Relationships to lesson-group associations.
+        groups (List["Group"]): Relationships to group entities via lesson groups.
+
+    Returns:
+        Lesson: An instance representing a scheduled lesson or class event.
+    """
     __tablename__ = "lesson"
     id: int = Field(default=None, primary_key=True) # lessonOid
     kind_of_work_id: int = Field(

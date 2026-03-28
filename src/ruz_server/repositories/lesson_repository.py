@@ -12,6 +12,15 @@ logger = logging.getLogger(__name__)
 
 
 class LessonRepository:
+    """
+    LessonRepository provides CRUD operations and advanced queries for Lesson objects.
+
+    Args:
+        session (Session): SQLModel database session used for running queries.
+
+    Returns:
+        LessonRepository: Instance for performing operations on Lesson entities.
+    """
     def __init__(self, session: Session):
         self.session = session
 

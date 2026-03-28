@@ -33,7 +33,21 @@ def get_db() -> Generator[Session, None, None]:
     yield from db.get_session()
 
 class UserRead(BaseModel):
-    """Read schema for User entity. Mirrors persisted fields for API responses."""
+    """
+    Schema for reading User entity data, representing persisted user fields
+    used in API responses.
+
+    Args:
+        id (int): Unique identifier for the user (typically Telegram ID).
+        group_oid (Optional[int]): Identifier for the user's group. Can be None.
+        subgroup (int): Subgroup number the user belongs to.
+        username (str): The username of the user.
+        created_at (datetime): Timestamp of when the user record was created.
+        last_used_at (datetime): Timestamp of the user's most recent activity.
+
+    Returns:
+        UserRead: An instance containing user data for API output.
+    """
     id: int
     group_oid: Optional[int] = None
     subgroup: int
@@ -44,7 +58,21 @@ class UserRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class UserCreate(BaseModel):
-    """Create schema for User entity. Used to create a new user record."""
+    """
+    Schema for creating a new user.
+
+    Args:
+        id (int): Telegram ID of the user.
+        username (str): Username of the user.
+        group_oid (int): ID of the user's group.
+        subgroup (int, optional): Subgroup number (default is 0).
+        group_guid (Optional[UUID], optional): Unique identifier for the group.
+        group_name (Optional[str], optional): Name of the group.
+        faculty_name (Optional[str], optional): Name of the faculty.
+
+    Returns:
+        UserCreate: User creation schema instance.
+    """
     id: int  # Telegram ID
     username: str
     group_oid: int
@@ -54,7 +82,21 @@ class UserCreate(BaseModel):
     faculty_name: Optional[str] | None = None
 
 class UserUpdate(BaseModel):
-    """Update schema for User entity. All fields are optional for partial updates."""
+    """
+    Schema for updating User entity. All fields are optional, allowing partial updates.
+
+    Args:
+        username (Optional[str]): The username of the user.
+        group_oid (Optional[int]): The user's group ID.
+        subgroup (Optional[int]): The user's subgroup number.
+        last_used_at (Optional[datetime]): The timestamp of last user activity.
+        group_guid (Optional[UUID]): Unique group identifier.
+        group_name (Optional[str]): Name of the group.
+        faculty_name (Optional[str]): Name of the faculty.
+
+    Returns:
+        UserUpdate: An instance containing fields to update in the user entity.
+    """
     username: Optional[str] | None = None
     group_oid: Optional[int] | None = None
     subgroup: Optional[int] | None = None
@@ -65,6 +107,15 @@ class UserUpdate(BaseModel):
 
 
 def _validate_subgroup(subgroup: Optional[int]) -> None:
+    """
+    Validates the subgroup value.
+
+    Args:
+        subgroup (Optional[int]): The subgroup number to validate.
+
+    Returns:
+        None: Returns nothing if the subgroup is valid. Raises an HTTPException if invalid.
+    """
     if subgroup is None:
         return
     if subgroup not in {0, 1, 2}:
@@ -74,12 +125,17 @@ def _validate_subgroup(subgroup: Optional[int]) -> None:
         )
 
 def _check_payload(payload: UserCreate | UserUpdate) -> None:
-    """Validates the given payload and raises a 400 error if any of the essential group
-    fields are missing.
+    """
+    Validates essential fields in the payload to ensure data integrity.
+
+    Checks that group_guid, group_name, and faculty_name are not None.
+    Raises HTTPException if any of these fields are missing.
 
     Args:
-        payload (UserCreate | UserUpdate): The create or update payload containing
-            the group GUID, name, and faculty name.
+        payload (UserCreate | UserUpdate): The payload containing user/group information.
+
+    Returns:
+        None: Returns nothing if all required fields are present. Raises an HTTPException if not.
     """
     if payload.group_guid is None:
         raise HTTPException(
@@ -128,6 +184,20 @@ def create_user(
     payload: UserCreate,
     session: Session =  Depends(get_db)
 ):
+    """
+    Create a new user in the system.
+
+    This endpoint allows you to create a user by providing the required user details.
+    The function ensures that the user's group exists (creating it if needed) and that
+    the user does not already exist before saving the new user to the database.
+
+    Args:
+        payload (UserCreate): The data required to create the new user.
+        session (Session, optional): The database session dependency.
+
+    Returns:
+        UserRead: The created user object as a response model.
+    """
     repo = UserRepository(session)
     _ensure_group_exists(payload, session)
     ensure_entity_doesnot_exist(payload.id, repo.GetById)
@@ -145,6 +215,15 @@ def create_user(
 def list_users(
     session: Session = Depends(get_db)
 ):
+    """
+    Retrieve a list of all users in the system.
+
+    Args:
+        session (Session): The database session dependency.
+
+    Returns:
+        List[UserRead]: A list of user objects in the response model.
+    """
     repo = UserRepository(session)
     return repo.ListAll()
 
@@ -153,6 +232,19 @@ def get_user(
     user_id: int,
     session: Session = Depends(get_db)
 ):
+    """
+    Retrieve a user by their unique ID.
+
+    Args:
+        user_id (int): The unique identifier of the user to retrieve.
+        session (Session): The database session dependency.
+
+    Returns:
+        UserRead: The user object corresponding to the given user ID.
+
+    Raises:
+        HTTPException: If the user with the specified ID does not exist.
+    """
     repo = UserRepository(session)
     return ensure_entity_exists(user_id, repo.GetById)
 
@@ -161,6 +253,19 @@ def get_user_by_username(
     username: str,
     session: Session = Depends(get_db)
 ):
+    """
+    Retrieve a user by their unique username.
+
+    Args:
+        username (str): The username of the user to retrieve.
+        session (Session): The database session dependency.
+
+    Returns:
+        UserRead: The user object corresponding to the given username.
+
+    Raises:
+        HTTPException: If the user with the specified username does not exist.
+    """
     repo = UserRepository(session)
     return ensure_entity_exists(username, repo.GetByUsername)
 
@@ -170,6 +275,20 @@ def update_user(
     payload: UserUpdate,
     session: Session = Depends(get_db)
 ):
+    """
+    Update user information by user ID.
+
+    Args:
+        user_id (int): The unique identifier of the user to update.
+        payload (UserUpdate): The updated user information.
+        session (Session): The database session dependency.
+
+    Returns:
+        UserRead: The updated user object if the update is successful.
+
+    Raises:
+        HTTPException: If the user does not exist or the update fails.
+    """
     repo = UserRepository(session)
     ensure_entity_exists(user_id, repo.GetById)
     _validate_subgroup(payload.subgroup)
@@ -194,6 +313,16 @@ def update_user_last_used_at(
     user_id: int,
     session: Session = Depends(get_db)
 ):
+    """
+    Update the 'last_used_at' timestamp for a user by user ID.
+
+    Args:
+        user_id (int): The unique identifier of the user.
+        session (Session): The database session dependency.
+
+    Returns:
+        Any: The result of updating the 'last_used_at' field for the specified user.
+    """
     repo = UserRepository(session)
     ensure_entity_exists(user_id, repo.GetById)
 
@@ -204,6 +333,16 @@ def delete_user(
     user_id: int,
     session: Session = Depends(get_db)
 ):
+    """
+    Delete a user entity by its unique identifier.
+
+    Args:
+        user_id (int): The unique identifier of the user to delete.
+        session (Session): The database session dependency.
+
+    Returns:
+        Any: The result of the deletion operation.
+    """
     repo = UserRepository(session)
     ensure_entity_exists(user_id, repo.GetById)
 

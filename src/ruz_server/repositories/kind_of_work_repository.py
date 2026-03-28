@@ -8,6 +8,17 @@ from ruz_server.models import KindOfWork
 logger = logging.getLogger(__name__)
 
 class KindOfWorkRepository:
+    """
+    KindOfWorkRepository handles operations related to KindOfWork entities.
+    This repository provides methods for managing KindOfWork objects in the database,
+    including creation, retrieval, and listing of records.
+
+    Args:
+        session (Session): The database session to be used for operations.
+
+    Returns:
+        KindOfWorkRepository: An instance for interacting with KindOfWork data.
+    """
     def __init__(self, session: Session):
         self.session = session
 

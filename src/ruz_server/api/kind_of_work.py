@@ -17,7 +17,17 @@ def get_db() -> Generator[Session, None, None]:
     yield from db.get_session()
 
 class KindOfWorkRead(BaseModel):
-    """Read schema for KindOfWork entity. Mirrors persisted fields for API responses."""
+    """
+    Read schema for KindOfWork entity. Used to represent a kind of work record.
+
+    Args:
+        id (int): Unique identifier of the kind of work.
+        type_of_work (str): The type or description of work.
+        complexity (int): Complexity level of the work.
+
+    Returns:
+        KindOfWorkRead: Instance representing the kind of work record.
+    """
     id: int
     type_of_work: str
     complexity: int
@@ -26,14 +36,33 @@ class KindOfWorkRead(BaseModel):
 
 
 class KindOfWorkCreate(BaseModel):
-    """Create schema for KindOfWork entity. Used to create a new kind of work record."""
+    """
+    Create schema for KindOfWork entity. Used for creating a new kind of work record.
+
+    Args:
+        id (int): Unique identifier for the kind of work.
+        type_of_work (str): The type or description of work.
+        complexity (int): Complexity level of the work.
+
+    Returns:
+        KindOfWorkCreate: Instance representing the kind of work to be created.
+    """
     id: int
     type_of_work: str
     complexity: int
 
 
 class KindOfWorkUpdate(BaseModel):
-    """Update schema for KindOfWork entity. All fields are optional for partial updates."""
+    """
+    Update schema for KindOfWork entity. Used for partial updates of a kind of work record.
+
+    Args:
+        type_of_work (Optional[str] | None): The new type or description of work, or None to leave unchanged.
+        complexity (Optional[int] | None): The new complexity level, or None to leave unchanged.
+
+    Returns:
+        KindOfWorkUpdate: Instance representing the requested changes for the kind of work record.
+    """
     type_of_work: Optional[str] | None = None
     complexity: Optional[int] | None = None
 
@@ -45,13 +74,15 @@ def create_kind_of_work(
     _api_key: str = Security(require_api_key)
 ):
     """
-    Creates a new KindOfWork if it doesn't exist, otherwise it retrieves the existing one.
+    Creates a new KindOfWork object in the database.
 
     Args:
-        payload (KindOfWorkCreate): Kind of work to be created or retrieved.
+        payload (KindOfWorkCreate): The data for the new KindOfWork entity to be created.
+        session (Session, optional): The database session dependency.
+        _api_key (str, optional): The API key for authentication.
 
     Returns:
-        KindOfWorkRead: Created or retrieved KindOfWork.
+        KindOfWorkRead: The created KindOfWork object.
     """
     repo = KindOfWorkRepository(session)
     ensure_entity_doesnot_exist(payload.id, repo.GetById)

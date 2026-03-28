@@ -14,7 +14,35 @@ logger = logging.getLogger(__name__)
 
 
 class LessonCreate(BaseModel):
-    """Create schema for Lesson entity. Used to create a new lesson record."""
+    """
+    About:
+        Pydantic model for representing lesson creation data.
+
+    Args:
+        id (int): Unique identifier for the lesson (lessonOid).
+        lecturer_id (int): Unique identifier for the lecturer.
+        lecturer_guid (UUID): Universally unique identifier for the lecturer.
+        lecturer_full_name (str): Full name of the lecturer.
+        lecturer_short_name (str): Short name of the lecturer.
+        lecturer_rank (str): Academic rank of the lecturer.
+        kind_of_work_id (int): Identifier for the type of work/kind of lesson.
+        type_of_work (str): Type of lesson work (e.g., lecture, seminar).
+        complexity (int): Complexity level of the lesson.
+        discipline_id (int): Unique identifier for the discipline/subject.
+        discipline_name (str): Name of the discipline/subject.
+        auditorium_id (int): Unique identifier for the auditorium.
+        auditorium_guid (UUID): Universally unique identifier for the auditorium.
+        auditorium_name (str): Name of the auditorium.
+        auditorium_building (str): Building where the auditorium is located.
+        date (date): The date of the lesson.
+        begin_lesson (time): Start time of the lesson.
+        end_lesson (time): End time of the lesson.
+        group_id (int): Identifier for the student group.
+        sub_group (int, optional): Subgroup number, defaults to 0.
+
+    Returns:
+        LessonCreate: An instance containing all lesson-related fields.
+    """
     id: int # lessonOid
     lecturer_id: int
     lecturer_guid: UUID
@@ -43,6 +71,17 @@ class LessonCreate(BaseModel):
 
 
 class RuzAPI:
+    """
+    RuzAPI provides methods to interact with the RUZ (Расписание учебных занятий) system,
+    including methods for fetching schedule, group, and lesson data from the remote API,
+    and utility functions for request handling and date calculations.
+
+    Args:
+        None (class does not accept constructor arguments by default)
+
+    Returns:
+        RuzAPI: An instance containing methods for communicating with the RUZ system.
+    """
     LESSONS_URL = "https://ruz.mstuca.ru/api/schedule/group/{}?start={}&finish={}&lng=1"
     GROUP_URL = "https://ruz.mstuca.ru/api/search?term={}&type=group"
 

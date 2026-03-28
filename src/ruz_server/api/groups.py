@@ -46,20 +46,15 @@ class GroupRead(BaseModel):
 
 class GroupCreate(BaseModel):
     """
-    Create schema for Group entity.
+    Schema for creating a new Group entity.
 
-    This schema is intended for inbound requests (deserialization) that expose
-    the essential, non-relational fields of the Group table. It mirrors the
-    core attributes from the ORM model:
-      - id (int): primary key, also known as groupOid.
-      - guid (UUID): stable UUID identifier, also known as groupGUID.
-      - name (str): unique group name.
-      - faculty_name (str): name of the faculty the group belongs to.
+    This model is used to validate the payload for creating a new group.
 
-    Notes:
-    - Relationships (users, lesson_groups, lessons) are intentionally omitted to
-      keep the schema lightweight and avoid recursive/n+1 serialization concerns.
-    - Enable orm_mode to support constructing this schema directly from ORM/SQLModel instances.
+    Args:
+        id (int): Unique integer identifier for the group (groupOid).
+        guid (UUID): Stable UUID identifier for the group (groupGUID).
+        name (str): Name of the group (must be unique).
+        faculty_name (str): Name of the faculty the group belongs to.
     """
 
     id: int
@@ -69,18 +64,13 @@ class GroupCreate(BaseModel):
 
 class GroupUpdate(BaseModel):
     """
-    Update schema for Group entity.
+    Schema for updating an existing Group entity.
 
-    This schema is intended for inbound requests (deserialization) that expose
-    the essential, non-relational fields of the Group table. It mirrors the
-    core attributes from the ORM model:
-      - name (str): unique group name.
-      - faculty_name (str): name of the faculty the group belongs to.
+    This model is used to validate the payload for updating group information.
 
-    Notes:
-    - Relationships (users, lesson_groups, lessons) are intentionally omitted to
-      keep the schema lightweight and avoid recursive/n+1 serialization concerns.
-    - Enable orm_mode to support constructing this schema directly from ORM/SQLModel instances.
+    Args:
+        name (str): The new name of the group.
+        faculty_name (str): The new name of the faculty the group belongs to.
     """
 
     name: str
@@ -94,7 +84,17 @@ def create_group(
     _api_key: str = Security(require_api_key)
 ):
     """
-    Создать новую статью.
+    Create a new Group entity.
+
+    This endpoint creates a new group entry in the database with the specified attributes.
+
+    Args:
+        payload (GroupCreate): The incoming group data containing id, guid, name, and faculty_name.
+        session (Session, optional): The database session dependency.
+        _api_key (str, optional): The validated API key for authorization.
+
+    Returns:
+        GroupRead: The created group, as read from the database after creation.
     """
     repo = GroupRepository(session)
     ensure_entity_doesnot_exist(payload.id, repo.GetById)
@@ -115,7 +115,16 @@ def list_groups(
     _api_key: str = Security(require_api_key)
 ):
     """
-    Список всех статей.
+    Retrieves all group entities from the database.
+
+    This endpoint returns a list of all groups available in the database.
+
+    Args:
+        session (Session, optional): The database session dependency.
+        _api_key (str, optional): The API key for authentication.
+
+    Returns:
+        List[GroupRead]: A list containing all groups as GroupRead objects.
     """
     repo = GroupRepository(session)
     return repo.ListAll()
@@ -127,7 +136,15 @@ def get_group(
     _api_key: str = Security(require_api_key)
 ):
     """
-    Получить статью по ID.
+    Retrieve a group entity by its ID.
+
+    Args:
+        group_id (int): The unique identifier of the group.
+        session (Session, optional): The database session dependency.
+        _api_key (str, optional): The API key for authentication.
+
+    Returns:
+        GroupRead: The group entity corresponding to the provided group_id.
     """
     repo = GroupRepository(session)
     return ensure_entity_exists(group_id, repo.GetById)
@@ -139,7 +156,15 @@ def get_group_by_guid(
     _api_key: str = Security(require_api_key)
 ):
     """
-    Получить статью по GUID.
+    Retrieve a group entity by its GUID.
+
+    Args:
+        group_guid (UUID): The unique GUID of the group.
+        session (Session, optional): The database session dependency.
+        _api_key (str, optional): The API key for authentication.
+
+    Returns:
+        GroupRead: The group entity corresponding to the provided group_guid.
     """
     repo = GroupRepository(session)
     return ensure_entity_exists(group_guid, repo.GetByGUID)
@@ -152,7 +177,16 @@ def update_group(
     _api_key: str = Security(require_api_key)
 ):
     """
-    Обновить существующую статью.
+    Update a group entity by its ID.
+
+    Args:
+        group_id (int): The unique identifier of the group to update.
+        payload (GroupUpdate): The data to update the group with.
+        session (Session, optional): The database session dependency.
+        _api_key (str, optional): The API key for authentication.
+
+    Returns:
+        GroupRead: The updated group entity.
     """
     repo = GroupRepository(session)
     group = ensure_entity_exists(group_id, repo.GetById)
@@ -168,7 +202,15 @@ def delete_group(
     _api_key: str = Security(require_api_key)
 ):
     """
-    Удалить статью по ID.
+    Delete a group entity by its ID.
+
+    Args:
+        group_id (int): The unique identifier of the group to delete.
+        session (Session, optional): The database session dependency.
+        _api_key (str, optional): The API key for authentication.
+
+    Returns:
+        bool: True if the group was successfully deleted, otherwise raises an error.
     """
     repo = GroupRepository(session)
     ensure_entity_exists(group_id, repo.GetById)

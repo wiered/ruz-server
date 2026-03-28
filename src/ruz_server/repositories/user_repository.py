@@ -12,6 +12,15 @@ logger = logging.getLogger(__name__)
 
 
 class UserRepository:
+    """
+    UserRepository provides CRUD operations and data access logic for User objects.
+
+    Args:
+        session (Session): SQLModel database session used for queries.
+
+    Returns:
+        UserRepository: Instance for performing operations on User entities.
+    """
     def __init__(self, session: Session):
         self.session = session
 

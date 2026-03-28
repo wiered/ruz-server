@@ -10,6 +10,16 @@ from ruz_server.models import Group
 logger = logging.getLogger(__name__)
 
 class GroupRepository:
+    """
+    GroupRepository provides methods for creating, retrieving, and managing Group entities in the database.
+    This class abstracts common database operations for groups, promoting code reuse and consistency.
+
+    Args:
+        session (Session): The SQLModel database session used for performing group-related operations.
+
+    Returns:
+        GroupRepository: An instance to access and manipulate Group records.
+    """
     def __init__(self, session: Session):
         self.session = session
 

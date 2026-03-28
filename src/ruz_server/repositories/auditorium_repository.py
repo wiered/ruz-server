@@ -10,6 +10,16 @@ from ruz_server.models import Auditorium
 logger = logging.getLogger(__name__)
 
 class AuditoriumRepository:
+    """
+    AuditoriumRepository provides CRUD operations and database access methods for Auditorium objects.
+    It facilitates creating, retrieving, and listing auditorium entities using a SQLModel session.
+
+    Args:
+        session (Session): SQLModel database session used for auditorium operations.
+
+    Returns:
+        AuditoriumRepository: An instance to perform operations on Auditorium model.
+    """
     def __init__(self, session: Session):
         logger.debug(f"Created AuditoriumRepository")
 

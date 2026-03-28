@@ -8,6 +8,16 @@ from ruz_server.models import Discipline
 logger = logging.getLogger(__name__)
 
 class DisciplineRepository:
+    """
+    DisciplineRepository provides methods to perform CRUD (Create, Read, Update, Delete) operations and database queries for Discipline objects.
+    This class helps in managing disciplines in the database using a SQLModel session.
+
+    Args:
+        session (Session): The SQLModel session used for executing database operations related to disciplines.
+
+    Returns:
+        DisciplineRepository: An instance to interact with Discipline entities in the database.
+    """
     def __init__(self, session: Session):
         self.session = session
 

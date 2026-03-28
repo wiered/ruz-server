@@ -31,7 +31,24 @@ EXAM_TYPES = ["Зачёт", "Экзамен"]
 
 
 class LessonRead(BaseModel):
-    """Read schema for Lesson entity. Mirrors persisted fields for API responses."""
+    """
+    Represents the schema for reading a Lesson entity.
+
+    Args:
+        id (int): Unique identifier for the lesson.
+        kind_of_work_id (int): Identifier for the type of work (e.g., lecture, seminar).
+        discipline_id (int): Identifier for the discipline.
+        auditorium_id (int): Identifier for the auditorium.
+        lecturer_id (int): Identifier for the lecturer.
+        date (date): Date of the lesson.
+        begin_lesson (time): Start time of the lesson.
+        end_lesson (time): End time of the lesson.
+        updated_at (datetime): Timestamp of the last update.
+        sub_group (int): Subgroup number.
+
+    Returns:
+        LessonRead: Lesson data suitable for API responses.
+    """
     id: int
     kind_of_work_id: int
     discipline_id: int
@@ -47,7 +64,34 @@ class LessonRead(BaseModel):
 
 
 class LessonCreate(BaseModel):
-    """Create schema for Lesson entity. Used to create a new lesson record."""
+    """
+    Schema for creating a Lesson entity.
+
+    Args:
+        id (int): Unique lesson identifier (lessonOid).
+        lecturer_id (int): Identifier of the lecturer.
+        lecturer_guid (UUID): GUID of the lecturer.
+        lecturer_full_name (str): Full name of the lecturer.
+        lecturer_short_name (str): Short name of the lecturer.
+        lecturer_rank (str): Academic rank or title of the lecturer.
+        kind_of_work_id (int): Identifier for the type of work (e.g., lecture, seminar).
+        type_of_work (str): Description of the type of academic work.
+        complexity (int): Difficulty or complexity level.
+        discipline_id (int): Identifier for the discipline (disciplineOid).
+        discipline_name (str): Name of the discipline.
+        auditorium_id (int): Identifier for the auditorium.
+        auditorium_guid (UUID): GUID of the auditorium.
+        auditorium_name (str): Name of the auditorium.
+        auditorium_building (str): Building location of the auditorium.
+        date (date): Date of the lesson.
+        begin_lesson (time): Start time of the lesson.
+        end_lesson (time): End time of the lesson.
+        group_id (int): Identifier for the group.
+        sub_group (int, optional): Subgroup number, default is 0.
+
+    Returns:
+        LessonCreate: Data structure for creating a new lesson record.
+    """
     id: int # lessonOid
     lecturer_id: int
     lecturer_guid: UUID
@@ -76,7 +120,23 @@ class LessonCreate(BaseModel):
 
 
 class LessonUpdate(BaseModel):
-    """Update schema for Lesson entity. All fields are optional for partial updates."""
+    """
+    Schema for updating the Lesson entity. All fields are optional to allow partial updates.
+
+    Args:
+        kind_of_work_id (Optional[int]): Identifier for the type of work (e.g., lecture, seminar).
+        discipline_id (Optional[int]): Identifier for the discipline.
+        auditorium_id (Optional[int]): Identifier for the auditorium.
+        lecturer_id (Optional[int]): Identifier for the lecturer.
+        date (Optional[datetime_date]): Date of the lesson.
+        begin_lesson (Optional[time]): Start time of the lesson.
+        end_lesson (Optional[time]): End time of the lesson.
+        sub_group (Optional[int]): Subgroup number.
+        updated_at (Optional[dt]): Timestamp when the lesson was last updated.
+
+    Returns:
+        LessonUpdate: An object containing the fields to update in the Lesson entity.
+    """
     kind_of_work_id: Optional[int] | None = None
     discipline_id: Optional[int] | None = None
     auditorium_id: Optional[int] | None = None
@@ -89,6 +149,20 @@ class LessonUpdate(BaseModel):
 
 
 def _set_has_labs_and_examtype(payload: LessonCreate, session: Session):
+    """
+    Sets the 'has_labs' and 'examtype' attributes of a Discipline entity based on the LessonCreate payload.
+
+    This helper function ensures the referenced discipline's 'has_labs' and 'examtype' values are correctly updated
+    if the lesson being created implies a new lab type or an examination type.
+    If such changes occur, it persists them using the DisciplineRepository.
+
+    Args:
+        payload (LessonCreate): The data used to create the lesson, containing discipline and type of work info.
+        session (Session): The current active database session.
+
+    Returns:
+        None
+    """
     discipline_repository = DisciplineRepository(session)
     discipline = discipline_repository.GetById(payload.discipline_id)
 
@@ -114,6 +188,21 @@ def _set_has_labs_and_examtype(payload: LessonCreate, session: Session):
 
 
 def _upsert_reference_entities(payload: LessonCreate, session: Session) -> None:
+    """
+    Upserts (inserts or updates) reference entities (Lecturer, KindOfWork, Discipline, Auditorium) as required by the LessonCreate payload.
+
+    This helper checks for the existence of related entities required by a new lesson. If any referenced entity
+    does not exist in the database, it inserts it with the supplied attributes. If it already exists,
+    it updates its fields with the information from the payload. This ensures all references are present
+    and up-to-date before lesson creation.
+
+    Args:
+        payload (LessonCreate): The information needed to create the lesson, including attributes for related entities.
+        session (Session): The active database session used for upsert operations.
+
+    Returns:
+        None
+    """
     lecturer = session.get(Lecturer, payload.lecturer_id)
     if lecturer is None:
         session.add(
@@ -193,8 +282,15 @@ def _create_lesson_with_relations(
     skip_if_exists: bool = False
 ) -> tuple[Lesson, bool]:
     """
-    Creates lesson and required related entities.
-    Returns (lesson, created_flag).
+    Creates a lesson entity along with all required related entities if they do not exist.
+
+    Args:
+        payload (LessonCreate): The data required to create the lesson and its related entities.
+        session (Session): The database session used for entity operations.
+        skip_if_exists (bool, optional): If True and the lesson exists, skip creation.
+
+    Returns:
+        tuple[Lesson, bool]: A tuple containing the lesson instance and a bool indicating if creation occurred (True if created, False if already existing).
     """
     repo = LessonRepository(session)
     existing = repo.GetById(payload.id)
@@ -277,11 +373,34 @@ def create_lesson(
     payload: LessonCreate,
     session: Session = Depends(get_db)
 ):
-    """Create a new Lesson entity and return the persisted record."""
+    """
+    Creates a new Lesson entity and returns the persisted record.
+
+    Args:
+        payload (LessonCreate): The data required to create the Lesson entity.
+        session (Session, optional): The database session dependency.
+
+    Returns:
+        LessonRead: The created Lesson record as a response model.
+    """
     lesson, _ = _create_lesson_with_relations(payload, session)
     return lesson
 
 async def parse_lessons_core(session: Session) -> dict[str, Any]:
+    """
+    Initialize repositories and load all groups for lesson parsing.
+
+    Args:
+        session (Session): The database session used for repository operations.
+
+    Returns:
+        tuple: (group_repository, lesson_group_repository, lesson_repository, ruz_api, groups)
+            group_repository (GroupRepository): Handles Group entity operations.
+            lesson_group_repository (LessonGroupRepository): Handles LessonGroup entity operations.
+            lesson_repository (LessonRepository): Handles Lesson entity operations.
+            ruz_api (RuzAPI): API client for fetching schedule data from external service.
+            groups (list): List of all group entities loaded from the database.
+    """
     group_repository = GroupRepository(session)
     lesson_group_repository = LessonGroupRepository(session)
     lesson_repository = LessonRepository(session)
@@ -413,6 +532,15 @@ async def parse_lessons_core(session: Session) -> dict[str, Any]:
 async def parse_lessons(
     session: Session = Depends(get_db)
 ):
+    """
+    Parse lessons using the refresh scheduler.
+
+    Args:
+        session (Session): Database session dependency.
+
+    Returns:
+        Any: The result of running the refresh process with the provided database session.
+    """
     from ruz_server.services.refresh_scheduler import run_refresh_with_session
 
     return await run_refresh_with_session(session=session, source="api")
@@ -422,7 +550,15 @@ async def parse_lessons(
 def list_lessons(
     session: Session = Depends(get_db)
 ):
-    """List all Lesson entities."""
+    """
+    Retrieve a list of all Lesson entities.
+
+    Args:
+        session (Session): Database session dependency.
+
+    Returns:
+        List[LessonRead]: List of all lesson entities in the database.
+    """
     repo = LessonRepository(session)
     return repo.ListAll()
 
@@ -432,7 +568,17 @@ def get_lesson(
     lesson_id: int,
     session: Session = Depends(get_db)
 ):
-    """Retrieve a single Lesson by its numeric identifier."""
+    """
+    Retrieve a single Lesson by its numeric identifier.
+
+    Args:
+        lesson_id (int): Numeric identifier of the lesson to retrieve.
+        session (Session): Database session dependency.
+
+    Returns:
+        LessonRead: The requested lesson entity if it exists.
+
+    """
     repo = LessonRepository(session)
     return ensure_entity_exists(lesson_id, repo.GetById)
 
@@ -443,7 +589,17 @@ def update_lesson(
     payload: LessonUpdate,
     session: Session = Depends(get_db)
 ):
-    """Update mutable fields of a Lesson and return the updated entity."""
+    """
+    Update the mutable fields of a Lesson entity and return the updated lesson.
+
+    Args:
+        lesson_id (int): The unique identifier of the lesson to update.
+        payload (LessonUpdate): Data containing updated fields for the lesson.
+        session (Session): Database session dependency.
+
+    Returns:
+        LessonRead: The updated lesson entity.
+    """
     repo = LessonRepository(session)
     ensure_entity_exists(lesson_id, repo.GetById)
 
@@ -466,7 +622,16 @@ def delete_lesson(
     lesson_id: int,
     session: Session = Depends(get_db)
 ):
-    """Delete a Lesson by its identifier."""
+    """
+    Delete a lesson entity by its unique identifier.
+
+    Args:
+        lesson_id (int): The unique identifier of the lesson to delete.
+        session (Session): Database session dependency.
+
+    Returns:
+        Any: The result of the deletion operation.
+    """
     repo = LessonRepository(session)
     ensure_entity_exists(lesson_id, repo.GetById)
 
