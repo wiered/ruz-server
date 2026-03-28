@@ -1153,6 +1153,8 @@ true
     "discipline_name": "Математика",
     "kind_of_work": "Лекция",
     "lecturer_short_name": "Иванов",
+    "lecturer_id": 1,
+    "discipline_id": 1,
     "auditorium_name": "101",
     "building": "ГЗ",
     "group_id": 1
@@ -1184,6 +1186,8 @@ true
     "discipline_name": "Математика",
     "kind_of_work": "Лекция",
     "lecturer_short_name": "Иванов",
+    "lecturer_id": 1,
+    "discipline_id": 1,
     "auditorium_name": "101",
     "building": "ГЗ",
     "group_id": 1
@@ -1215,6 +1219,8 @@ true
     "discipline_name": "Математика",
     "kind_of_work": "Лекция",
     "lecturer_short_name": "Иванов",
+    "lecturer_id": 1,
+    "discipline_id": 1,
     "auditorium_name": "101",
     "building": "ГЗ",
     "group_id": 1
@@ -1246,11 +1252,14 @@ true
     "discipline_name": "Математика",
     "kind_of_work": "Лекция",
     "lecturer_short_name": "Иванов",
+    "lecturer_id": 1,
+    "discipline_id": 1,
     "auditorium_name": "101",
     "building": "ГЗ",
     "group_id": 1
   }
 ]
+```
 ```
 
 ## Общие ошибки
