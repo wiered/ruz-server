@@ -1,8 +1,9 @@
-﻿import asyncio
+import asyncio
 import calendar
 import logging
 from datetime import datetime, timedelta, time, date
-from typing import List
+from typing import Any, List
+from urllib.parse import urlencode
 from uuid import UUID
 
 import aiohttp
@@ -83,7 +84,7 @@ class RuzAPI:
         RuzAPI: An instance containing methods for communicating with the RUZ system.
     """
     LESSONS_URL = "https://ruz.mstuca.ru/api/schedule/group/{}?start={}&finish={}&lng=1"
-    GROUP_URL = "https://ruz.mstuca.ru/api/search?term={}&type=group"
+    GROUP_SEARCH_URL = "https://ruz.mstuca.ru/api/search"
 
     async def _sleep(self, response: aiohttp.ClientResponse, backoff: int):
         """
@@ -195,7 +196,7 @@ class RuzAPI:
 
         return processed
 
-    async def _fetch(self, client: aiohttp.ClientSession, url: str, ssl=True) -> dict:
+    async def _fetch(self, client: aiohttp.ClientSession, url: str, ssl=True) -> Any:
         """
         Fetches JSON data from the given URL.
 
@@ -204,7 +205,7 @@ class RuzAPI:
             url (str): The URL to fetch.
 
         Returns:
-            dict: The JSON data as a dictionary.
+            Parsed JSON (object or array, depending on the endpoint).
         """
         max_retries = 5
         backoff = 1  # initial backoff in seconds
@@ -335,9 +336,9 @@ class RuzAPI:
             List[dict]: List of groups
         """
         logger.info(f"search_group called for name={group_name!r}")
+        query = urlencode({"term": group_name, "type": "group"})
+        url = f"{RuzAPI.GROUP_SEARCH_URL}?{query}"
         async with aiohttp.ClientSession() as session:
-            json_data = await self._fetch(
-                session, RuzAPI.GROUP_URL.format(group_name), ssl=False
-            )
+            json_data = await self._fetch(session, url, ssl=False)
         logger.debug(f"search_group returned {len(json_data)} results for {group_name!r}")
         return json_data

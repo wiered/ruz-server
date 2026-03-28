@@ -13,6 +13,7 @@ from sqlmodel import SQLModel, Session
 from ruz_server.api import search
 from ruz_server.api.app import app
 from ruz_server.api.security import require_api_key
+from ruz_server.ruz_api.api import RuzAPI
 from ruz_server.models.models import (
     Auditorium,
     Discipline,
@@ -261,3 +262,44 @@ class TestSearchAPI:
         assert response.status_code == 200
         lesson_ids = [row["lesson_id"] for row in response.json()]
         assert 1104 not in lesson_ids
+
+    @pytest.mark.asyncio
+    async def test_search_group_ruz(self, client, monkeypatch):
+        gid_a = uuid.UUID("c72c7026-7e2d-4a76-af57-f1247a6d2e25")
+        gid_b = uuid.UUID("f07651c5-4709-4190-b82a-269c7078e6b7")
+
+        async def fake_get_group(self, group_name: str):
+            assert group_name == "ИС22"
+            return [
+                {
+                    "type": "group",
+                    "id": "841",
+                    "label": "ИС221",
+                    "description": "4",
+                    "guid": str(gid_a),
+                },
+                {
+                    "type": "group",
+                    "id": "839",
+                    "label": "БИС221",
+                    "description": "4",
+                    "guid": str(gid_b),
+                },
+            ]
+
+        monkeypatch.setattr(RuzAPI, "getGroup", fake_get_group)
+
+        response = await client.get("/api/search/group", params={"q": "ИС22"})
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 2
+        assert data[0] == {
+            "id": 841,
+            "name": "ИС221",
+            "guid": str(gid_a),
+        }
+        assert data[1] == {
+            "id": 839,
+            "name": "БИС221",
+            "guid": str(gid_b),
+        }
