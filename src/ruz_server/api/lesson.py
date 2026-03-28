@@ -1,4 +1,6 @@
+import asyncio
 import logging
+import random
 from datetime import time, date
 from datetime import date as datetime_date
 from datetime import datetime as dt
@@ -427,7 +429,9 @@ async def parse_lessons_core(session: Session) -> dict[str, Any]:
     incoming_lessons: dict[int, LessonCreate] = {}
     incoming_pairs: set[tuple[int, int]] = set()
 
-    for group in groups:
+    for i, group in enumerate(groups):
+        if i > 0:
+            await asyncio.sleep(random.uniform(7, 10))
         try:
             raw_lessons = await ruz_api.get(str(group.id), start_str, end_str)
             stats["groups_processed"] += 1

@@ -76,6 +76,16 @@ async def client():
     engine.dispose()
 
 
+@pytest.fixture(autouse=True)
+def _no_inter_group_sleep(monkeypatch):
+    """parse_lessons_core sleeps 7–10s between group fetches; keep API tests fast."""
+
+    async def _noop_sleep(_seconds: float) -> None:
+        return None
+
+    monkeypatch.setattr("ruz_server.api.lesson.asyncio.sleep", _noop_sleep)
+
+
 def _seed_groups(engine):
     with Session(engine) as session:
         session.add(
