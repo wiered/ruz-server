@@ -26,7 +26,7 @@ router = APIRouter(prefix="/search", tags=["search"])
 class RuzGroupSearchItem(BaseModel):
     """Одна группа из ответа поиска ruz.mstuca.ru (`/api/search?type=group`)."""
 
-    id: int = Field(description="Идентификатор группы в RUZ (groupOid)")
+    oid: int = Field(description="Идентификатор группы в RUZ (groupOid)")
     name: str = Field(description="Отображаемое имя группы")
     guid: UUID = Field(description="GUID группы в RUZ")
 
@@ -78,7 +78,7 @@ async def search_groups_by_name_ruz(
         try:
             items.append(
                 RuzGroupSearchItem(
-                    id=int(row["id"]),
+                    oid=int(row["id"]),
                     name=str(row["label"]),
                     guid=UUID(str(row["guid"])),
                 )
