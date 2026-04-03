@@ -63,5 +63,6 @@ class Settings(BaseSettings):
     refresh_minute: int = 0
     refresh_timezone: str = "Europe/Moscow"
     refresh_lock_file: str = str(ROOT / "logs" / "refresh.lock")
+    enable_docs: bool = False
 
 settings = Settings()
