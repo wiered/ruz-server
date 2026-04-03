@@ -4,6 +4,7 @@ import asyncio
 from contextlib import asynccontextmanager
 from logging.config import dictConfig
 from zoneinfo import ZoneInfo
+from importlib.metadata import version, PackageNotFoundError
 
 from fastapi import FastAPI, Request, Security
 from fastapi.responses import JSONResponse
@@ -16,6 +17,11 @@ from ruz_server.services.refresh_scheduler import get_last_refresh_state, run_re
 from ruz_server.settings import settings
 
 from ruz_server.logging_config import LOGGING_CONFIG, ColoredFormatter
+
+try:
+    __version__ = version("ruz-server")
+except PackageNotFoundError:
+    __version__ = "0.0.0"
 
 # Setup logging
 dictConfig(LOGGING_CONFIG)
@@ -68,7 +74,14 @@ app = FastAPI(
     lifespan=lifespan,
     docs_url="/docs" if settings.enable_docs else None,
     redoc_url="/redoc" if settings.enable_docs else None,
-    openapi_url="/openapi.json" if settings.enable_docs else None
+    openapi_url="/openapi.json" if settings.enable_docs else None,
+    title="RUZ Server API",
+    description="API for the RUZ Server",
+    version=__version__,
+    license_info={
+        "name": "MIT License",
+        "url": "https://github.com/ruz-server/LICENSE",
+    }
     )
 app.include_router(api_router, prefix="/api", dependencies=[Security(require_api_key)])
 
@@ -148,3 +161,13 @@ async def healthz():
         "last_refresh_at": last_refresh_at.isoformat() if last_refresh_at else None,
         "last_refresh_status": last_refresh_status,
     }
+
+@app.get("/version")
+async def version():
+    """
+    Version endpoint for the API.
+
+    Returns:
+        dict: A JSON object containing the version of the API.
+    """
+    return {"version": __version__}
