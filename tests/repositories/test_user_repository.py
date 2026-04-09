@@ -223,6 +223,24 @@ class TestUserRepository:
         # Assert
         assert result is True
 
+    def test_update_allows_explicit_null_group_and_subgroup(self, user_repository, mock_session, sample_user_static):
+        """Test user update with explicitly cleared group/subgroup."""
+        user_repository.GetById = MagicMock(return_value=sample_user_static)
+        mock_result = MagicMock()
+        mock_result.rowcount = 1
+        mock_session.exec.return_value = mock_result
+        mock_session.commit.return_value = None
+
+        result = user_repository.Update(
+            sample_user_static.id,
+            group_oid=None,
+            subgroup=None,
+        )
+
+        assert result is True
+        mock_session.exec.assert_called_once()
+        mock_session.commit.assert_called_once()
+
     def test_update_user_not_found(self, user_repository, mock_session):
         """Test update when user doesn't exist."""
         # Setup
@@ -390,6 +408,17 @@ class TestUserRepositoryIntegration:
         updated_user = user_repository_clean.GetById(sample_user.id)
         assert updated_user.username == "updated_user"
         assert updated_user.group_oid == 999
+
+    def test_create_and_retrieve_user_with_null_subgroup(self, user_repository_clean, sample_user):
+        """Test nullable subgroup is persisted."""
+        sample_user.subgroup = None
+
+        created_user = user_repository_clean.Create(sample_user)
+        retrieved_user = user_repository_clean.GetById(sample_user.id)
+
+        assert created_user.subgroup is None
+        assert retrieved_user is not None
+        assert retrieved_user.subgroup is None
 
     def test_list_users_by_group(self, user_repository_clean, multiple_users):
         """Test listing users by group ID with real database."""

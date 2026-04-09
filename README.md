@@ -116,6 +116,14 @@ python -m ruzserver
 
 При старте сервис автоматически создаёт таблицы и запускает планировщик обновлений.
 
+### Обновление схемы
+
+В версиях до поддержки nullable `users.subgroup` колонка `users.subgroup` создавалась как `NOT NULL`. Для уже существующей PostgreSQL-базы перед запуском новой версии ослабьте ограничение вручную:
+
+```sql
+ALTER TABLE users ALTER COLUMN subgroup DROP NOT NULL;
+```
+
 ## Docker
 
 Сборка образа:

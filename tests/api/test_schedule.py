@@ -187,6 +187,33 @@ class TestScheduleAPI:
             session.commit()
         response = await client.get("/api/schedule/user/200001/day", params={"date": "2025-01-13"})
         assert response.status_code == 400
+        assert response.json()["detail"] == "User has no group assigned"
+
+    @pytest.mark.asyncio
+    async def test_user_without_subgroup_returns_400_for_day(self, client):
+        _seed_user_and_lessons(client.engine)
+        with Session(client.engine) as session:
+            user = session.get(User, 123456)
+            user.subgroup = None
+            session.add(user)
+            session.commit()
+
+        response = await client.get("/api/schedule/user/123456/day", params={"date": "2025-01-13"})
+        assert response.status_code == 400
+        assert response.json()["detail"] == "User has no subgroup assigned"
+
+    @pytest.mark.asyncio
+    async def test_user_without_subgroup_returns_400_for_week(self, client):
+        _seed_user_and_lessons(client.engine)
+        with Session(client.engine) as session:
+            user = session.get(User, 123456)
+            user.subgroup = None
+            session.add(user)
+            session.commit()
+
+        response = await client.get("/api/schedule/user/123456/week", params={"date": "2025-01-14"})
+        assert response.status_code == 400
+        assert response.json()["detail"] == "User has no subgroup assigned"
 
     @pytest.mark.asyncio
     async def test_user_not_found_returns_404(self, client):
