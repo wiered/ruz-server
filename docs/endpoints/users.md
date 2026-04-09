@@ -27,20 +27,31 @@
 | `id`           | integer | Да          | Telegram ID пользователя   |
 | `username`     | string  | Да          | Имя пользователя Telegram  |
 | `group_oid`    | integer | Да          | ID группы пользователя     |
-| `subgroup`     | integer | Нет         | Подгруппа (по умолчанию 0) |
+| `subgroup`     | integer | Нет         | Подгруппа. Допустимые значения: `0`, `1`, `2`. По умолчанию `0` |
 | `group_guid`   | string  | Нет         | GUID группы                |
 | `group_name`   | string  | Нет         | Название группы            |
 | `faculty_name` | string  | Нет         | Название факультета        |
+
+Если `subgroup` не передан, сервер сохраняет `0`. Значение `0` означает "без ограничения по подгруппе". Значения, отличные от `0`, `1`, `2`, отклоняются с ошибкой `400`.
 
 **Response 201**
 
 ```json
 {
   "id": 123456789,
+  "group_oid": 1,
   "subgroup": 1,
   "username": "user123",
   "created_at": "2024-01-15T10:30:00Z",
   "last_used_at": "2024-01-15T10:30:00Z"
+}
+```
+
+**Response 400**
+
+```json
+{
+  "detail": "invalid subgroup"
 }
 ```
 
@@ -142,13 +153,26 @@
 }
 ```
 
-Все поля опциональны.
+Все поля опциональны. Для `subgroup`, если поле передано, допустимы только значения `0`, `1`, `2`. Если поле не передано, текущее значение пользователя сохраняется.
 
 **Response 200** - Успешное обновление
 
 ```json
 {
-  "success": true
+  "id": 123456789,
+  "group_oid": 2,
+  "subgroup": 1,
+  "username": "new_username",
+  "created_at": "2024-01-15T10:30:00Z",
+  "last_used_at": "2024-01-15T10:30:00Z"
+}
+```
+
+**Response 400**
+
+```json
+{
+  "detail": "invalid subgroup"
 }
 ```
 
@@ -184,7 +208,5 @@ true
 **Response 200**
 
 ```json
-{
-  "success": true
-}
+true
 ```

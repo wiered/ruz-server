@@ -199,6 +199,7 @@ def create_user(
         UserRead: The created user object as a response model.
     """
     repo = UserRepository(session)
+    _validate_subgroup(payload.subgroup)
     _ensure_group_exists(payload, session)
     ensure_entity_doesnot_exist(payload.id, repo.GetById)
 

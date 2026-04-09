@@ -147,6 +147,14 @@ class TestUsersAPI:
         assert response.status_code == 409
 
     @pytest.mark.asyncio
+    async def test_create_user_invalid_subgroup_returns_400(self, client):
+        payload = user_payload(7013)
+        payload["subgroup"] = -1
+        response = await client.post("/api/user/", json=payload)
+        assert response.status_code == 400
+        assert response.json()["detail"] == "invalid subgroup"
+
+    @pytest.mark.asyncio
     async def test_get_user_not_found_returns_404(self, client):
         response = await client.get("/api/user/999999")
         assert response.status_code == 404
