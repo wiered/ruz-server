@@ -94,7 +94,7 @@ class User(SQLModel, table=True):
     Args:
         id (int): The unique identifier of the user (Telegram ID).
         group_oid (int): The unique identifier (OID) for the user's group. May be null if not assigned.
-        subgroup (int): The subgroup number the user belongs to.
+        subgroup (Optional[int]): The subgroup number the user belongs to.
         username (str): The username of the user.
         created_at (datetime.datetime): The timestamp when the user was created in the system.
         last_used_at (datetime.datetime): The timestamp when the user last interacted with the system.
@@ -110,13 +110,13 @@ class User(SQLModel, table=True):
             primary_key=True
         )
     ) # telegram id
-    group_oid: int = Field(
+    group_oid: Optional[int] = Field(
         sa_column=Column(
             ForeignKey("groups.id", ondelete="SET NULL"),
             nullable=True
         )
     )
-    subgroup: int = Field(default=0)
+    subgroup: Optional[int] = Field(default=None, nullable=True)
     username: str = Field(sa_column=Column(
         "username",
         String,

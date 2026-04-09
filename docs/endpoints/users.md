@@ -18,7 +18,8 @@
 {
   "id": 123456789,
   "username": "user123",
-  "group_oid": 1
+  "group_oid": 1,
+  "subgroup": null
 }
 ```
 
@@ -27,12 +28,12 @@
 | `id`           | integer | Да          | Telegram ID пользователя   |
 | `username`     | string  | Да          | Имя пользователя Telegram  |
 | `group_oid`    | integer | Да          | ID группы пользователя     |
-| `subgroup`     | integer | Нет         | Подгруппа. Допустимые значения: `0`, `1`, `2`. По умолчанию `0` |
+| `subgroup`     | integer \| null | Нет | Подгруппа. Допустимые значения: `null`, `0`, `1`, `2`. Если поле не передано, сервер сохраняет `null` |
 | `group_guid`   | string  | Нет         | GUID группы                |
 | `group_name`   | string  | Нет         | Название группы            |
 | `faculty_name` | string  | Нет         | Название факультета        |
 
-Если `subgroup` не передан, сервер сохраняет `0`. Значение `0` означает "без ограничения по подгруппе". Значения, отличные от `0`, `1`, `2`, отклоняются с ошибкой `400`.
+Если `subgroup` не передан, сервер сохраняет `null`. Значение `0` означает "без ограничения по подгруппе". Значение `null` означает, что подгруппа у пользователя не задана, и для такого пользователя нельзя получить расписание через `/api/schedule/user/*`. Значения, отличные от `null`, `0`, `1`, `2`, отклоняются с ошибкой `400`.
 
 **Response 201**
 
@@ -40,7 +41,7 @@
 {
   "id": 123456789,
   "group_oid": 1,
-  "subgroup": 1,
+  "subgroup": null,
   "username": "user123",
   "created_at": "2024-01-15T10:30:00Z",
   "last_used_at": "2024-01-15T10:30:00Z"
@@ -66,7 +67,7 @@
   {
     "id": 123456789,
     "group_oid": 1,
-    "subgroup": 0,
+    "subgroup": null,
     "username": "user123",
     "created_at": "2024-01-15T10:30:00Z",
     "last_used_at": "2024-01-15T10:30:00Z"
@@ -89,7 +90,7 @@
 {
   "id": 123456789,
   "group_oid": 1,
-  "subgroup": 0,
+  "subgroup": null,
   "username": "user123",
   "created_at": "2024-01-15T10:30:00Z",
   "last_used_at": "2024-01-15T10:30:00Z"
@@ -124,7 +125,7 @@
 {
   "id": 123456789,
   "group_oid": 1,
-  "subgroup": 0,
+  "subgroup": null,
   "username": "user123",
   "created_at": "2024-01-15T10:30:00Z",
   "last_used_at": "2024-01-15T10:30:00Z"
@@ -145,23 +146,22 @@
 ```json
 {
   "username": "new_username",
-  "group_oid": 2,
-  "subgroup": 1,
-  "group_guid": "550e8400-e29b-41d4-a716-446655440001",
-  "group_name": "ИУ5-12",
-  "faculty_name": "Новый факультет"
+  "group_oid": null,
+  "subgroup": null
 }
 ```
 
-Все поля опциональны. Для `subgroup`, если поле передано, допустимы только значения `0`, `1`, `2`. Если поле не передано, текущее значение пользователя сохраняется.
+Все поля опциональны. Для `subgroup`, если поле передано, допустимы только значения `null`, `0`, `1`, `2`. Если поле не передано, текущее значение пользователя сохраняется.
+
+`subgroup: null` разрешён только вместе с `group_oid: null` в этом же запросе. Если нужно просто снять группу, можно передать только `group_oid: null`; текущее значение `subgroup` при этом сохранится.
 
 **Response 200** - Успешное обновление
 
 ```json
 {
   "id": 123456789,
-  "group_oid": 2,
-  "subgroup": 1,
+  "group_oid": null,
+  "subgroup": null,
   "username": "new_username",
   "created_at": "2024-01-15T10:30:00Z",
   "last_used_at": "2024-01-15T10:30:00Z"
@@ -173,6 +173,12 @@
 ```json
 {
   "detail": "invalid subgroup"
+}
+```
+
+```json
+{
+  "detail": "subgroup can be null only when group_oid is null"
 }
 ```
 

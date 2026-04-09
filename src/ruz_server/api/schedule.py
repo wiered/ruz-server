@@ -128,6 +128,11 @@ def _get_user_group_and_subgroup(user_id: int, session: Session) -> tuple[int, i
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User has no group assigned",
         )
+    if user.subgroup is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User has no subgroup assigned",
+        )
     return user.group_oid, user.subgroup
 
 

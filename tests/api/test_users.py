@@ -64,6 +64,24 @@ class TestUsersAPI:
         assert body["group_oid"] == 6001
 
     @pytest.mark.asyncio
+    async def test_create_user_with_null_subgroup(self, client):
+        payload = user_payload(7014)
+        payload["subgroup"] = None
+        response = await client.post("/api/user/", json=payload)
+
+        assert response.status_code == 201
+        assert response.json()["subgroup"] is None
+
+    @pytest.mark.asyncio
+    async def test_create_user_without_subgroup_defaults_to_null(self, client):
+        payload = user_payload(7015)
+        payload.pop("subgroup")
+        response = await client.post("/api/user/", json=payload)
+
+        assert response.status_code == 201
+        assert response.json()["subgroup"] is None
+
+    @pytest.mark.asyncio
     async def test_list_users(self, client):
         await client.post("/api/user/", json=user_payload(7002))
         response = await client.get("/api/user/")
@@ -111,6 +129,29 @@ class TestUsersAPI:
         })
         assert response.status_code == 400
         assert response.json()["detail"] == "invalid subgroup"
+
+    @pytest.mark.asyncio
+    async def test_update_user_can_clear_group_and_subgroup_together(self, client):
+        await client.post("/api/user/", json=user_payload(7016))
+        response = await client.put("/api/user/7016", json={
+            "group_oid": None,
+            "subgroup": None,
+        })
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["group_oid"] is None
+        assert body["subgroup"] is None
+
+    @pytest.mark.asyncio
+    async def test_update_user_rejects_null_subgroup_without_null_group(self, client):
+        await client.post("/api/user/", json=user_payload(7017))
+        response = await client.put("/api/user/7017", json={
+            "subgroup": None,
+        })
+
+        assert response.status_code == 400
+        assert response.json()["detail"] == "subgroup can be null only when group_oid is null"
 
     @pytest.mark.asyncio
     async def test_update_user_autocreates_missing_group(self, client):

@@ -9,6 +9,7 @@ from sqlmodel import Session, delete, select, update
 from ruz_server.models import User
 
 logger = logging.getLogger(__name__)
+_UNSET = object()
 
 
 class UserRepository:
@@ -152,9 +153,9 @@ class UserRepository:
     def Update(
         self,
         value: int,
-        username: str = None,
-        group_oid: int = None,
-        subgroup: int = None,
+        username: Optional[str] | object = _UNSET,
+        group_oid: Optional[int] | object = _UNSET,
+        subgroup: Optional[int] | object = _UNSET,
         ) -> bool:
         """Updates a user's details by ID.
 
@@ -172,13 +173,13 @@ class UserRepository:
         if not isinstance(value, int):
             raise ValueError("UserId must be an integer")
 
-        if username is not None and not isinstance(username, str):
+        if username is not _UNSET and username is not None and not isinstance(username, str):
             raise ValueError("Username must be a string")
 
-        if group_oid is not None and not isinstance(group_oid, int):
+        if group_oid is not _UNSET and group_oid is not None and not isinstance(group_oid, int):
             raise ValueError("GroupOid must be an integer")
 
-        if subgroup is not None and not isinstance(subgroup, int):
+        if subgroup is not _UNSET and subgroup is not None and not isinstance(subgroup, int):
             raise ValueError("Subgroup must be an integer")
 
         try:
@@ -188,15 +189,15 @@ class UserRepository:
                 logger.error(f"User {value} does not exist")
                 return False
 
-            if username is None:
+            if username is _UNSET:
                 logger.debug(f"Payload does not have a username")
                 username = current.username
 
-            if group_oid is None:
+            if group_oid is _UNSET:
                 logger.debug(f"Payload does not have a group_oid")
                 group_oid = current.group_oid
 
-            if subgroup is None:
+            if subgroup is _UNSET:
                 logger.debug(f"Payload does not have a subgroup")
                 subgroup = current.subgroup
 

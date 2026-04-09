@@ -51,7 +51,7 @@ class TestModels:
             username="tester",
             group_oid=1,
         )
-        assert entity.subgroup == 0
+        assert entity.subgroup is None
         assert isinstance(entity.created_at, datetime.datetime)
         assert isinstance(entity.last_used_at, datetime.datetime)
         assert entity.created_at.tzinfo is not None

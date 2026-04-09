@@ -40,7 +40,7 @@ class UserRead(BaseModel):
     Args:
         id (int): Unique identifier for the user (typically Telegram ID).
         group_oid (Optional[int]): Identifier for the user's group. Can be None.
-        subgroup (int): Subgroup number the user belongs to.
+        subgroup (Optional[int]): Subgroup number the user belongs to.
         username (str): The username of the user.
         created_at (datetime): Timestamp of when the user record was created.
         last_used_at (datetime): Timestamp of the user's most recent activity.
@@ -50,7 +50,7 @@ class UserRead(BaseModel):
     """
     id: int
     group_oid: Optional[int] = None
-    subgroup: int
+    subgroup: Optional[int] = None
     username: str
     created_at: datetime
     last_used_at: datetime
@@ -65,7 +65,7 @@ class UserCreate(BaseModel):
         id (int): Telegram ID of the user.
         username (str): Username of the user.
         group_oid (int): ID of the user's group.
-        subgroup (int, optional): Subgroup number (default is 0).
+        subgroup (Optional[int], optional): Subgroup number.
         group_guid (Optional[UUID], optional): Unique identifier for the group.
         group_name (Optional[str], optional): Name of the group.
         faculty_name (Optional[str], optional): Name of the faculty.
@@ -76,7 +76,7 @@ class UserCreate(BaseModel):
     id: int  # Telegram ID
     username: str
     group_oid: int
-    subgroup: int = 0
+    subgroup: Optional[int] = None
     group_guid: Optional[UUID] | None = None
     group_name: Optional[str] | None = None
     faculty_name: Optional[str] | None = None
@@ -123,6 +123,19 @@ def _validate_subgroup(subgroup: Optional[int]) -> None:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="invalid subgroup"
         )
+
+
+def _validate_nullable_subgroup_transition(payload: UserUpdate) -> None:
+    """Allow ``subgroup=null`` only when the same request also clears ``group_oid``."""
+    fields_set = payload.model_fields_set
+    if "subgroup" not in fields_set or payload.subgroup is not None:
+        return
+    if "group_oid" in fields_set and payload.group_oid is None:
+        return
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="subgroup can be null only when group_oid is null",
+    )
 
 def _check_payload(payload: UserCreate | UserUpdate) -> None:
     """
@@ -293,14 +306,16 @@ def update_user(
     repo = UserRepository(session)
     ensure_entity_exists(user_id, repo.GetById)
     _validate_subgroup(payload.subgroup)
-    if payload.group_oid:
+    _validate_nullable_subgroup_transition(payload)
+    if payload.group_oid is not None:
         _ensure_group_exists(payload, session)
 
     updated = repo.Update(
         user_id,
-        payload.username,
-        payload.group_oid,
-        payload.subgroup
+        **payload.model_dump(
+            exclude_unset=True,
+            exclude={"last_used_at", "group_guid", "group_name", "faculty_name"},
+        ),
     )
     if not updated:
         raise HTTPException(
