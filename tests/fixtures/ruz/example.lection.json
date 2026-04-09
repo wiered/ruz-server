@@ -1,0 +1,84 @@
+﻿{
+    "auditorium": "1-4 корпус/1-205",
+    "auditoriumAmount": 104,
+    "auditoriumGUID": "6d515522-5bb6-4489-a46b-ddfd7db3af5b",
+    "auditoriumOid": 81,
+
+    "author": "MSTUCA\\e.bahtyzina",
+
+    "beginLesson": "12:40",
+    "endLesson": "14:10",
+    "date": "2025-09-01",
+    "dayOfWeek": 1,
+    "dayOfWeekString": "Пн",
+
+    "building": "Пулковская улица, дом 6",
+
+    "createddate": "2025-04-23T14:44:13Z00:00",
+
+    "discipline": "Интернет-технологии",
+    "disciplineOid": 3087,
+
+    "kindOfWorkOid": 95, // id
+    "kindOfWork": "Лекции", // type
+    "kindOfWorkComplexity": 1, // complexity
+
+    "lecturer": "Романчева Н.И.",
+    "lecturerCustomUID": "835dcef1-3dba-11e1-a285-6cf0497abbca",
+
+    "lecturerGUID": "91f6f3ca-d438-4114-bdd0-9983462ca7a5",
+    "lecturerOid": 1157,
+    "lecturerUID": "26115.281474976711340",
+    "lecturer_postUID": null,
+    "lecturer_postASAV_UID": null,
+    "lecturer_postMDM_UID": null,
+    "lecturerASAV_UID": null,
+    "lecturerMDM_UID": null,
+    "lecturer_rank": "Доцент 1",
+    "lecturer_title": "Романчева Нина Ивановна",
+    "lessonNumberEnd": 3,
+    "lessonNumberStart": 3,
+    "lessonOid": 94673,
+    "listGroups": [],
+    "listSubGroups": [],
+    "listOfLecturers": [
+        {
+            "lecturer": "Романчева Н.И.",
+            "lecturerCustomUID": "835dcef1-3dba-11e1-a285-6cf0497abbca",
+            "lecturerEmail": "",
+            "lecturerGUID": null,
+            "lecturerOid": 1157,
+            "lecturerUID": "26115.281474976711340",
+            "lecturer_post_oid": 23,
+            "lecturer_rank": "Доцент 1",
+            "lecturer_title": "Романчева Нина Ивановна"
+        }
+    ],
+    "modifieddate": "2025-04-25T08:50:36Z00:00",
+    "note": null,
+    "note_description": "",
+    "parentschedule": "ИС221,222, ЭВМ221",
+    "replaces": null,
+    "stream": "ИС221; ЭВМ221; ИС222",
+    "streamOid": 1117,
+    "stream_facultyoid": 4,
+    "subGroup": null,
+    "subGroupOid": 0,
+    "subgroup_facultyoid": 0,
+    "tableofLessonsName": "Сетка пар основная ",
+    "tableofLessonsOid": 2,
+    "typeOfContingent": null,
+    "url1": "",
+    "url1_description": "",
+    "url2": "",
+    "url2_description": "",
+    "deletion_mark": 0,
+    "openlesson": null,
+    "auditoriumfloor": null,
+    "packageNumber": null,
+    "disciplineUid": null,
+    "streamUid": null,
+    "subgroupUid": null,
+    "groupSP_Uid": null,
+    "group_faculty_SP_Uid": null
+}
