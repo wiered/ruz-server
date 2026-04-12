@@ -35,9 +35,10 @@ async def lifespan(app: FastAPI):
     """
     Lifespan context manager for FastAPI app.
 
-    This function manages application startup and shutdown events. It initializes database tables,
-    configures and starts the APScheduler for periodic background jobs (such as the daily refresh job),
-    and performs any necessary startup actions like triggering an update if specified in settings.
+    This function manages application startup and shutdown events.
+    It initializes database tables, configures and starts the APScheduler for
+    periodic background jobs (such as the daily refresh job), and performs any
+    necessary startup actions like triggering an update if specified in settings.
     On app shutdown, it ensures that the scheduler is properly shut down.
 
     Args:
@@ -94,7 +95,8 @@ async def root(request: Request):
     """
     Root endpoint for the API.
 
-    This endpoint returns a simple greeting message. It can be used to check that the API is up and responding.
+    This endpoint returns a simple greeting message. It can be used to check that
+    the API is up and responding.
 
     Args:
         request (Request): The incoming HTTP request object.
@@ -110,7 +112,8 @@ async def public():
     """
     Public endpoint that returns a simple message.
 
-    This endpoint can be accessed without authentication and is useful for verifying the service is running.
+    This endpoint can be accessed without authentication and is useful for verifying
+    the service is running.
 
     Returns:
         dict: A JSON object indicating public access is successful.
@@ -125,7 +128,8 @@ async def protected(_: None = Security(require_api_key)):
     Protected endpoint that requires API key authentication.
 
     This endpoint can only be accessed if a valid API key is provided.
-    It is commonly used to verify that protected routes and API key validation are functioning.
+    It is commonly used to verify that protected routes and API key
+    validation are functioning.
 
     Args:
         _ (None): Dependency-injected placeholder to enforce API key security.
@@ -142,12 +146,14 @@ async def healthz():
     """
     Health check endpoint for the API.
 
-    This endpoint is used to determine whether the service is running and able to respond to requests.
-    It examines the last refresh state of the backend to report the status.
+    This endpoint is used to determine whether the service is running and able
+    to respond to requests. It examines the last refresh state of the backend
+    to report the status.
 
     Returns:
-        JSONResponse or dict: Returns a JSON response with status "degraded" and 503 code if
-            the last refresh failed or was never performed, or a status "ok" if healthy.
+        JSONResponse or dict: Returns a JSON response with status "degraded"
+            and 503 code if the last refresh failed or was never performed,
+            or a status "ok" if healthy.
     """
     state = get_last_refresh_state()
     last_refresh_at = state["last_refresh_at"]

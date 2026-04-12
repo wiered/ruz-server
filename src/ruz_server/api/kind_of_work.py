@@ -60,14 +60,19 @@ class KindOfWorkCreate(BaseModel):
 
 class KindOfWorkUpdate(BaseModel):
     """
-    Update schema for KindOfWork entity. Used for partial updates of a kind of work record.
+    Update schema for KindOfWork entity.
+    Used for partial updates of a kind of work record.
 
     Args:
-        type_of_work (Optional[str] | None): The new type or description of work, or None to leave unchanged.
-        complexity (Optional[int] | None): The new complexity level, or None to leave unchanged.
+        type_of_work (Optional[str] | None): The new type or description of work,
+            or None to leave unchanged.
+
+        complexity (Optional[int] | None): The new complexity level,
+            or None to leave unchanged.
 
     Returns:
-        KindOfWorkUpdate: Instance representing the requested changes for the kind of work record.
+        KindOfWorkUpdate: Instance representing the requested changes
+            for the kind of work record.
     """
 
     type_of_work: str | None | None = None
@@ -84,7 +89,7 @@ def create_kind_of_work(
     Creates a new KindOfWork object in the database.
 
     Args:
-        payload (KindOfWorkCreate): The data for the new KindOfWork entity to be created.
+        payload (KindOfWorkCreate): The data for the new KindOfWork entity to be created
         session (Session, optional): The database session dependency.
         _api_key (str, optional): The API key for authentication.
 

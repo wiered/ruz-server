@@ -82,7 +82,8 @@ class LecturerRepository:
             value (int): The ID of the Lecturer to get.
 
         Returns:
-            Optional[Lecturer]: The Lecturer with the given ID, or None if no such Lecturer exists.
+            Optional[Lecturer]: The Lecturer with the given ID,
+                or None if no such Lecturer exists.
         """
         logger.info(f"Getting Lecturer {value}")
 
@@ -97,7 +98,8 @@ class LecturerRepository:
             value (UUID): The GUID of the Lecturer to get.
 
         Returns:
-            Optional[Lecturer]: The Lecturer with the given GUID, or None if no such Lecturer exists.
+            Optional[Lecturer]: The Lecturer with the given GUID,
+                or None if no such Lecturer exists.
         """
         logger.info(f"Getting Lecturer {value}")
 
@@ -112,7 +114,8 @@ class LecturerRepository:
             value (int): The ID of the Lecturer to get.
 
         Returns:
-            Optional[Lecturer]: The Lecturer with the given ID, or None if no such Lecturer exists.
+            Optional[Lecturer]: The Lecturer with the given ID,
+                or None if no such Lecturer exists.
         """
         logger.info(f"Getting Lecturer {value}")
 
@@ -135,9 +138,14 @@ class LecturerRepository:
 
         Args:
             value (int): The ID of the Lecturer to update.
-            full_name (str, optional): The new full name of the Lecturer. Defaults to the current full name if not provided.
-            short_name (str, optional): The new short name of the Lecturer. Defaults to the current short name if not provided.
-            rank (str, optional): The new rank of the Lecturer. Defaults to the current rank if not provided.
+            full_name (str, optional): The new full name of the Lecturer.
+                Defaults to the current full name if not provided.
+
+            short_name (str, optional): The new short name of the Lecturer.
+                Defaults to the current short name if not provided.
+
+            rank (str, optional): The new rank of the Lecturer.
+                Defaults to the current rank if not provided.
 
         Returns:
             bool: True if the update was successful, False otherwise.

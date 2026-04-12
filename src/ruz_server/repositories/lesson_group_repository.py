@@ -13,7 +13,8 @@ logger = logging.getLogger(__name__)
 
 class LessonGroupRepository:
     """
-    LessonGroupRepository provides CRUD operations and database access for LessonGroup objects.
+    LessonGroupRepository provides CRUD operations and database access for
+        LessonGroup objects.
 
     Args:
         session (Session): SQLModel database session to run queries.

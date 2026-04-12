@@ -53,7 +53,7 @@ LOGGING_CONFIG = {
     "formatters": {
         "standard": {"format": "%(levelname)s: %(asctime)s %(name)s - %(message)s"},
         "detailed": {
-            "format": "%(levelname)s: %(asctime)s %(name)s (%(filename)s:%(lineno)d) - %(message)s"
+            "format": "%(levelname)s: %(asctime)s %(name)s (%(filename)s:%(lineno)d) - %(message)s"  # noqa: E501
         },
     },
     "handlers": {

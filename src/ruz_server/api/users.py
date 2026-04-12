@@ -122,7 +122,8 @@ def _validate_subgroup(subgroup: int | None) -> None:
         subgroup (Optional[int]): The subgroup number to validate.
 
     Returns:
-        None: Returns nothing if the subgroup is valid. Raises an HTTPException if invalid.
+        None: Returns nothing if the subgroup is valid.
+            Raises an HTTPException if invalid.
     """
     if subgroup is None:
         return
@@ -153,10 +154,11 @@ def _check_payload(payload: UserCreate | UserUpdate) -> None:
     Raises HTTPException if any of these fields are missing.
 
     Args:
-        payload (UserCreate | UserUpdate): The payload containing user/group information.
+        payload (UserCreate | UserUpdate): The payload containing user/group information
 
     Returns:
-        None: Returns nothing if all required fields are present. Raises an HTTPException if not.
+        None: Returns nothing if all required fields are present.
+            Raises an HTTPException if not.
     """
     if payload.group_guid is None:
         raise HTTPException(
@@ -189,7 +191,7 @@ def _ensure_group_exists(payload: UserCreate | UserUpdate, session: Session) -> 
     group_repo = GroupRepository(session)
     if not group_repo.GetById(payload.group_oid):
         _check_payload(payload)
-        group = group_repo.GetOrCreate(
+        group_repo.GetOrCreate(
             Group(
                 id=payload.group_oid,
                 guid=payload.group_guid,

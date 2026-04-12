@@ -38,9 +38,10 @@ def _extract_subgroup(raw: dict[str, Any]) -> int:
     """
     Extracts the subgroup value from the raw lesson dictionary.
 
-    This function searches for subgroup information within the "listSubGroups" key (preferred),
-    falling back to the "subGroup" key if necessary, and parses the last digit found
-    to return it as an integer. If no subgroup is present, returns 0.
+    This function searches for subgroup information within the "listSubGroups"
+    key (preferred), falling back to the "subGroup" key if necessary, and parses
+    the last digit foundto return it as an integer. If no subgroup is present,
+    returns 0.
 
     Args:
         raw (dict[str, Any]): The raw lesson dictionary containing subgroup information.
@@ -67,11 +68,13 @@ def _extract_lecturer_full_name(raw: dict[str, Any]) -> str:
     """
     Extract the full name of the lecturer from the given raw lesson dictionary.
 
-    This function checks for the lecturer's full name in the "listOfLecturers" field (using "lecturer_title" key if available),
-    then falls back to "lecturer_title", and if neither is available, uses the "lecturer" field.
+    This function checks for the lecturer's full name in the "listOfLecturers" field
+    (using "lecturer_title" key if available), then falls back to "lecturer_title",
+    and if neither is available, uses the "lecturer" field.
 
     Args:
-        raw (dict[str, Any]): The raw lesson dictionary possibly containing lecturer information.
+        raw (dict[str, Any]): The raw lesson dictionary possibly containing
+            lecturer information.
 
     Returns:
         str: The extracted lecturer's full name, or an empty string if not found.
@@ -91,17 +94,19 @@ def map_ruz_lesson_to_lesson_create_payload(
     """
     Maps a raw RUZ lesson dictionary to a lesson creation payload dictionary.
 
-    This function extracts and normalizes all relevant lesson information from the raw RUZ lesson data,
-    preparing it for use in lesson creation or update. It processes fields such as lecturer, auditorium,
-    discipline, date, times, and group/subgroup associations.
+    This function extracts and normalizes all relevant lesson information from the
+    raw RUZ lesson data, preparing it for use in lesson creation or update. It
+    processes fields such as lecturer, auditorium, discipline, date, times, and
+    group/subgroup associations.
 
     Args:
-        raw (dict[str, Any]): The raw lesson dictionary from RUZ containing all lesson properties.
+        raw (dict[str, Any]): The raw lesson dictionary from RUZ containing
+            all lesson properties.
         group_id (int): The ID of the group to associate with this lesson.
 
     Returns:
-        dict[str, Any]: A dictionary payload suitable for lesson creation, containing standardized and
-        normalized lesson information.
+        dict[str, Any]: A dictionary payload suitable for lesson creation,
+            containing standardized and normalized lesson information.
     """
     return {
         "id": int(raw["lessonOid"]),
@@ -134,15 +139,17 @@ def map_ruz_lessons_to_payloads(
     """
     Maps a list of raw RUZ lessons to a list of lesson creation payloads.
 
-    This function processes each raw lesson dictionary in the input list, normalizes its fields,
-    and returns a list of standardized lesson payload dictionaries ready for creation.
+    This function processes each raw lesson dictionary in the input list,
+    normalizes its fields, and returns a list of standardized lesson payload
+    dictionaries ready for creation.
 
     Args:
-        raw_lessons (list[dict[str, Any]]): The list of raw lesson dictionaries from RUZ.
+        raw_lessons (list[dict[str, Any]]): The list of raw lesson dictionaries from RUZ
         group_id (int): The ID of the group to associate with these lessons.
 
     Returns:
-        list[dict[str, Any]]: A list of dictionaries, each containing normalized lesson information.
+        list[dict[str, Any]]: A list of dictionaries,
+            each containing normalized lesson information.
     """
     return [
         map_ruz_lesson_to_lesson_create_payload(raw, group_id) for raw in raw_lessons

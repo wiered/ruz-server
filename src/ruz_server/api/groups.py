@@ -7,11 +7,6 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Security, status
 from pydantic import BaseModel, ConfigDict, Field
 from sqlmodel import Session
 
-from ruz_server.ruz_api.api import RuzAPI
-from ruz_server.ruz_api.group_search import parse_ruz_group_search_response
-
-logger = logging.getLogger(__name__)
-
 from ruz_server.api.security import require_api_key
 from ruz_server.database import db
 from ruz_server.helpers.api_helpers import (
@@ -20,7 +15,10 @@ from ruz_server.helpers.api_helpers import (
 )
 from ruz_server.models import Group
 from ruz_server.repositories import GroupRepository
+from ruz_server.ruz_api.api import RuzAPI
+from ruz_server.ruz_api.group_search import parse_ruz_group_search_response
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/group", tags=["group"])
 
 
@@ -38,15 +36,16 @@ class GroupRead(BaseModel):
     This schema is intended for outbound responses (serialization) that expose
     the essential, non-relational fields of the Group table. It mirrors the
     core attributes from the ORM model:
-      - id (int): primary key, also known as groupOid.
-      - guid (UUID): stable UUID identifier, also known as groupGUID.
-      - name (str): unique group name.
-      - faculty_name (str): name of the faculty the group belongs to.
+        - id (int): primary key, also known as groupOid.
+        - guid (UUID): stable UUID identifier, also known as groupGUID.
+        - name (str): unique group name.
+        - faculty_name (str): name of the faculty the group belongs to.
 
     Notes:
     - Relationships (users, lesson_groups, lessons) are intentionally omitted to
-      keep the schema lightweight and avoid recursive/n+1 serialization concerns.
-    - Enable orm_mode to support constructing this schema directly from ORM/SQLModel instances.
+        keep the schema lightweight and avoid recursive/n+1 serialization concerns.
+    - Enable orm_mode to support constructing this schema directly
+        from ORM/SQLModel instances.
     """
 
     id: int
@@ -110,16 +109,20 @@ async def search_groups_by_name_db_and_ruz(
     q: str = Query(
         ...,
         min_length=1,
-        description="Строка поиска: точное имя группы для выборки из БД (GetByName), подстрока для поиска на ruz.mstuca.ru",
+        description=(
+            "Строка поиска: точное имя группы для выборки из БД (GetByName),"
+            "подстрока для поиска на ruz.mstuca.ru"
+        ),
     ),
     session: Session = Depends(get_db),
     _api_key: str = Security(require_api_key),
 ):
     """
-    Поиск групп по имени одновременно в БД и на ruz.mstuca.ru.
+    Search for groups by name simultaneously in the local database and on ruz.mstuca.ru.
 
-    Сначала возвращаются совпадения из БД (`GetByName` по точному имени), затем дополняются
-    уникальные по `oid` результаты из API RUZ (как в `/api/search?type=group`).
+    First, matches from the database (`GetByName` by exact name) are returned,
+    then unique results by `oid` from the RUZ API (as in `/api/search?type=group`)
+    are added.
     """
     term = q.strip()
     if not term:
@@ -184,10 +187,12 @@ def create_group(
     """
     Create a new Group entity.
 
-    This endpoint creates a new group entry in the database with the specified attributes.
+    This endpoint creates a new group entry in the database
+    with the specified attributes.
 
     Args:
-        payload (GroupCreate): The incoming group data containing id, guid, name, and faculty_name.
+        payload (GroupCreate): The incoming group data
+            containing id, guid, name, and faculty_name.
         session (Session, optional): The database session dependency.
         _api_key (str, optional): The validated API key for authorization.
 

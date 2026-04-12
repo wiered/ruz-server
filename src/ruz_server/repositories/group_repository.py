@@ -11,11 +11,14 @@ logger = logging.getLogger(__name__)
 
 class GroupRepository:
     """
-    GroupRepository provides methods for creating, retrieving, and managing Group entities in the database.
-    This class abstracts common database operations for groups, promoting code reuse and consistency.
+    GroupRepository provides methods for creating, retrieving,
+    and managing Group entities in the database. This class
+    abstracts common database operations for groups, promoting
+    code reuse and consistency.
 
     Args:
-        session (Session): The SQLModel database session used for performing group-related operations.
+        session (Session): The SQLModel database session used
+            for performing group-related operations.
 
     Returns:
         GroupRepository: An instance to access and manipulate Group records.
@@ -82,7 +85,8 @@ class GroupRepository:
             value (int): The ID of the group to get.
 
         Returns:
-            Optional[Group]: The group with the given ID, or None if no such group exists.
+            Optional[Group]: The group with the given ID,
+                or None if no such group exists.
         """
         logger.info(f"Getting Group {value}")
 
@@ -96,7 +100,8 @@ class GroupRepository:
             value (UUID): The GUID of the group to get.
 
         Returns:
-            Optional[Group]: The group with the given GUID, or None if no such group exists.
+            Optional[Group]: The group with the given GUID,
+                or None if no such group exists.
         """
         logger.info(f"Getting Group {value}")
 

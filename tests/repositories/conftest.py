@@ -153,7 +153,9 @@ def lesson_group_repository_with_real_session(test_session):
 
 @pytest.fixture
 def lesson_group_repository_clean(clean_test_session):
-    """Create LessonGroupRepository instance with clean session for integration tests."""
+    """
+    Create LessonGroupRepository instance with clean session for integration tests.
+    """
     return LessonGroupRepository(clean_test_session)
 
 

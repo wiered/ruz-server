@@ -73,15 +73,21 @@ class Group(SQLModel, table=True):
 
 class User(SQLModel, table=True):
     """
-    User model represents a user within the system, typically corresponding to a Telegram user.
+    User model represents a user within the system, typically corresponding to a
+        Telegram user.
 
     Args:
         id (int): The unique identifier of the user (Telegram ID).
-        group_oid (int): The unique identifier (OID) for the user's group. May be null if not assigned.
+        group_oid (int): The unique identifier (OID) for the user's group.
+            May be null if not assigned.
+
         subgroup (Optional[int]): The subgroup number the user belongs to.
         username (str): The username of the user.
-        created_at (datetime.datetime): The timestamp when the user was created in the system.
-        last_used_at (datetime.datetime): The timestamp when the user last interacted with the system.
+        created_at (datetime.datetime):
+            The timestamp when the user was created in the system.
+
+        last_used_at (datetime.datetime):
+            The timestamp when the user last interacted with the system.
 
     Returns:
         User: An instance representing a user in the system.
@@ -129,7 +135,8 @@ class Lecturer(SQLModel, table=True):
 
 class KindOfWork(SQLModel, table=True):
     """
-    KindOfWork model represents a type of work (for example, lecture, seminar, lab work) associated with lessons.
+    KindOfWork model represents a type of work (for example, lecture, seminar, lab work)
+        associated with lessons.
 
     Args:
         id (int): The unique identifier for the kind of work (kindOfWorkOid).
@@ -150,7 +157,8 @@ class KindOfWork(SQLModel, table=True):
 
 class Discipline(SQLModel, table=True):
     """
-    Discipline model represents an academic discipline or subject, such as Mathematics, Physics, etc.
+    Discipline model represents an academic discipline or subject,
+    such as Mathematics, Physics, etc.
 
     Args:
         id (int): The unique identifier for the discipline (disciplineOid).
@@ -173,7 +181,8 @@ class Discipline(SQLModel, table=True):
 
 class Auditorium(SQLModel, table=True):
     """
-    Auditorium model represents a physical location where lessons or events are held, such as classrooms, lecture halls, or laboratories.
+    Auditorium model represents a physical location where lessons or events are held,
+    such as classrooms, lecture halls, or laboratories.
 
     Args:
         id (int): Unique identifier for the auditorium (auditoriumOid).
@@ -202,10 +211,10 @@ class Lesson(SQLModel, table=True):
 
     Args:
         id (int): Unique identifier for the lesson (lessonOid).
-        kind_of_work_id (int): Foreign key referencing the kind of work for the lesson.
-        discipline_id (int): Foreign key referencing the discipline associated with the lesson.
-        auditorium_id (int): Foreign key referencing the auditorium where the lesson is held.
-        lecturer_id (int): Foreign key referencing the lecturer giving the lesson.
+        kind_of_work_id (int): FK referencing the kind of work for the lesson.
+        discipline_id (int): FK referencing the discipline associated with the lesson.
+        auditorium_id (int): FK referencing the auditorium where the lesson is held.
+        lecturer_id (int): FK referencing the lecturer giving the lesson.
         date (datetime.date): Date when the lesson takes place.
         begin_lesson (datetime.time): Time when the lesson begins.
         end_lesson (datetime.time): Time when the lesson ends.

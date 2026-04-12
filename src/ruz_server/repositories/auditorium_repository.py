@@ -11,8 +11,9 @@ logger = logging.getLogger(__name__)
 
 class AuditoriumRepository:
     """
-    AuditoriumRepository provides CRUD operations and database access methods for Auditorium objects.
-    It facilitates creating, retrieving, and listing auditorium entities using a SQLModel session.
+    AuditoriumRepository provides CRUD operations and database access methods
+    for Auditorium objects. It facilitates creating, retrieving, and listing
+    auditorium entities using a SQLModel session.
 
     Args:
         session (Session): SQLModel database session used for auditorium operations.
@@ -81,7 +82,8 @@ class AuditoriumRepository:
             value (int): The ID of the Auditorium to get.
 
         Returns:
-            Optional[Auditorium]: The Auditorium with the given ID, or None if no such Auditorium exists.
+            Optional[Auditorium]: The Auditorium with the given ID,
+                or None if no such Auditorium exists.
         """
         logger.info(f"Getting Auditorium by ID {value}")
 
@@ -96,7 +98,8 @@ class AuditoriumRepository:
             value (UUID): The GUID of the Auditorium to get.
 
         Returns:
-            Optional[Auditorium]: The Auditorium with the given GUID, or None if no such Auditorium exists.
+            Optional[Auditorium]: The Auditorium with the given GUID,
+                or None if no such Auditorium exists.
         """
         logger.info(f"Getting Auditorium by GUID {value}")
 
@@ -111,7 +114,8 @@ class AuditoriumRepository:
             value (str): The name of the Auditorium to get.
 
         Returns:
-            Optional[Auditorium]: The Auditorium with the given name, or None if no such Auditorium exists.
+            Optional[Auditorium]: The Auditorium with the given name,
+                or None if no such Auditorium exists.
         """
         logger.info(f"Getting Auditorium by name {value}")
 
@@ -124,8 +128,12 @@ class AuditoriumRepository:
 
         Args:
             value (int): The ID of the Auditorium to update.
-            name (Optional[str], optional): New name of the Auditorium. Defaults to the current name if not provided.
-            building (Optional[str], optional): New name of the building of the Auditorium. Defaults to the current building if not provided.
+            name (Optional[str], optional): New name of the Auditorium.
+                Defaults to the current name if not provided.
+
+            building (Optional[str], optional):
+                New name of the building of the Auditorium.
+                Defaults to the current building if not provided.
 
         Returns:
             bool: True if the update was successful, False otherwise.

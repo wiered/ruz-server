@@ -42,7 +42,8 @@ class KindOfWorkRepository:
 
     def GetOrCreate(self, kind_of_work: KindOfWork):
         """
-        Creates a new KindOfWork if it doesn't exist, otherwise it retrieves the existing one.
+        Creates a new KindOfWork if it doesn't exist,
+            otherwise it retrieves the existing one.
 
         Args:
             kind_of_work (KindOfWork): Kind of work to be created or retrieved.

@@ -161,9 +161,14 @@ class UserRepository:
 
         Args:
             value (int): ID of the user to be updated.
-            username (str, optional): New username for the user. Defaults to the current username if not provided.
-            group_oid (int, optional): New group ID for the user. Defaults to the current group ID if not provided.
-            subgroup (int, optional): New subgroup for the user. Defaults to the current subgroup if not provided.
+            username (str, optional): New username for the user.
+                Defaults to the current username if not provided.
+
+            group_oid (int, optional): New group ID for the user.
+                Defaults to the current group ID if not provided.
+
+            subgroup (int, optional): New subgroup for the user.
+                Defaults to the current subgroup if not provided.
 
         Returns:
             bool: True if the update was successful, False otherwise.

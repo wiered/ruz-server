@@ -13,7 +13,11 @@ logger = logging.getLogger(__name__)
 
 
 def _sub_group_sql_condition(requested_sub_group: int):
-    """SQL condition: requested 0 → no subgroup restriction; else common (0) or same subgroup."""
+    """
+    Return SQL condition:
+        if requested_sub_group is 0, return None;
+        else return common (0) or same subgroup.
+    """
     if requested_sub_group == 0:
         return None
     return or_(Lesson.sub_group == 0, Lesson.sub_group == requested_sub_group)
@@ -225,11 +229,12 @@ class LessonRepository:
         group_id: int | None = None,
         sub_group: int | None = None,
     ):
-        """Build lecturer/discipline search query (used by ListByLecturer* / ListByDiscipline*).
+        """Build a search query for lessons filtered by lecturer or discipline.
 
-        ``sub_group``: if omitted, no subgroup filter. If ``0``, no restriction on ``Lesson.sub_group``.
-        Otherwise require ``Lesson.sub_group == 0`` (общее) or match the requested value
-        (same policy as :meth:`ListForUserByDateRange`).
+        If sub_group is not set, there is no subgroup filter.
+        If sub_group is 0, there is no restriction on Lesson.sub_group.
+        Otherwise, only lessons where Lesson.sub_group is 0 or equals the
+            requested value are included.
         """
         stmt = select(Lesson)
         if group_id is not None:
@@ -270,7 +275,7 @@ class LessonRepository:
         group_id: int | None = None,
         sub_group: int | None = None,
     ) -> list[Lesson]:
-        """Lecturer lessons for one day; ``sub_group`` uses :meth:`_build_search_stmt` policy."""
+        """Return lecturer lessons for one day"""
         return self.ListByLecturerAndDateRange(
             lecturer_id=lecturer_id,
             start=value,
@@ -287,7 +292,7 @@ class LessonRepository:
         group_id: int | None = None,
         sub_group: int | None = None,
     ) -> list[Lesson]:
-        """Lecturer lessons in date range; ``sub_group`` uses :meth:`_build_search_stmt` policy."""
+        """Return lecturer lessons in date range"""
         stmt = self._build_search_stmt(
             lecturer_id=lecturer_id,
             start=start,
@@ -318,7 +323,7 @@ class LessonRepository:
         group_id: int | None = None,
         sub_group: int | None = None,
     ) -> list[Lesson]:
-        """Discipline lessons for one day; ``sub_group`` uses :meth:`_build_search_stmt` policy."""
+        """Return discipline lessons for one day"""
         return self.ListByDisciplineAndDateRange(
             discipline_id=discipline_id,
             start=value,
@@ -335,7 +340,8 @@ class LessonRepository:
         group_id: int | None = None,
         sub_group: int | None = None,
     ) -> list[Lesson]:
-        """Discipline lessons in date range; ``sub_group`` uses :meth:`_build_search_stmt` policy."""
+        """Return discipline lessons in date range."""
+
         stmt = self._build_search_stmt(
             discipline_id=discipline_id,
             start=start,

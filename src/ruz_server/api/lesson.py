@@ -19,8 +19,23 @@ from ruz_server.helpers.api_helpers import (
     ensure_entity_exists,
 )
 from ruz_server.helpers.ruz_mapper import map_ruz_lessons_to_payloads
-from ruz_server.models import *
-from ruz_server.repositories import *
+from ruz_server.models import (
+    Auditorium,
+    Discipline,
+    GroupRepository,
+    KindOfWork,
+    Lecturer,
+    Lesson,
+    LessonGroup,
+    LessonGroupRepository,
+    LessonRepository,
+)
+from ruz_server.repositories import (
+    AuditoriumRepository,
+    DisciplineRepository,
+    KindOfWorkRepository,
+    LecturerRepository,
+)
 from ruz_server.ruz_api import RuzAPI
 
 logger = logging.getLogger(__name__)
@@ -127,10 +142,11 @@ class LessonCreate(BaseModel):
 
 class LessonUpdate(BaseModel):
     """
-    Schema for updating the Lesson entity. All fields are optional to allow partial updates.
+    Schema for updating the Lesson entity. All fields are optional
+    to allow partial updates.
 
     Args:
-        kind_of_work_id (Optional[int]): Identifier for the type of work (e.g., lecture, seminar).
+        kind_of_work_id (Optional[int]): Identifier for the type of work .
         discipline_id (Optional[int]): Identifier for the discipline.
         auditorium_id (Optional[int]): Identifier for the auditorium.
         lecturer_id (Optional[int]): Identifier for the lecturer.
@@ -157,14 +173,17 @@ class LessonUpdate(BaseModel):
 
 def _set_has_labs_and_examtype(payload: LessonCreate, session: Session):
     """
-    Sets the 'has_labs' and 'examtype' attributes of a Discipline entity based on the LessonCreate payload.
+    Sets the 'has_labs' and 'examtype' attributes of a Discipline entity
+    based on the LessonCreate payload.
 
-    This helper function ensures the referenced discipline's 'has_labs' and 'examtype' values are correctly updated
-    if the lesson being created implies a new lab type or an examination type.
-    If such changes occur, it persists them using the DisciplineRepository.
+    This helper function ensures the referenced discipline's 'has_labs' and 'examtype'
+    values are correctly updated if the lesson being created implies a new lab type
+    or an examination type. If such changes occur,
+    it persists them using the DisciplineRepository.
 
     Args:
-        payload (LessonCreate): The data used to create the lesson, containing discipline and type of work info.
+        payload (LessonCreate): The data used to create the lesson,
+            containing discipline and type of work info.
         session (Session): The current active database session.
 
     Returns:
@@ -196,15 +215,19 @@ def _set_has_labs_and_examtype(payload: LessonCreate, session: Session):
 
 def _upsert_reference_entities(payload: LessonCreate, session: Session) -> None:
     """
-    Upserts (inserts or updates) reference entities (Lecturer, KindOfWork, Discipline, Auditorium) as required by the LessonCreate payload.
+    Upserts (inserts or updates) reference entities
+    (Lecturer, KindOfWork, Discipline, Auditorium)
+    as required by the LessonCreate payload.
 
-    This helper checks for the existence of related entities required by a new lesson. If any referenced entity
-    does not exist in the database, it inserts it with the supplied attributes. If it already exists,
-    it updates its fields with the information from the payload. This ensures all references are present
-    and up-to-date before lesson creation.
+    This helper checks for the existence of related entities required by a new lesson.
+    If any referenced entity does not exist in the database, it inserts it with the
+    supplied attributes. If it already exists, it updates its fields with the
+    information from the payload. This ensures all references are present and
+    up-to-date before lesson creation.
 
     Args:
-        payload (LessonCreate): The information needed to create the lesson, including attributes for related entities.
+        payload (LessonCreate): The information needed to create the lesson,
+            including attributes for related entities.
         session (Session): The active database session used for upsert operations.
 
     Returns:
@@ -289,16 +312,19 @@ def _create_lesson_with_relations(
     payload: LessonCreate, session: Session, skip_if_exists: bool = False
 ) -> tuple[Lesson, bool]:
     """
-    Creates a lesson entity along with all required related entities if they do not exist.
+    Creates a lesson entity along with all required related entities
+    if they do not exist.
 
     Args:
-        payload (LessonCreate): The data required to create the lesson and its related entities.
+        payload (LessonCreate): The data required to create the lesson
+            and its related entities.
         session (Session): The database session used for entity operations.
         skip_if_exists (bool, optional): If True and the lesson exists, skip creation.
 
     Returns:
-        tuple[Lesson, bool]: A tuple containing the lesson instance and a bool indicating if creation occurred (True if created, False if already existing).
-    """
+        tuple[Lesson, bool]: A tuple containing the lesson instance and a bool indicating
+            if creation occurred (True if created, False if already existing).
+    """  # noqa: E501
     repo = LessonRepository(session)
     existing = repo.GetById(payload.id)
     if existing:
@@ -401,11 +427,15 @@ async def parse_lessons_core(session: Session) -> dict[str, Any]:
     Returns:
         tuple: (group_repository, lesson_group_repository, lesson_repository, ruz_api, groups)
             group_repository (GroupRepository): Handles Group entity operations.
-            lesson_group_repository (LessonGroupRepository): Handles LessonGroup entity operations.
+            lesson_group_repository (LessonGroupRepository):
+                Handles LessonGroup entity operations.
+
             lesson_repository (LessonRepository): Handles Lesson entity operations.
-            ruz_api (RuzAPI): API client for fetching schedule data from external service.
+            ruz_api (RuzAPI):
+                API client for fetching schedule data from external service.
+
             groups (list): List of all group entities loaded from the database.
-    """
+    """  # noqa: E501
     group_repository = GroupRepository(session)
     lesson_group_repository = LessonGroupRepository(session)
     lesson_repository = LessonRepository(session)
@@ -544,7 +574,8 @@ async def parse_lessons(session: Session = Depends(get_db)):
         session (Session): Database session dependency.
 
     Returns:
-        Any: The result of running the refresh process with the provided database session.
+        Any: The result of running the refresh process
+            with the provided database session.
     """
     from ruz_server.services.refresh_scheduler import run_refresh_with_session
 

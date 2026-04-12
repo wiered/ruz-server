@@ -46,8 +46,11 @@ class DisciplineCreate(BaseModel):
     Args:
         id (int): The unique identifier for the discipline.
         name (str): The name of the discipline.
-        examtype (Optional[str], optional): The exam type associated with the discipline. Defaults to None.
-        has_labs (Optional[bool], optional): Indicates if the discipline includes laboratory work. Defaults to False.
+        examtype (Optional[str], optional):
+            The exam type associated with the discipline. Defaults to None.
+
+        has_labs (Optional[bool], optional):
+            Indicates if the discipline includes laboratory work. Defaults to False.
     """
 
     id: int
@@ -61,9 +64,14 @@ class DisciplineUpdate(BaseModel):
     Request model for updating an existing Discipline entity.
 
     Args:
-        name (Optional[str], optional): The updated name of the discipline. Defaults to None.
-        examtype (Optional[str], optional): The updated exam type associated with the discipline. Defaults to None.
-        has_labs (Optional[bool], optional): Indicates if the discipline includes laboratory work. Defaults to None.
+        name (Optional[str], optional):
+            The updated name of the discipline. Defaults to None.
+
+        examtype (Optional[str], optional):
+            The updated exam type associated with the discipline. Defaults to None.
+
+        has_labs (Optional[bool], optional):
+            Indicates if the discipline includes laboratory work. Defaults to None.
     """
 
     name: str | None | None = None
@@ -81,7 +89,9 @@ def create_discipline(
     Creates a new discipline entity based on the provided payload.
 
     Args:
-        payload (DisciplineCreate): The payload containing the details of the discipline to be created.
+        payload (DisciplineCreate): The payload
+            containing the details of the discipline to be created.
+
         session (Session, optional): The database session dependency.
         _api_key (str, optional): The API key for authentication.
 

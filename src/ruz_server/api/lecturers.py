@@ -69,9 +69,14 @@ class LecturerUpdate(BaseModel):
     Schema for updating Lecturer information.
 
     Args:
-        full_name (Optional[str] | None): Full name of the lecturer. If not provided, it will not be updated.
-        short_name (Optional[str] | None): Shortened or preferred name of the lecturer. If not provided, it will not be updated.
-        rank (Optional[str] | None): Academic or professional rank of the lecturer. If not provided, it will not be updated.
+        full_name (Optional[str] | None): Full name of the lecturer.
+            If not provided, it will not be updated.
+
+        short_name (Optional[str] | None): Shortened or preferred name of the lecturer.
+            If not provided, it will not be updated.
+
+        rank (Optional[str] | None): Academic or professional rank of the lecturer.
+            If not provided, it will not be updated.
 
     Returns:
         LecturerUpdate: An instance containing the fields to update for the lecturer.

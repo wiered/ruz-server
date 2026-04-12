@@ -31,13 +31,16 @@ class DataBase:
             Returns a new SQLModel Session instance for database transactions.
 
         get_session() -> Generator[Session, None, None]:
-            Provides a context-managed SQLModel Session generator for use in dependency injection.
+            Provides a context-managed SQLModel Session generator
+                for use in dependency injection.
 
         createAllTables() -> None:
-            Creates all tables defined in the SQLModel metadata within the connected database.
+            Creates all tables defined in the SQLModel metadata
+                within the connected database.
 
         dropAllTables() -> None:
-            Drops all tables defined in the SQLModel metadata from the connected database.
+            Drops all tables defined in the SQLModel metadata
+                from the connected database.
     """
 
     def __init__(self, postgresql_uri):
@@ -62,10 +65,12 @@ class DataBase:
         Provides a generator for a context-managed SQLModel Session.
 
         This method is typically used for dependency injection in FastAPI routes.
-        It yields a database Session instance and ensures that the session is closed after use.
+        It yields a database Session instance and ensures that the session is
+        closed after use.
 
         Yields:
-            Session: A context-managed SQLModel Session object for interacting with the database.
+            Session: A context-managed SQLModel Session object for
+                interacting with the database.
 
         Example:
             @app.get("/items/")
@@ -83,8 +88,8 @@ class DataBase:
         """
         Creates all tables defined in the SQLModel models in the connected database.
 
-        This method creates the database schema by generating all tables specified in the
-        SQLModel models' metadata if they do not already exist.
+        This method creates the database schema by generating all tables specified in
+        the SQLModel models' metadata if they do not already exist.
 
         Args:
             None

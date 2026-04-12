@@ -72,9 +72,9 @@ class LessonCreate(BaseModel):
 
 class RuzAPI:
     """
-    RuzAPI provides methods to interact with the RUZ (Расписание учебных занятий) system,
-    including methods for fetching schedule, group, and lesson data from the remote API,
-    and utility functions for request handling and date calculations.
+    RuzAPI provides methods to interact with the RUZ (Расписание учебных занятий)
+    system, including methods for fetching schedule, group, and lesson data from
+    the remote API,and utility functions for request handling and date calculations.
 
     Args:
         None (class does not accept constructor arguments by default)
@@ -287,7 +287,8 @@ class RuzAPI:
         logger.debug(f"Week range for {group}: {start_str} - {end_str}")
         result = await self.get(group, start_str, end_str)
         logger.debug(
-            f"parseWeek returned {len(result)} lessons for {group} week starting {start_str}"
+            f"parseWeek returned {len(result)} "
+            f"lessons for {group} week starting {start_str}"
         )
         return result
 
@@ -307,7 +308,8 @@ class RuzAPI:
         update_time = datetime.now().isoformat()
 
         logger.debug(
-            f"Month bounds for {group_id}: start={start_str}, end={end_str}, update_time={update_time}"
+            f"Month bounds for {group_id}: "
+            f"start={start_str}, end={end_str}, update_time={update_time}"
         )
         raw_data = await self.get(group_id, start_str, end_str)
         processed = await self._parse_lessons(raw_data, group_id, update_time)

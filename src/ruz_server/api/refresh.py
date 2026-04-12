@@ -14,8 +14,18 @@ from sqlmodel import Session
 
 from ruz_server.database import db
 from ruz_server.helpers.ruz_mapper import map_ruz_lessons_to_payloads
-from ruz_server.models import *
-from ruz_server.repositories import *
+from ruz_server.models import (
+    Auditorium,
+    Discipline,
+    Group,
+    GroupRepository,
+    KindOfWork,
+    Lecturer,
+    Lesson,
+    LessonGroup,
+    LessonGroupRepository,
+    LessonRepository,
+)
 from ruz_server.ruz_api import RuzAPI
 
 logger = logging.getLogger(__name__)
@@ -172,15 +182,19 @@ def _upsert_discipline(payload: LessonCreate, session: Session) -> None:
 
 def _upsert_reference_entities(payload: LessonCreate, session: Session) -> None:
     """
-    Upserts (inserts or updates) reference entities (Lecturer, KindOfWork, Discipline, Auditorium) as required by the LessonCreate payload.
+    Upserts (inserts or updates) reference entities
+    (Lecturer, KindOfWork, Discipline, Auditorium)
+    as required by the LessonCreate payload.
 
-    This helper checks for the existence of related entities required by a new lesson. If any referenced entity
-    does not exist in the database, it inserts it with the supplied attributes. If it already exists,
-    it updates its fields with the information from the payload. This ensures all references are present
-    and up-to-date before lesson creation.
+    This helper checks for the existence of related entities required by a new lesson.
+    If any referenced entity does not exist in the database, it inserts it with the
+    supplied attributes. If it already exists, it updates its fields with the
+    information from the payload. This ensures all references are present and
+    up-to-date before lesson creation.
 
     Args:
-        payload (LessonCreate): The information needed to create the lesson, including attributes for related entities.
+        payload (LessonCreate): The information needed to create the lesson,
+            including attributes for related entities.
         session (Session): The active database session used for upsert operations.
 
     Returns:
@@ -197,11 +211,11 @@ def _get_payload(raw_lesson: dict[str, Any], group_id: int4) -> LessonCreate:
     try:
         mapped_payload = map_ruz_lessons_to_payloads([raw_lesson], group_id)[0]
     except Exception as exc:
-        raise Exception(exc)
+        raise RuntimeError("failed to map RUZ lesson to payload") from exc
     try:
         payload = LessonCreate(**mapped_payload)
-    except ValidationError as exc:
-        raise ValidationError(exc)
+    except ValidationError:
+        raise
 
     return payload
 
@@ -298,11 +312,13 @@ async def parse_lessons_core(session: Session) -> dict[str, Any]:
     Returns:
         tuple: (group_repository, lesson_group_repository, lesson_repository, ruz_api, groups)
             group_repository (GroupRepository): Handles Group entity operations.
-            lesson_group_repository (LessonGroupRepository): Handles LessonGroup entity operations.
+            lesson_group_repository (LessonGroupRepository):
+                Handles LessonGroup entity operations.
             lesson_repository (LessonRepository): Handles Lesson entity operations.
-            ruz_api (RuzAPI): API client for fetching schedule data from external service.
+            ruz_api (RuzAPI): API client for fetching schedule data
+                from external service.
             groups (list): List of all group entities loaded from the database.
-    """
+    """  # noqa: E501
     group_repository = GroupRepository(session)
     lesson_group_repository = LessonGroupRepository(session)
     lesson_repository = LessonRepository(session)

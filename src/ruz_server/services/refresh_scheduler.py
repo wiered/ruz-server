@@ -36,7 +36,8 @@ def _acquire_file_lock(lock_path: str) -> int | None:
         lock_path (str): The file path to the lock file.
 
     Returns:
-        int | None: File descriptor if the lock was acquired successfully, or None if the lock already exists.
+        int | None: File descriptor if the lock was acquired successfully,
+            or None if the lock already exists.
     """
     path = Path(lock_path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -53,7 +54,8 @@ def _release_file_lock(lock_path: str, fd: int | None) -> None:
 
     Args:
         lock_path (str): The file path to the lock file.
-        fd (int | None): File descriptor of the lock file, or None if lock was not acquired.
+        fd (int | None): File descriptor of the lock file,
+            or None if lock was not acquired.
 
     Returns:
         None
@@ -78,9 +80,11 @@ def get_last_refresh_state() -> dict[str, Any]:
 
     Returns:
         dict[str, Any]: Dictionary containing:
-            - last_refresh_at (datetime | None): Timestamp of the last completed refresh attempt.
-            - last_refresh_status (str): Status string indicating the outcome of the last refresh
-              ("never", "success", "error", or "skipped").
+            - last_refresh_at (datetime | None):
+                Timestamp of the last completed refresh attempt.
+            - last_refresh_status (str):
+                Status string indicating the outcome of the last refresh
+                ("never", "success", "error", or "skipped").
     """
     return {
         "last_refresh_at": LAST_REFRESH_AT,
@@ -143,19 +147,22 @@ async def run_refresh_with_session(
 ) -> dict[str, Any]:
     """
     About:
-        Runs the refresh procedure using the provided database session and optional refresh runner.
-        Ensures that only one refresh can run at a time by using in-process and file locks.
-        Handles logging and lock management, and returns a status dictionary describing the outcome.
-        If no refresh runner is provided, uses the default lesson parser.
+        Runs the refresh procedure using the provided database session and optional
+        refresh runner. Ensures that only one refresh can run at a time by using
+        in-process and file locks. Handles logging and lock management, and returns
+        a status dictionary describing the outcome. If no refresh runner is provided,
+        uses the default lesson parser.
 
     Args:
         session (Session): The database session for database operations during refresh.
         source (str): A descriptive source string which triggered the refresh.
-        refresh_runner (RefreshRunner | None, optional): A coroutine or callable performing the refresh logic.
+        refresh_runner (RefreshRunner | None, optional):
+            A coroutine or callable performing the refresh logic.
             If None, uses the default lessons refresh routine.
 
     Returns:
-        dict[str, Any]: A dictionary indicating the status of the refresh (e.g., "skipped", "completed", or error details).
+        dict[str, Any]: A dictionary indicating the status of the refresh
+            (e.g., "skipped", "completed", or error details).
     """
     run_id = uuid.uuid4().hex
     skip_at = datetime.now(UTC)
@@ -263,7 +270,8 @@ async def run_refresh_job(source: str = "scheduler") -> dict[str, Any]:
     Create DB session and run refresh through shared orchestrator.
 
     Args:
-        source (str): The source of the refresh (e.g., "scheduler" or "startup_doupdate"). Defaults to "scheduler".
+        source (str): The source of the refresh (e.g., "scheduler", "startup_doupdate").
+            Defaults to "scheduler".
 
     Returns:
         dict[str, Any]: Dictionary containing the result of the refresh.
