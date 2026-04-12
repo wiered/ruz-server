@@ -1,13 +1,27 @@
 from pathlib import Path
 
+from dotenv import load_dotenv
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# TODO(refactor): replace fixed parents index with robust repo-root discovery
-# (e.g., walk parents until pyproject.toml is found) after src-layout migration stabilizes.
-ROOT = Path(__file__).resolve().parents[3]
 
-from dotenv import load_dotenv
+def find_repo_root(start_path: Path) -> Path:
+    """
+    Walk up from start_path until a directory containing pyproject.toml is found.
+    Returns the directory path, or raises FileNotFoundError if not found.
+    """
+    for parent in [start_path, *start_path.parents]:
+        if (parent / "pyproject.toml").is_file():
+            return parent
+    raise FileNotFoundError(
+        f"Could not find repo root (pyproject.toml) above {start_path}"
+    )
+
+
+try:
+    ROOT = find_repo_root(Path(__file__).resolve())
+except FileNotFoundError:
+    ROOT = Path(__file__).resolve().parents[3]
 
 load_dotenv()
 
@@ -30,11 +44,14 @@ class Settings(BaseSettings):
         reload (bool, optional): Enable hot-reload for development. Defaults to False.
         workers (int, optional): Number of worker processes for server. Defaults to 1.
         log_level (str, optional): Log level for Uvicorn server. Defaults to "info".
-        env (str, optional): Application environment type (e.g., "prod"). Defaults to "prod".
+        env (str, optional): Application environment type (e.g., "prod").
+            Defaults to "prod".
         doupdate (bool, optional): Whether to update on startup. Defaults to False.
         refresh_hour (int, optional): Hour of day for data refresh. Defaults to 2.
-        refresh_minute (int, optional): Minute of the hour for data refresh. Defaults to 0.
-        refresh_timezone (str, optional): Timezone for scheduler. Defaults to "Europe/Moscow".
+        refresh_minute (int, optional): Minute of the hour for data refresh.
+            Defaults to 0.
+        refresh_timezone (str, optional): Timezone for scheduler.
+            Defaults to "Europe/Moscow".
         refresh_lock_file (str, optional): Path to the refresh lock file.
 
     Returns:
