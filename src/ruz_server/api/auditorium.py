@@ -1,11 +1,10 @@
-from typing import Generator, List, Optional
+from collections.abc import Generator
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Security, status
+from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel, ConfigDict
 from sqlmodel import Session
 
-from ruz_server.api.security import require_api_key
 from ruz_server.database import db
 from ruz_server.helpers.api_helpers import (
     ensure_entity_doesnot_exist,
@@ -76,8 +75,8 @@ class AuditoriumUpdate(BaseModel):
         AuditoriumUpdate: Instance representing the requested changes to the auditorium.
     """
 
-    name: Optional[str] | None = None
-    building: Optional[str] | None = None
+    name: str | None | None = None
+    building: str | None | None = None
 
 
 @router.post("/", response_model=AuditoriumRead, status_code=status.HTTP_201_CREATED)
@@ -109,7 +108,7 @@ def create_auditorium(payload: AuditoriumCreate, session: Session = Depends(get_
     )
 
 
-@router.get("/", response_model=List[AuditoriumRead])
+@router.get("/", response_model=list[AuditoriumRead])
 def list_auditoriums(session: Session = Depends(get_db)):
     """
     Retrieve a list of all Auditorium entities.

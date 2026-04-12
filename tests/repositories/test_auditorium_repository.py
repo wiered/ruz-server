@@ -1,13 +1,13 @@
 """Unit tests for AuditoriumRepository."""
 
 import uuid
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 from sqlalchemy.exc import SQLAlchemyError
 
-
-from ruz_server.repositories.auditorium_repository import AuditoriumRepository
 from ruz_server.models.models import Auditorium
+from ruz_server.repositories.auditorium_repository import AuditoriumRepository
 
 
 @pytest.mark.repositories

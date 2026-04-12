@@ -2,11 +2,11 @@
 
 import datetime
 import uuid
-import pytest
+
 import aiohttp
+import pytest
 
-
-from ruz_server.ruz_api.api import RuzAPI, LessonCreate
+from ruz_server.ruz_api.api import LessonCreate, RuzAPI
 
 
 class FakeResponse:

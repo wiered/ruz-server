@@ -1,15 +1,13 @@
 import asyncio
 import calendar
 import logging
-from datetime import datetime, timedelta, time, date
-from typing import Any, List
+from datetime import date, datetime, time, timedelta
+from typing import Any
 from urllib.parse import urlencode
 from uuid import UUID
 
 import aiohttp
 from pydantic import BaseModel
-
-from ruz_server.database import db
 
 logger = logging.getLogger(__name__)
 
@@ -139,7 +137,7 @@ class RuzAPI:
 
     async def _parse_lessons(
         self, raw_data: dict, group_id: str, update_time: str
-    ) -> List[dict]:
+    ) -> list[dict]:
         """
         Parse raw lessons data from API response into a list of processed lessons
         with added group_id, subgroup and update_time fields.
@@ -268,7 +266,7 @@ class RuzAPI:
         )
         return result
 
-    async def getWeek(self, group: str, date: datetime) -> List[dict]:
+    async def getWeek(self, group: str, date: datetime) -> list[dict]:
         """
         Parse schedule for group for one week
 
@@ -289,13 +287,11 @@ class RuzAPI:
         logger.debug(f"Week range for {group}: {start_str} - {end_str}")
         result = await self.get(group, start_str, end_str)
         logger.debug(
-            "parseWeek returned {} lessons for {} week starting {}".format(
-                len(result), group, start_str
-            )
+            f"parseWeek returned {len(result)} lessons for {group} week starting {start_str}"
         )
         return result
 
-    async def getSchedule(self, group_id: str) -> List[dict]:
+    async def getSchedule(self, group_id: str) -> list[dict]:
         """
         Parse schedule for group for three month
 
@@ -311,9 +307,7 @@ class RuzAPI:
         update_time = datetime.now().isoformat()
 
         logger.debug(
-            "Month bounds for {}: start={}, end={}, update_time={}".format(
-                group_id, start_str, end_str, update_time
-            )
+            f"Month bounds for {group_id}: start={start_str}, end={end_str}, update_time={update_time}"
         )
         raw_data = await self.get(group_id, start_str, end_str)
         processed = await self._parse_lessons(raw_data, group_id, update_time)
@@ -323,13 +317,11 @@ class RuzAPI:
             return []
 
         logger.info(
-            "parseSchedule completed with {} lessons for {}".format(
-                len(processed), group_id
-            )
+            f"parseSchedule completed with {len(processed)} lessons for {group_id}"
         )
         return processed
 
-    async def getGroup(self, group_name: str) -> List[dict]:
+    async def getGroup(self, group_name: str) -> list[dict]:
         """
         Search group in MSTUCA
 

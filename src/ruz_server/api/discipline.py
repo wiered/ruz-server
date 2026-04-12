@@ -1,4 +1,4 @@
-from typing import Generator, List, Optional
+from collections.abc import Generator
 
 from fastapi import APIRouter, Depends, Security, status
 from pydantic import BaseModel, ConfigDict
@@ -33,7 +33,7 @@ class DisciplineRead(BaseModel):
 
     id: int
     name: str
-    examtype: Optional[str] = None
+    examtype: str | None = None
     has_labs: bool = False
 
     model_config = ConfigDict(from_attributes=True)
@@ -52,7 +52,7 @@ class DisciplineCreate(BaseModel):
 
     id: int
     name: str
-    examtype: Optional[str] | None = None
+    examtype: str | None | None = None
     has_labs: bool | None = False
 
 
@@ -66,9 +66,9 @@ class DisciplineUpdate(BaseModel):
         has_labs (Optional[bool], optional): Indicates if the discipline includes laboratory work. Defaults to None.
     """
 
-    name: Optional[str] | None = None
-    examtype: Optional[str] | None = None
-    has_labs: Optional[bool] | None = None
+    name: str | None | None = None
+    examtype: str | None | None = None
+    has_labs: bool | None | None = None
 
 
 @router.post("/", response_model=DisciplineRead, status_code=status.HTTP_201_CREATED)
@@ -101,7 +101,7 @@ def create_discipline(
     )
 
 
-@router.get("/", response_model=List[DisciplineRead])
+@router.get("/", response_model=list[DisciplineRead])
 def list_disciplines(
     session: Session = Depends(get_db), _api_key: str = Security(require_api_key)
 ):

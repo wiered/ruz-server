@@ -7,11 +7,10 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool
-from sqlmodel import SQLModel, Session, select
+from sqlmodel import Session, SQLModel, select
 
-
-from ruz_server.api.app import app
 from ruz_server.api import lesson
+from ruz_server.api.app import app
 from ruz_server.api.security import require_api_key
 from ruz_server.models.models import (
     Auditorium,

@@ -132,13 +132,13 @@ class DisciplineRepository:
                 return False
 
             if name is None:
-                logger.debug(f"Payload does not have a name")
+                logger.debug("Payload does not have a name")
                 name = current.name
             if examtype is None:
-                logger.debug(f"Payload does not have an exam type")
+                logger.debug("Payload does not have an exam type")
                 examtype = current.examtype
             if has_labs is None:
-                logger.debug(f"Payload does not have a has_labs")
+                logger.debug("Payload does not have a has_labs")
                 has_labs = current.has_labs
 
             stmt = (

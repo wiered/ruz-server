@@ -1,4 +1,4 @@
-from typing import Generator, List, Optional
+from collections.abc import Generator
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Security, status
@@ -77,9 +77,9 @@ class LecturerUpdate(BaseModel):
         LecturerUpdate: An instance containing the fields to update for the lecturer.
     """
 
-    full_name: Optional[str] | None = None
-    short_name: Optional[str] | None = None
-    rank: Optional[str] | None = None
+    full_name: str | None | None = None
+    short_name: str | None | None = None
+    rank: str | None | None = None
 
 
 @router.post("/", response_model=LecturerRead, status_code=status.HTTP_201_CREATED)
@@ -113,7 +113,7 @@ def create_lecturer(
     )
 
 
-@router.get("/", response_model=List[LecturerRead])
+@router.get("/", response_model=list[LecturerRead])
 def list_lecturers(
     session: Session = Depends(get_db), _api_key: str = Security(require_api_key)
 ):

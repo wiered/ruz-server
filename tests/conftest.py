@@ -1,25 +1,22 @@
 """Pytest configuration and shared fixtures."""
 
 import datetime
-import os
-import tempfile
-from typing import Generator
+from collections.abc import Generator
 from unittest.mock import MagicMock
 
 import pytest
 from sqlalchemy import create_engine
 from sqlmodel import Session, SQLModel
 
-
 from ruz_server.models.models import (
-    User,
-    Group,
     Auditorium,
     Discipline,
+    Group,
     KindOfWork,
     Lecturer,
-    LessonGroup,
     Lesson,
+    LessonGroup,
+    User,
 )
 
 
@@ -79,8 +76,8 @@ def mock_session():
 @pytest.fixture
 def unique_user_id():
     """Generate unique user ID for each test."""
-    import time
     import random
+    import time
 
     # Генерируем уникальный ID на основе времени и случайного числа
     return int(time.time() * 1000000) % 1000000000 + random.randint(1000, 9999)
@@ -94,8 +91,8 @@ def sample_user_data(unique_user_id):
         "username": f"test_user_{unique_user_id}",
         "group_oid": 1,
         "subgroup": 1,
-        "created_at": datetime.datetime.now(datetime.timezone.utc),
-        "last_used_at": datetime.datetime.now(datetime.timezone.utc),
+        "created_at": datetime.datetime.now(datetime.UTC),
+        "last_used_at": datetime.datetime.now(datetime.UTC),
     }
 
 
@@ -107,8 +104,8 @@ def sample_user_data_static():
         "username": "test_user",
         "group_oid": 1,
         "subgroup": 1,
-        "created_at": datetime.datetime.now(datetime.timezone.utc),
-        "last_used_at": datetime.datetime.now(datetime.timezone.utc),
+        "created_at": datetime.datetime.now(datetime.UTC),
+        "last_used_at": datetime.datetime.now(datetime.UTC),
     }
 
 
@@ -127,8 +124,8 @@ def sample_user_static(sample_user_data_static):
 @pytest.fixture
 def unique_group_id():
     """Generate unique group ID for each test."""
-    import time
     import random
+    import time
 
     return int(time.time() * 1000) % 100000 + random.randint(100, 999)
 
@@ -160,8 +157,8 @@ def sample_group_static():
 @pytest.fixture
 def unique_auditorium_id():
     """Generate unique auditorium ID for each test."""
-    import time
     import random
+    import time
 
     return int(time.time() * 1000) % 100000 + random.randint(100, 999)
 
@@ -193,8 +190,8 @@ def sample_auditorium_static():
 @pytest.fixture
 def unique_discipline_id():
     """Generate unique discipline ID for each test."""
-    import time
     import random
+    import time
 
     return int(time.time() * 1000) % 100000 + random.randint(100, 999)
 
@@ -219,8 +216,8 @@ def sample_discipline_static():
 @pytest.fixture
 def unique_kind_of_work_id():
     """Generate unique kind-of-work ID for each test."""
-    import time
     import random
+    import time
 
     return int(time.time() * 1000) % 100000 + random.randint(100, 999)
 
@@ -244,8 +241,8 @@ def sample_kind_of_work_static():
 @pytest.fixture
 def unique_lecturer_id():
     """Generate unique lecturer ID for each test."""
-    import time
     import random
+    import time
 
     return int(time.time() * 1000) % 100000 + random.randint(100, 999)
 
@@ -291,8 +288,8 @@ def sample_lesson_group_alt():
 @pytest.fixture
 def unique_lesson_id():
     """Generate unique lesson ID for each test."""
-    import time
     import random
+    import time
 
     return int(time.time() * 1000) % 100000 + random.randint(100, 999)
 

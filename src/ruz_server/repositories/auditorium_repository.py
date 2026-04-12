@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 from sqlalchemy import UUID
 from sqlalchemy.exc import SQLAlchemyError
@@ -23,7 +22,7 @@ class AuditoriumRepository:
     """
 
     def __init__(self, session: Session):
-        logger.debug(f"Created AuditoriumRepository")
+        logger.debug("Created AuditoriumRepository")
 
         self.session = session
 
@@ -69,7 +68,7 @@ class AuditoriumRepository:
         Returns:
             List[Auditorium]: List of all Auditorium objects.
         """
-        logger.info(f"Listing all Auditoriums")
+        logger.info("Listing all Auditoriums")
 
         stmt = select(Auditorium)
         return self.session.exec(stmt).all()
@@ -119,7 +118,7 @@ class AuditoriumRepository:
         stmt = select(Auditorium).where(Auditorium.name == value)
         return self.session.exec(stmt).first()
 
-    def Update(self, value: int, name: Optional[str], building: Optional[str]) -> bool:
+    def Update(self, value: int, name: str | None, building: str | None) -> bool:
         """
         Updates a Auditorium by ID.
 
@@ -141,10 +140,10 @@ class AuditoriumRepository:
                 return False
 
             if name is None:
-                logger.debug(f"Payload does not have a name")
+                logger.debug("Payload does not have a name")
                 name = current.name
             if building is None:
-                logger.debug(f"Payload does not have a building")
+                logger.debug("Payload does not have a building")
                 building = current.building
 
             stmt = (

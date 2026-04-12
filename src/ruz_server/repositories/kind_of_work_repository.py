@@ -109,10 +109,10 @@ class KindOfWorkRepository:
                 return False
 
             if type_of_work is None:
-                logger.debug(f"Payload does not have a type of work")
+                logger.debug("Payload does not have a type of work")
                 type_of_work = current.type_of_work
             if complexity is None:
-                logger.debug(f"Payload does not have a complexity")
+                logger.debug("Payload does not have a complexity")
                 complexity = current.complexity
 
             stmt = (

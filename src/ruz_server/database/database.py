@@ -7,11 +7,10 @@ __all__ = ["DataBase"]
 __author__ = "Wiered"
 
 import logging
-from typing import Generator
+from collections.abc import Generator
 
 from sqlmodel import Session, SQLModel, create_engine
 
-import ruz_server.models as models
 from ruz_server.settings import settings
 
 logger = logging.getLogger(__name__)
@@ -44,7 +43,7 @@ class DataBase:
     def __init__(self, postgresql_uri):
         self._sqlalchemy_url = postgresql_uri
         self.engine = create_engine(self._sqlalchemy_url, echo=True)
-        logger.info(f"Started database engine")
+        logger.info("Started database engine")
 
     def getSession(self) -> Session:
         """
@@ -75,7 +74,7 @@ class DataBase:
         """
         session = Session(self.engine)
         try:
-            logger.info(f"Started session")
+            logger.info("Started session")
             yield session
         finally:
             session.close()
@@ -93,7 +92,7 @@ class DataBase:
         Returns:
             None
         """
-        logger.info(f"Creating all tables")
+        logger.info("Creating all tables")
 
         SQLModel.metadata.create_all(self.engine)
 
@@ -110,7 +109,7 @@ class DataBase:
         Returns:
             None
         """
-        logger.warning(f"Dropping all tables")
+        logger.warning("Dropping all tables")
 
         SQLModel.metadata.drop_all(self.engine)
 

@@ -1,6 +1,5 @@
 import datetime
 import logging
-from typing import List, Optional
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload
@@ -72,7 +71,7 @@ class UserRepository:
         logger.debug(f"User {user} does not exist, creating")
         return self.Create(user)
 
-    def ListAll(self) -> List[User]:
+    def ListAll(self) -> list[User]:
         """Возвращает список всех пользователей
 
         Returns:
@@ -83,7 +82,7 @@ class UserRepository:
         stmt = select(User)
         return self.session.exec(stmt).all()
 
-    def ListByGroupOid(self, value: int) -> List[User]:
+    def ListByGroupOid(self, value: int) -> list[User]:
         """Возвращает список пользователей по ID группы
 
         Args:
@@ -100,7 +99,7 @@ class UserRepository:
         stmt = select(User).where(User.group_oid == value)
         return self.session.exec(stmt).all()
 
-    def GetById(self, value: int) -> Optional[User]:
+    def GetById(self, value: int) -> User | None:
         """Возвращает пользователя по ID
 
         Args:
@@ -117,7 +116,7 @@ class UserRepository:
         stmt = select(User).where(User.id == value)
         return self.session.exec(stmt).first()
 
-    def GetByUsername(self, value: str) -> Optional[User]:
+    def GetByUsername(self, value: str) -> User | None:
         """Возвращает пользователя по тегу телеграм
 
         Args:
@@ -134,7 +133,7 @@ class UserRepository:
         stmt = select(User).where(User.username == value)
         return self.session.exec(stmt).first()
 
-    def GetWithGroup(self, value: int) -> Optional[User]:
+    def GetWithGroup(self, value: int) -> User | None:
         """Возвращает пользователя и его группу по ID
 
         Args:
@@ -154,9 +153,9 @@ class UserRepository:
     def Update(
         self,
         value: int,
-        username: Optional[str] | object = _UNSET,
-        group_oid: Optional[int] | object = _UNSET,
-        subgroup: Optional[int] | object = _UNSET,
+        username: str | None | object = _UNSET,
+        group_oid: int | None | object = _UNSET,
+        subgroup: int | None | object = _UNSET,
     ) -> bool:
         """Updates a user's details by ID.
 
@@ -203,15 +202,15 @@ class UserRepository:
                 return False
 
             if username is _UNSET:
-                logger.debug(f"Payload does not have a username")
+                logger.debug("Payload does not have a username")
                 username = current.username
 
             if group_oid is _UNSET:
-                logger.debug(f"Payload does not have a group_oid")
+                logger.debug("Payload does not have a group_oid")
                 group_oid = current.group_oid
 
             if subgroup is _UNSET:
-                logger.debug(f"Payload does not have a subgroup")
+                logger.debug("Payload does not have a subgroup")
                 subgroup = current.subgroup
 
             stmt = (
@@ -246,7 +245,7 @@ class UserRepository:
             stmt = (
                 update(User)
                 .where(User.id == value)
-                .values(last_used_at=datetime.datetime.now(datetime.timezone.utc))
+                .values(last_used_at=datetime.datetime.now(datetime.UTC))
             )
             result = self.session.exec(stmt)
             self.session.commit()

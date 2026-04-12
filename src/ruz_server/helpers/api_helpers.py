@@ -15,7 +15,7 @@ def ensure_entity_exists(value, function):
     entity = function(value)
     if not entity:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=f"Error: Not Found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Error: Not Found"
         )
 
     return entity

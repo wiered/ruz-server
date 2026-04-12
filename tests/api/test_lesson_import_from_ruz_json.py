@@ -1,19 +1,18 @@
 """Integration test for importing lessons from RUZ JSON examples."""
 
-from pathlib import Path
 import json
 import re
+from pathlib import Path
 
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool
-from sqlmodel import SQLModel, Session, select
+from sqlmodel import Session, SQLModel, select
 
-
-from ruz_server.api.app import app
 from ruz_server.api import lesson
+from ruz_server.api.app import app
 from ruz_server.api.security import require_api_key
 from ruz_server.helpers.ruz_mapper import map_ruz_lessons_to_payloads
 from ruz_server.models.models import (

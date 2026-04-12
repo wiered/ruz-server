@@ -1,9 +1,9 @@
 import logging
 import re
+from logging.config import dictConfig
 from urllib.parse import urlparse
 
 import pytest
-from logging.config import dictConfig
 
 from ruz_server.logging_config.logging_config import LOGGING_CONFIG
 from ruz_server.settings import settings

@@ -1,5 +1,4 @@
 import logging
-from typing import List, Optional
 
 from sqlalchemy import UUID
 from sqlalchemy.exc import SQLAlchemyError
@@ -63,7 +62,7 @@ class LecturerRepository:
         logger.debug(f"Lecturer {lecturer.full_name} does not exist, creating")
         return self.Create(lecturer)
 
-    def ListAll(self) -> List[Lecturer]:
+    def ListAll(self) -> list[Lecturer]:
         """
         Returns a list of all Lecturer objects in the database.
 
@@ -75,7 +74,7 @@ class LecturerRepository:
         stmt = select(Lecturer)
         return self.session.exec(stmt).all()
 
-    def GetById(self, value: int) -> Optional[Lecturer]:
+    def GetById(self, value: int) -> Lecturer | None:
         """
         Gets a Lecturer by ID.
 
@@ -90,7 +89,7 @@ class LecturerRepository:
         stmt = select(Lecturer).where(Lecturer.id == value)
         return self.session.exec(stmt).first()
 
-    def GetByGUID(self, value: UUID) -> Optional[Lecturer]:
+    def GetByGUID(self, value: UUID) -> Lecturer | None:
         """
         Gets a Lecturer by GUID.
 
@@ -105,7 +104,7 @@ class LecturerRepository:
         stmt = select(Lecturer).where(Lecturer.guid == value)
         return self.session.exec(stmt).first()
 
-    def GetWithLessons(self, value: int) -> Optional[Lecturer]:
+    def GetWithLessons(self, value: int) -> Lecturer | None:
         """
         Gets a Lecturer by ID, with all its lessons.
 
@@ -153,13 +152,13 @@ class LecturerRepository:
                 return False
 
             if full_name is None:
-                logger.debug(f"Payload does not have a full name")
+                logger.debug("Payload does not have a full name")
                 full_name = current.full_name
             if short_name is None:
-                logger.debug(f"Payload does not have a short name")
+                logger.debug("Payload does not have a short name")
                 short_name = current.short_name
             if rank is None:
-                logger.debug(f"Payload does not have a rank")
+                logger.debug("Payload does not have a rank")
                 rank = current.rank
 
             stmt = (

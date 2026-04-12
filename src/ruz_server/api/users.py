@@ -1,25 +1,22 @@
+# Setup logging
+import logging
+from collections.abc import Generator
 from datetime import datetime
-from typing import Generator, List, Optional
+from logging.config import dictConfig
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Security, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict
 from sqlmodel import Session
 
-from ruz_server.api.security import require_api_key
 from ruz_server.database import db
 from ruz_server.helpers.api_helpers import (
     ensure_entity_doesnot_exist,
     ensure_entity_exists,
 )
+from ruz_server.logging_config import LOGGING_CONFIG, ColoredFormatter
 from ruz_server.models import Group, User
 from ruz_server.repositories import GroupRepository, UserRepository
-
-
-# Setup logging
-import logging
-from logging.config import dictConfig
-from ruz_server.logging_config import LOGGING_CONFIG, ColoredFormatter
 
 dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger(__name__)
@@ -56,8 +53,8 @@ class UserRead(BaseModel):
     """
 
     id: int
-    group_oid: Optional[int] = None
-    subgroup: Optional[int] = None
+    group_oid: int | None = None
+    subgroup: int | None = None
     username: str
     created_at: datetime
     last_used_at: datetime
@@ -85,10 +82,10 @@ class UserCreate(BaseModel):
     id: int  # Telegram ID
     username: str
     group_oid: int
-    subgroup: Optional[int] = None
-    group_guid: Optional[UUID] | None = None
-    group_name: Optional[str] | None = None
-    faculty_name: Optional[str] | None = None
+    subgroup: int | None = None
+    group_guid: UUID | None | None = None
+    group_name: str | None | None = None
+    faculty_name: str | None | None = None
 
 
 class UserUpdate(BaseModel):
@@ -108,16 +105,16 @@ class UserUpdate(BaseModel):
         UserUpdate: An instance containing fields to update in the user entity.
     """
 
-    username: Optional[str] | None = None
-    group_oid: Optional[int] | None = None
-    subgroup: Optional[int] | None = None
-    last_used_at: Optional[datetime] | None = None
-    group_guid: Optional[UUID] | None = None
-    group_name: Optional[str] | None = None
-    faculty_name: Optional[str] | None = None
+    username: str | None | None = None
+    group_oid: int | None | None = None
+    subgroup: int | None | None = None
+    last_used_at: datetime | None | None = None
+    group_guid: UUID | None | None = None
+    group_name: str | None | None = None
+    faculty_name: str | None | None = None
 
 
-def _validate_subgroup(subgroup: Optional[int]) -> None:
+def _validate_subgroup(subgroup: int | None) -> None:
     """
     Validates the subgroup value.
 
@@ -233,7 +230,7 @@ def create_user(payload: UserCreate, session: Session = Depends(get_db)):
     )
 
 
-@router.get("/", response_model=List[UserRead])
+@router.get("/", response_model=list[UserRead])
 def list_users(session: Session = Depends(get_db)):
     """
     Retrieve a list of all users in the system.

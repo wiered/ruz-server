@@ -1,12 +1,12 @@
 """Unit tests for KindOfWorkRepository."""
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 from sqlalchemy.exc import SQLAlchemyError
 
-
-from ruz_server.repositories.kind_of_work_repository import KindOfWorkRepository
 from ruz_server.models.models import KindOfWork
+from ruz_server.repositories.kind_of_work_repository import KindOfWorkRepository
 
 
 @pytest.mark.repositories

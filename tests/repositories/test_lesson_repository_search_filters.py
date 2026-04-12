@@ -6,7 +6,7 @@ import uuid
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool
-from sqlmodel import SQLModel, Session
+from sqlmodel import Session, SQLModel
 
 from ruz_server.models.models import (
     Auditorium,

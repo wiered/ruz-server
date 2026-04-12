@@ -1,6 +1,5 @@
 import datetime
-from datetime import timezone
-from typing import List, Optional
+from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import BigInteger, ForeignKey, Integer, String, Time
@@ -60,12 +59,12 @@ class Group(SQLModel, table=True):
     name: str = Field(sa_column=Column("name", String, nullable=False, unique=True))
     faculty_name: str = Field(sa_column=Column("faculty_name", String, nullable=False))
 
-    users: List["User"] = Relationship(back_populates="group")
-    lesson_groups: List["LessonGroup"] = Relationship(
+    users: list["User"] = Relationship(back_populates="group")
+    lesson_groups: list["LessonGroup"] = Relationship(
         back_populates="group",
         sa_relationship_kwargs={"overlaps": "lessons,groups"},
     )
-    lessons: List["Lesson"] = Relationship(
+    lessons: list["Lesson"] = Relationship(
         back_populates="groups",
         link_model=LessonGroup,
         sa_relationship_kwargs={"overlaps": "group,lesson,lesson_groups"},
@@ -90,15 +89,15 @@ class User(SQLModel, table=True):
 
     __tablename__ = "users"
     id: int = Field(sa_column=Column("id", BigInteger, primary_key=True))  # telegram id
-    group_oid: Optional[int] = Field(
+    group_oid: int | None = Field(
         sa_column=Column(ForeignKey("groups.id", ondelete="SET NULL"), nullable=True)
     )
-    subgroup: Optional[int] = Field(default=None, nullable=True)
+    subgroup: int | None = Field(default=None, nullable=True)
     username: str = Field(sa_column=Column("username", String, nullable=False))
-    created_at: datetime.datetime = Field(default=datetime.datetime.now(timezone.utc))
-    last_used_at: datetime.datetime = Field(default=datetime.datetime.now(timezone.utc))
+    created_at: datetime.datetime = Field(default=datetime.datetime.now(datetime.UTC))
+    last_used_at: datetime.datetime = Field(default=datetime.datetime.now(datetime.UTC))
 
-    group: Optional[Group] = Relationship(back_populates="users")
+    group: Group | None = Relationship(back_populates="users")
 
 
 class Lecturer(SQLModel, table=True):
@@ -125,7 +124,7 @@ class Lecturer(SQLModel, table=True):
     short_name: str = Field(sa_column=Column("short_name", String, nullable=False))
     rank: str = Field(sa_column=Column("rank", String, nullable=False))
 
-    lessons: List["Lesson"] = Relationship(back_populates="lecturer")
+    lessons: list["Lesson"] = Relationship(back_populates="lecturer")
 
 
 class KindOfWork(SQLModel, table=True):
@@ -146,7 +145,7 @@ class KindOfWork(SQLModel, table=True):
     type_of_work: str = Field(sa_column=Column("type_of_work", String, nullable=False))
     complexity: int = Field(sa_column=Column("complexity", Integer, nullable=False))
 
-    lessons: List["Lesson"] = Relationship(back_populates="kind_of_work")
+    lessons: list["Lesson"] = Relationship(back_populates="kind_of_work")
 
 
 class Discipline(SQLModel, table=True):
@@ -169,7 +168,7 @@ class Discipline(SQLModel, table=True):
     examtype: str = Field(sa_column=Column("examtype", String))
     has_labs: bool = Field(default=False)
 
-    lessons: List["Lesson"] = Relationship(back_populates="discipline")
+    lessons: list["Lesson"] = Relationship(back_populates="discipline")
 
 
 class Auditorium(SQLModel, table=True):
@@ -194,7 +193,7 @@ class Auditorium(SQLModel, table=True):
     name: str = Field(sa_column=Column("name", String, nullable=False))
     building: str = Field(sa_column=Column("building", String, nullable=False))
 
-    lessons: List["Lesson"] = Relationship(back_populates="auditorium")
+    lessons: list["Lesson"] = Relationship(back_populates="auditorium")
 
 
 class Lesson(SQLModel, table=True):
@@ -239,7 +238,7 @@ class Lesson(SQLModel, table=True):
     lecturer_id: int = Field(
         sa_column=Column(ForeignKey("lecturer.id", ondelete="CASCADE"))
     )
-    date: datetime.date = Field(default=datetime.datetime.now(timezone.utc))
+    date: datetime.date = Field(default=datetime.datetime.now(datetime.UTC))
 
     # SQL column type is TIME, so the Python-side type must be datetime.time.
     begin_lesson: datetime.time = Field(
@@ -248,18 +247,18 @@ class Lesson(SQLModel, table=True):
     end_lesson: datetime.time = Field(
         sa_column=Column("end_lesson", Time, nullable=False)
     )
-    updated_at: datetime.datetime = Field(default=datetime.datetime.now(timezone.utc))
+    updated_at: datetime.datetime = Field(default=datetime.datetime.now(datetime.UTC))
     sub_group: int = Field(default=0)
 
-    kind_of_work: Optional[KindOfWork] = Relationship(back_populates="lessons")
-    discipline: Optional[Discipline] = Relationship(back_populates="lessons")
-    auditorium: Optional[Auditorium] = Relationship(back_populates="lessons")
-    lecturer: Optional[Lecturer] = Relationship(back_populates="lessons")
-    lesson_groups: List["LessonGroup"] = Relationship(
+    kind_of_work: KindOfWork | None = Relationship(back_populates="lessons")
+    discipline: Discipline | None = Relationship(back_populates="lessons")
+    auditorium: Auditorium | None = Relationship(back_populates="lessons")
+    lecturer: Lecturer | None = Relationship(back_populates="lessons")
+    lesson_groups: list["LessonGroup"] = Relationship(
         back_populates="lesson",
         sa_relationship_kwargs={"overlaps": "lessons,groups"},
     )
-    groups: List["Group"] = Relationship(
+    groups: list["Group"] = Relationship(
         back_populates="lessons",
         link_model=LessonGroup,
         sa_relationship_kwargs={"overlaps": "group,lesson,lesson_groups"},

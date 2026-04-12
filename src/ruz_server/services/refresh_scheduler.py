@@ -2,11 +2,12 @@ import asyncio
 import json
 import logging
 import os
-from pathlib import Path
 import time
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Awaitable, Callable
+from collections.abc import Awaitable, Callable
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import Any
 
 from sqlmodel import Session
 
@@ -157,7 +158,7 @@ async def run_refresh_with_session(
         dict[str, Any]: A dictionary indicating the status of the refresh (e.g., "skipped", "completed", or error details).
     """
     run_id = uuid.uuid4().hex
-    skip_at = datetime.now(timezone.utc)
+    skip_at = datetime.now(UTC)
 
     if _refresh_lock.locked():
         logger.info(
@@ -206,7 +207,7 @@ async def run_refresh_with_session(
             result = await refresh_runner(session)
         except Exception as exc:
             duration_ms = int((time.perf_counter() - start) * 1000)
-            LAST_REFRESH_AT = datetime.now(timezone.utc)
+            LAST_REFRESH_AT = datetime.now(UTC)
             LAST_REFRESH_STATUS = "error"
 
             logger.error(
@@ -226,7 +227,7 @@ async def run_refresh_with_session(
             raise
 
         duration_ms = int((time.perf_counter() - start) * 1000)
-        LAST_REFRESH_AT = datetime.now(timezone.utc)
+        LAST_REFRESH_AT = datetime.now(UTC)
         LAST_REFRESH_STATUS = "success"
 
         lessons_pruned = _safe_int(result.get("lessons_pruned"))

@@ -3,7 +3,6 @@
 import pytest
 from fastapi import HTTPException
 
-
 from ruz_server.api.security import require_api_key
 from ruz_server.settings import settings
 

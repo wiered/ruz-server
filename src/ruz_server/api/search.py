@@ -1,5 +1,5 @@
 import datetime
-from typing import Generator, List, Optional
+from collections.abc import Generator
 
 from fastapi import APIRouter, Depends, Query
 from sqlmodel import Session
@@ -19,12 +19,12 @@ def get_db() -> Generator[Session, None, None]:
     yield from db.get_session()
 
 
-@router.get("/lecturer/day", response_model=List[UserScheduleLessonRead])
+@router.get("/lecturer/day", response_model=list[UserScheduleLessonRead])
 def search_lecturer_day(
     lecturer_id: int = Query(...),
     date: datetime.date = Query(...),
-    group_id: Optional[int] = Query(None),
-    sub_group: Optional[int] = Query(None),
+    group_id: int | None = Query(None),
+    sub_group: int | None = Query(None),
     session: Session = Depends(get_db),
 ):
     """
@@ -50,12 +50,12 @@ def search_lecturer_day(
     return [map_lesson_to_schedule_dto(lesson, group_id) for lesson in lessons]
 
 
-@router.get("/lecturer/week", response_model=List[UserScheduleLessonRead])
+@router.get("/lecturer/week", response_model=list[UserScheduleLessonRead])
 def search_lecturer_week(
     lecturer_id: int = Query(...),
     date: datetime.date = Query(...),
-    group_id: Optional[int] = Query(None),
-    sub_group: Optional[int] = Query(None),
+    group_id: int | None = Query(None),
+    sub_group: int | None = Query(None),
     session: Session = Depends(get_db),
 ):
     """
@@ -83,12 +83,12 @@ def search_lecturer_week(
     return [map_lesson_to_schedule_dto(lesson, group_id) for lesson in lessons]
 
 
-@router.get("/discipline/day", response_model=List[UserScheduleLessonRead])
+@router.get("/discipline/day", response_model=list[UserScheduleLessonRead])
 def search_discipline_day(
     discipline_id: int = Query(...),
     date: datetime.date = Query(...),
-    group_id: Optional[int] = Query(None),
-    sub_group: Optional[int] = Query(None),
+    group_id: int | None = Query(None),
+    sub_group: int | None = Query(None),
     session: Session = Depends(get_db),
 ):
     """
@@ -114,12 +114,12 @@ def search_discipline_day(
     return [map_lesson_to_schedule_dto(lesson, group_id) for lesson in lessons]
 
 
-@router.get("/discipline/week", response_model=List[UserScheduleLessonRead])
+@router.get("/discipline/week", response_model=list[UserScheduleLessonRead])
 def search_discipline_week(
     discipline_id: int = Query(...),
     date: datetime.date = Query(...),
-    group_id: Optional[int] = Query(None),
-    sub_group: Optional[int] = Query(None),
+    group_id: int | None = Query(None),
+    sub_group: int | None = Query(None),
     session: Session = Depends(get_db),
 ):
     """

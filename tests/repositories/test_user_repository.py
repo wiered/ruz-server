@@ -1,13 +1,12 @@
 """Unit tests for UserRepository."""
 
-import datetime
+from unittest.mock import MagicMock
+
 import pytest
-from unittest.mock import MagicMock, patch
 from sqlalchemy.exc import SQLAlchemyError
 
-
-from ruz_server.repositories.user_repository import UserRepository
 from ruz_server.models.models import User
+from ruz_server.repositories.user_repository import UserRepository
 
 
 @pytest.mark.repositories

@@ -1,5 +1,5 @@
-import os
 import logging
+import os
 import re
 from logging.config import dictConfig
 

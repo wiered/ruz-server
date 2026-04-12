@@ -2,7 +2,6 @@
 
 import pytest
 
-
 from ruz_server.api import api_router
 
 

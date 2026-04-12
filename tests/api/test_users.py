@@ -1,16 +1,16 @@
 """API tests for users endpoints."""
 
 import uuid
+
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool
-from sqlmodel import SQLModel, Session
+from sqlmodel import Session, SQLModel
 
-
-from ruz_server.api.app import app
 from ruz_server.api import users
+from ruz_server.api.app import app
 from ruz_server.api.security import require_api_key
 
 

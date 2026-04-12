@@ -1,13 +1,13 @@
 """Unit tests for GroupRepository."""
 
-import pytest
-from unittest.mock import MagicMock
-from sqlalchemy.exc import SQLAlchemyError
 import uuid
+from unittest.mock import MagicMock
 
+import pytest
+from sqlalchemy.exc import SQLAlchemyError
 
-from ruz_server.repositories.group_repository import GroupRepository
 from ruz_server.models.models import Group
+from ruz_server.repositories.group_repository import GroupRepository
 
 
 @pytest.mark.repositories

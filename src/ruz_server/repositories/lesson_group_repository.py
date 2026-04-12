@@ -1,6 +1,6 @@
-import logging
 import datetime
-from typing import Iterable, List, Optional
+import logging
+from collections.abc import Iterable
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload
@@ -59,7 +59,7 @@ class LessonGroupRepository:
         logger.debug(f"LessonGroup {lesson_group} does not exist, creating")
         return self.Create(lesson_group)
 
-    def ListAll(self) -> List[LessonGroup]:
+    def ListAll(self) -> list[LessonGroup]:
         """Returns a list of all LessonGroup associations.
 
         Returns:
@@ -70,7 +70,7 @@ class LessonGroupRepository:
         stmt = select(LessonGroup)
         return self.session.exec(stmt).all()
 
-    def GetByIds(self, lesson_id: int, group_id: int) -> Optional[LessonGroup]:
+    def GetByIds(self, lesson_id: int, group_id: int) -> LessonGroup | None:
         """Returns an association by composite key.
 
         Args:
@@ -88,7 +88,7 @@ class LessonGroupRepository:
         )
         return self.session.exec(stmt).first()
 
-    def ListByLessonId(self, lesson_id: int) -> List[LessonGroup]:
+    def ListByLessonId(self, lesson_id: int) -> list[LessonGroup]:
         """Returns associations filtered by lesson ID.
 
         Args:
@@ -102,7 +102,7 @@ class LessonGroupRepository:
         stmt = select(LessonGroup).where(LessonGroup.lesson_id == lesson_id)
         return self.session.exec(stmt).all()
 
-    def ListByGroupId(self, group_id: int) -> List[LessonGroup]:
+    def ListByGroupId(self, group_id: int) -> list[LessonGroup]:
         """Returns associations filtered by group ID.
 
         Args:
@@ -118,7 +118,7 @@ class LessonGroupRepository:
 
     def GetWithLessonAndGroup(
         self, lesson_id: int, group_id: int
-    ) -> Optional[LessonGroup]:
+    ) -> LessonGroup | None:
         """Returns an association with related Lesson and Group eagerly loaded.
 
         Args:
@@ -143,7 +143,7 @@ class LessonGroupRepository:
         )
         return self.session.exec(stmt).first()
 
-    def ListByLessonIdWithGroup(self, lesson_id: int) -> List[LessonGroup]:
+    def ListByLessonIdWithGroup(self, lesson_id: int) -> list[LessonGroup]:
         """Returns associations by lesson ID with Group eagerly loaded.
 
         Args:
@@ -161,7 +161,7 @@ class LessonGroupRepository:
         )
         return self.session.exec(stmt).all()
 
-    def ListByGroupIdWithLesson(self, group_id: int) -> List[LessonGroup]:
+    def ListByGroupIdWithLesson(self, group_id: int) -> list[LessonGroup]:
         """Returns associations by group ID with Lesson eagerly loaded.
 
         Args:
@@ -195,7 +195,7 @@ class LessonGroupRepository:
 
     def ListPairsInDateRange(
         self, start: datetime.date, end: datetime.date
-    ) -> List[tuple[int, int]]:
+    ) -> list[tuple[int, int]]:
         """List (lesson_id, group_id) pairs linked to lessons in date range."""
         stmt = (
             select(LessonGroup.lesson_id, LessonGroup.group_id)

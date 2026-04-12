@@ -1,5 +1,5 @@
 import datetime
-from typing import Generator, List
+from collections.abc import Generator
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
@@ -138,7 +138,7 @@ def _get_user_group_and_subgroup(user_id: int, session: Session) -> tuple[int, i
     return user.group_oid, user.subgroup
 
 
-@router.get("/user/{user_id}/day", response_model=List[UserScheduleLessonRead])
+@router.get("/user/{user_id}/day", response_model=list[UserScheduleLessonRead])
 def get_user_schedule_day(
     user_id: int,
     date: datetime.date = Query(...),
@@ -166,7 +166,7 @@ def get_user_schedule_day(
     return [map_lesson_to_schedule_dto(lesson, group_id) for lesson in lessons]
 
 
-@router.get("/user/{user_id}/week", response_model=List[UserScheduleLessonRead])
+@router.get("/user/{user_id}/week", response_model=list[UserScheduleLessonRead])
 def get_user_schedule_week(
     user_id: int,
     date: datetime.date = Query(...),

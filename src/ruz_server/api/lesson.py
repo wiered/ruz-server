@@ -1,17 +1,17 @@
 import asyncio
 import logging
 import random
-from datetime import time, date
+from collections.abc import Generator
+from datetime import date, time
 from datetime import date as datetime_date
 from datetime import datetime as dt
-from typing import Any, Generator, List, Optional
+from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Security, status
+from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel, ConfigDict, ValidationError
 from sqlmodel import Session
 
-from ruz_server.api.security import require_api_key
 from ruz_server.database import db
 from ruz_server.helpers.api_helpers import (
     create_if_not_exists,
@@ -144,15 +144,15 @@ class LessonUpdate(BaseModel):
         LessonUpdate: An object containing the fields to update in the Lesson entity.
     """
 
-    kind_of_work_id: Optional[int] | None = None
-    discipline_id: Optional[int] | None = None
-    auditorium_id: Optional[int] | None = None
-    lecturer_id: Optional[int] | None = None
-    date: Optional[datetime_date] | None = None
-    begin_lesson: Optional[time] | None = None
-    end_lesson: Optional[time] | None = None
-    sub_group: Optional[int] | None = None
-    updated_at: Optional[dt] | None = None
+    kind_of_work_id: int | None | None = None
+    discipline_id: int | None | None = None
+    auditorium_id: int | None | None = None
+    lecturer_id: int | None | None = None
+    date: datetime_date | None | None = None
+    begin_lesson: time | None | None = None
+    end_lesson: time | None | None = None
+    sub_group: int | None | None = None
+    updated_at: dt | None | None = None
 
 
 def _set_has_labs_and_examtype(payload: LessonCreate, session: Session):
@@ -551,7 +551,7 @@ async def parse_lessons(session: Session = Depends(get_db)):
     return await run_refresh_with_session(session=session, source="api")
 
 
-@router.get("/", response_model=List[LessonRead])
+@router.get("/", response_model=list[LessonRead])
 def list_lessons(session: Session = Depends(get_db)):
     """
     Retrieve a list of all Lesson entities.

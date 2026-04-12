@@ -1,15 +1,15 @@
 """Unit tests for helper functions in api_helpers.py."""
 
-import pytest
-from fastapi import HTTPException
 from unittest.mock import MagicMock
 
+import pytest
+from fastapi import HTTPException
 
 from ruz_server.helpers.api_helpers import (
-    ensure_entity_exists,
-    is_entity_exists,
     create_if_not_exists,
     ensure_entity_doesnot_exist,
+    ensure_entity_exists,
+    is_entity_exists,
 )
 
 

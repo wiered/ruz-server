@@ -4,7 +4,6 @@ import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
-
 from ruz_server.api.app import app
 from ruz_server.api.security import require_api_key
 

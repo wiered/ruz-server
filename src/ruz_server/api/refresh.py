@@ -1,24 +1,18 @@
 import asyncio
 import logging
-from pickletools import int4
 import random
-from datetime import time, date
-from datetime import date as datetime_date
+from collections.abc import Generator
+from datetime import date, time
 from datetime import datetime as dt
-from typing import Any, Generator, List, Optional
+from pickletools import int4
+from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Security, status
-from pydantic import BaseModel, ConfigDict, ValidationError
+from fastapi import APIRouter
+from pydantic import BaseModel, ValidationError
 from sqlmodel import Session
 
-from ruz_server.api.security import require_api_key
 from ruz_server.database import db
-from ruz_server.helpers.api_helpers import (
-    create_if_not_exists,
-    ensure_entity_doesnot_exist,
-    ensure_entity_exists,
-)
 from ruz_server.helpers.ruz_mapper import map_ruz_lessons_to_payloads
 from ruz_server.models import *
 from ruz_server.repositories import *

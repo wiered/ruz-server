@@ -1,5 +1,5 @@
 import logging
-from typing import Generator, List, Optional
+from collections.abc import Generator
 from uuid import UUID
 
 import aiohttp
@@ -99,13 +99,13 @@ class GroupSearchHit(BaseModel):
     )
     name: str
     guid: UUID
-    faculty_name: Optional[str] = Field(
+    faculty_name: str | None = Field(
         default=None,
         description="Факультет из локальной БД; для строк только из RUZ — null",
     )
 
 
-@router.get("/search", response_model=List[GroupSearchHit])
+@router.get("/search", response_model=list[GroupSearchHit])
 async def search_groups_by_name_db_and_ruz(
     q: str = Query(
         ...,
@@ -132,7 +132,7 @@ async def search_groups_by_name_db_and_ruz(
     db_groups = repo.GetByName(term)
 
     seen: set[int] = set()
-    out: List[GroupSearchHit] = []
+    out: list[GroupSearchHit] = []
 
     for g in db_groups:
         seen.add(g.id)
@@ -208,7 +208,7 @@ def create_group(
     )
 
 
-@router.get("/", response_model=List[GroupRead])
+@router.get("/", response_model=list[GroupRead])
 def list_groups(
     session: Session = Depends(get_db), _api_key: str = Security(require_api_key)
 ):

@@ -2,19 +2,19 @@
 
 import datetime
 import uuid
+
 import pytest
 
-
 from ruz_server.models.models import (
-    SQLModel,
-    LessonGroup,
-    Group,
-    User,
-    Lecturer,
-    KindOfWork,
-    Discipline,
     Auditorium,
+    Discipline,
+    Group,
+    KindOfWork,
+    Lecturer,
     Lesson,
+    LessonGroup,
+    SQLModel,
+    User,
 )
 
 
@@ -44,7 +44,7 @@ class TestModels:
         assert entity.faculty_name == "Informatics"
 
     def test_user_model_defaults(self):
-        now = datetime.datetime.now(datetime.timezone.utc)
+        now = datetime.datetime.now(datetime.UTC)
         entity = User(
             id=123456,
             username="tester",

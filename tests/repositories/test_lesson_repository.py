@@ -1,13 +1,13 @@
 """Unit tests for LessonRepository."""
 
 import datetime
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 from sqlalchemy.exc import SQLAlchemyError
 
-
-from ruz_server.repositories.lesson_repository import LessonRepository
 from ruz_server.models.models import Lesson
+from ruz_server.repositories.lesson_repository import LessonRepository
 
 
 @pytest.mark.repositories

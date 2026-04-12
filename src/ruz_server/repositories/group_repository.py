@@ -1,5 +1,4 @@
 import logging
-from typing import List, Optional
 
 from sqlalchemy import UUID
 from sqlalchemy.exc import SQLAlchemyError
@@ -65,7 +64,7 @@ class GroupRepository:
         logger.debug(f"Group {group.name} does not exist, creating")
         return self.Create(group)
 
-    def ListAll(self) -> List[Group]:
+    def ListAll(self) -> list[Group]:
         """Returns all groups in the database.
 
         Returns:
@@ -76,7 +75,7 @@ class GroupRepository:
         stmt = select(Group)
         return self.session.exec(stmt).all()
 
-    def GetById(self, value: int) -> Optional[Group]:
+    def GetById(self, value: int) -> Group | None:
         """Gets a group by ID.
 
         Args:
@@ -90,7 +89,7 @@ class GroupRepository:
         stmt = select(Group).where(Group.id == value)
         return self.session.exec(stmt).first()
 
-    def GetByGUID(self, value: UUID) -> Optional[Group]:
+    def GetByGUID(self, value: UUID) -> Group | None:
         """Gets a group by GUID.
 
         Args:
@@ -104,7 +103,7 @@ class GroupRepository:
         stmt = select(Group).where(Group.guid == value)
         return self.session.exec(stmt).first()
 
-    def GetByName(self, value: str) -> List[Group]:
+    def GetByName(self, value: str) -> list[Group]:
         """Gets all groups with the given name.
 
         Args:
@@ -139,10 +138,10 @@ class GroupRepository:
                 return False
 
             if name is None:
-                logger.debug(f"Payload does not have a name")
+                logger.debug("Payload does not have a name")
                 name = current.name
             if faculty_name is None:
-                logger.debug(f"Payload does not have a faculty name")
+                logger.debug("Payload does not have a faculty name")
                 faculty_name = current.faculty_name
 
             stmt = (

@@ -1,12 +1,12 @@
 """Unit tests for DisciplineRepository."""
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 from sqlalchemy.exc import SQLAlchemyError
 
-
-from ruz_server.repositories.discipline_repository import DisciplineRepository
 from ruz_server.models.models import Discipline
+from ruz_server.repositories.discipline_repository import DisciplineRepository
 
 
 @pytest.mark.repositories

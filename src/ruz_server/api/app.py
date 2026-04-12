@@ -1,25 +1,24 @@
-import os
-import logging
 import asyncio
+import logging
 from contextlib import asynccontextmanager
+from importlib.metadata import PackageNotFoundError, version
 from logging.config import dictConfig
 from zoneinfo import ZoneInfo
-from importlib.metadata import version, PackageNotFoundError
 
-from fastapi import FastAPI, Request, Security
-from fastapi.responses import JSONResponse
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
-from ruz_server.api.security import require_api_key
+from fastapi import FastAPI, Request, Security
+from fastapi.responses import JSONResponse
+
 from ruz_server.api import api_router
+from ruz_server.api.security import require_api_key
 from ruz_server.database.database import db
+from ruz_server.logging_config import LOGGING_CONFIG
 from ruz_server.services.refresh_scheduler import (
     get_last_refresh_state,
     run_refresh_job,
 )
 from ruz_server.settings import settings
-
-from ruz_server.logging_config import LOGGING_CONFIG, ColoredFormatter
 
 try:
     __version__ = version("ruz-server")

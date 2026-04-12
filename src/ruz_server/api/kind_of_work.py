@@ -1,4 +1,4 @@
-from typing import Generator, List, Optional
+from collections.abc import Generator
 
 from fastapi import APIRouter, Depends, Security
 from pydantic import BaseModel, ConfigDict
@@ -70,8 +70,8 @@ class KindOfWorkUpdate(BaseModel):
         KindOfWorkUpdate: Instance representing the requested changes for the kind of work record.
     """
 
-    type_of_work: Optional[str] | None = None
-    complexity: Optional[int] | None = None
+    type_of_work: str | None | None = None
+    complexity: int | None | None = None
 
 
 @router.post("/", response_model=KindOfWorkRead)
@@ -103,7 +103,7 @@ def create_kind_of_work(
     )
 
 
-@router.get("/", response_model=List[KindOfWorkRead])
+@router.get("/", response_model=list[KindOfWorkRead])
 def list_kind_of_works(
     session: Session = Depends(get_db), _api_key: str = Security(require_api_key)
 ):
