@@ -1,6 +1,5 @@
 """Contract tests for API router registration."""
 
-
 import pytest
 
 

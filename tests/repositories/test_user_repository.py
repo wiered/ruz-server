@@ -6,7 +6,6 @@ from unittest.mock import MagicMock, patch
 from sqlalchemy.exc import SQLAlchemyError
 
 
-
 from ruz_server.repositories.user_repository import UserRepository
 from ruz_server.models.models import User
 
@@ -35,7 +34,9 @@ class TestUserRepository:
         mock_session.add.assert_called_once_with(sample_user_static)
         mock_session.commit.assert_called_once()
 
-    def test_create_with_session_error(self, user_repository, sample_user_static, mock_session):
+    def test_create_with_session_error(
+        self, user_repository, sample_user_static, mock_session
+    ):
         """Test user creation with database error."""
         # Setup
         mock_session.add.side_effect = SQLAlchemyError("Database error")
@@ -44,7 +45,9 @@ class TestUserRepository:
         with pytest.raises(SQLAlchemyError):
             user_repository.Create(sample_user_static)
 
-    def test_get_or_create_existing_user(self, user_repository, sample_user_static, mock_session):
+    def test_get_or_create_existing_user(
+        self, user_repository, sample_user_static, mock_session
+    ):
         """Test GetOrCreate when user already exists."""
         # Setup
         existing_user = User(id=sample_user_static.id, username="existing_user")
@@ -57,7 +60,9 @@ class TestUserRepository:
         assert result == existing_user
         user_repository.GetById.assert_called_once_with(sample_user_static.id)
 
-    def test_get_or_create_new_user(self, user_repository, sample_user_static, mock_session):
+    def test_get_or_create_new_user(
+        self, user_repository, sample_user_static, mock_session
+    ):
         """Test GetOrCreate when user doesn't exist."""
         # Setup
         user_repository.GetById = MagicMock(return_value=None)
@@ -74,10 +79,7 @@ class TestUserRepository:
     def test_list_all_success(self, user_repository, mock_session):
         """Test successful listing of all users."""
         # Setup
-        expected_users = [
-            User(id=1, username="user1"),
-            User(id=2, username="user2")
-        ]
+        expected_users = [User(id=1, username="user1"), User(id=2, username="user2")]
         mock_result = MagicMock()
         mock_result.all.return_value = expected_users
         mock_session.exec.return_value = mock_result
@@ -134,7 +136,9 @@ class TestUserRepository:
         # Assert
         assert result is None
 
-    def test_get_by_username_success(self, user_repository, mock_session, sample_user_static):
+    def test_get_by_username_success(
+        self, user_repository, mock_session, sample_user_static
+    ):
         """Test successful user retrieval by username."""
         # Setup
         username = sample_user_static.username
@@ -163,7 +167,9 @@ class TestUserRepository:
         # Assert
         assert result is None
 
-    def test_get_with_group_success(self, user_repository, mock_session, user_with_group_static):
+    def test_get_with_group_success(
+        self, user_repository, mock_session, user_with_group_static
+    ):
         """Test successful user retrieval with group."""
         # Setup
         user_id = user_with_group_static.id
@@ -197,7 +203,7 @@ class TestUserRepository:
             user_id,
             username=new_username,
             group_oid=new_group_oid,
-            subgroup=new_subgroup
+            subgroup=new_subgroup,
         )
 
         # Assert
@@ -205,7 +211,9 @@ class TestUserRepository:
         mock_session.exec.assert_called_once()
         mock_session.commit.assert_called_once()
 
-    def test_update_partial_data(self, user_repository, mock_session, sample_user_static):
+    def test_update_partial_data(
+        self, user_repository, mock_session, sample_user_static
+    ):
         """Test user update with partial data."""
         # Setup
         user_id = sample_user_static.id
@@ -223,7 +231,9 @@ class TestUserRepository:
         # Assert
         assert result is True
 
-    def test_update_allows_explicit_null_group_and_subgroup(self, user_repository, mock_session, sample_user_static):
+    def test_update_allows_explicit_null_group_and_subgroup(
+        self, user_repository, mock_session, sample_user_static
+    ):
         """Test user update with explicitly cleared group/subgroup."""
         user_repository.GetById = MagicMock(return_value=sample_user_static)
         mock_result = MagicMock()
@@ -253,7 +263,9 @@ class TestUserRepository:
         # Assert
         assert result is False
 
-    def test_update_database_error(self, user_repository, mock_session, sample_user_static):
+    def test_update_database_error(
+        self, user_repository, mock_session, sample_user_static
+    ):
         """Test update with database error."""
         # Setup
         user_id = sample_user_static.id
@@ -396,9 +408,7 @@ class TestUserRepositoryIntegration:
 
         # Execute
         result = user_repository_clean.Update(
-            sample_user.id,
-            username="updated_user",
-            group_oid=999
+            sample_user.id, username="updated_user", group_oid=999
         )
 
         # Assert
@@ -409,7 +419,9 @@ class TestUserRepositoryIntegration:
         assert updated_user.username == "updated_user"
         assert updated_user.group_oid == 999
 
-    def test_create_and_retrieve_user_with_null_subgroup(self, user_repository_clean, sample_user):
+    def test_create_and_retrieve_user_with_null_subgroup(
+        self, user_repository_clean, sample_user
+    ):
         """Test nullable subgroup is persisted."""
         sample_user.subgroup = None
 

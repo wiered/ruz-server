@@ -19,19 +19,14 @@ class LessonGroup(SQLModel, table=True):
     Returns:
         LessonGroup: The association between a lesson and a group.
     """
+
     __tablename__ = "lesson_group"
     lesson_id: int = Field(
-        sa_column=Column(
-            ForeignKey("lesson.id", ondelete="CASCADE"),
-            primary_key=True
-        )
-    ) # lessonOid
+        sa_column=Column(ForeignKey("lesson.id", ondelete="CASCADE"), primary_key=True)
+    )  # lessonOid
     group_id: int = Field(
-        sa_column=Column(
-            ForeignKey("groups.id", ondelete="CASCADE"),
-            primary_key=True
-        )
-    ) # groupOid
+        sa_column=Column(ForeignKey("groups.id", ondelete="CASCADE"), primary_key=True)
+    )  # groupOid
 
     lesson: Optional["Lesson"] = Relationship(
         back_populates="lesson_groups",
@@ -56,24 +51,14 @@ class Group(SQLModel, table=True):
     Returns:
         Group: An instance representing a university group.
     """
+
     __tablename__ = "groups"
-    id: int = Field(default=None, primary_key=True) # groupOid
+    id: int = Field(default=None, primary_key=True)  # groupOid
     guid: UUID = Field(
-        default=None,
-        nullable=False,
-        sa_type=SA_UUID(as_uuid=True)
-        ) # groupGUID
-    name: str = Field(sa_column=Column(
-        "name",
-        String,
-        nullable=False,
-        unique=True
-    ))
-    faculty_name: str = Field(sa_column=Column(
-        "faculty_name",
-        String,
-        nullable=False
-    ))
+        default=None, nullable=False, sa_type=SA_UUID(as_uuid=True)
+    )  # groupGUID
+    name: str = Field(sa_column=Column("name", String, nullable=False, unique=True))
+    faculty_name: str = Field(sa_column=Column("faculty_name", String, nullable=False))
 
     users: List["User"] = Relationship(back_populates="group")
     lesson_groups: List["LessonGroup"] = Relationship(
@@ -102,26 +87,14 @@ class User(SQLModel, table=True):
     Returns:
         User: An instance representing a user in the system.
     """
+
     __tablename__ = "users"
-    id: int = Field(
-        sa_column=Column(
-            "id",
-            BigInteger,
-            primary_key=True
-        )
-    ) # telegram id
+    id: int = Field(sa_column=Column("id", BigInteger, primary_key=True))  # telegram id
     group_oid: Optional[int] = Field(
-        sa_column=Column(
-            ForeignKey("groups.id", ondelete="SET NULL"),
-            nullable=True
-        )
+        sa_column=Column(ForeignKey("groups.id", ondelete="SET NULL"), nullable=True)
     )
     subgroup: Optional[int] = Field(default=None, nullable=True)
-    username: str = Field(sa_column=Column(
-        "username",
-        String,
-        nullable=False
-    ))
+    username: str = Field(sa_column=Column("username", String, nullable=False))
     created_at: datetime.datetime = Field(default=datetime.datetime.now(timezone.utc))
     last_used_at: datetime.datetime = Field(default=datetime.datetime.now(timezone.utc))
 
@@ -142,28 +115,15 @@ class Lecturer(SQLModel, table=True):
     Returns:
         Lecturer: An instance representing a lecturer in the system.
     """
+
     __tablename__ = "lecturer"
-    id: int = Field(default=None, primary_key=True) # lecturerOid
+    id: int = Field(default=None, primary_key=True)  # lecturerOid
     guid: UUID = Field(
-        default=None,
-        nullable=False,
-        sa_type=SA_UUID(as_uuid=True)
-        ) # lecturerGUID
-    full_name: str = Field(sa_column=Column(
-        "full_name",
-        String,
-        nullable=False
-    ))
-    short_name: str = Field(sa_column=Column(
-        "short_name",
-        String,
-        nullable=False
-    ))
-    rank: str = Field(sa_column=Column(
-        "rank",
-        String,
-        nullable=False
-    ))
+        default=None, nullable=False, sa_type=SA_UUID(as_uuid=True)
+    )  # lecturerGUID
+    full_name: str = Field(sa_column=Column("full_name", String, nullable=False))
+    short_name: str = Field(sa_column=Column("short_name", String, nullable=False))
+    rank: str = Field(sa_column=Column("rank", String, nullable=False))
 
     lessons: List["Lesson"] = Relationship(back_populates="lecturer")
 
@@ -180,18 +140,11 @@ class KindOfWork(SQLModel, table=True):
     Returns:
         KindOfWork: An instance representing a type of work associated with lessons.
     """
+
     __tablename__ = "kind_of_work"
-    id: int = Field(default=None, primary_key=True) # kindOfWorkOid
-    type_of_work: str = Field(sa_column=Column(
-        "type_of_work",
-        String,
-        nullable=False
-    ))
-    complexity: int = Field(sa_column=Column(
-        "complexity",
-        Integer,
-        nullable=False
-    ))
+    id: int = Field(default=None, primary_key=True)  # kindOfWorkOid
+    type_of_work: str = Field(sa_column=Column("type_of_work", String, nullable=False))
+    complexity: int = Field(sa_column=Column("complexity", Integer, nullable=False))
 
     lessons: List["Lesson"] = Relationship(back_populates="kind_of_work")
 
@@ -209,17 +162,11 @@ class Discipline(SQLModel, table=True):
     Returns:
         Discipline: An instance representing an academic discipline.
     """
+
     __tablename__ = "discipline"
-    id: int = Field(default=None, primary_key=True) # disciplineOid
-    name: str = Field(sa_column=Column(
-        "name",
-        String,
-        nullable=False
-    ))
-    examtype: str = Field(sa_column=Column(
-        "examtype",
-        String
-    ))
+    id: int = Field(default=None, primary_key=True)  # disciplineOid
+    name: str = Field(sa_column=Column("name", String, nullable=False))
+    examtype: str = Field(sa_column=Column("examtype", String))
     has_labs: bool = Field(default=False)
 
     lessons: List["Lesson"] = Relationship(back_populates="discipline")
@@ -238,23 +185,14 @@ class Auditorium(SQLModel, table=True):
     Returns:
         Auditorium: An instance representing a physical place where lessons occur.
     """
+
     __tablename__ = "auditorium"
-    id: int = Field(default=None, primary_key=True) # auditoriumOid
+    id: int = Field(default=None, primary_key=True)  # auditoriumOid
     guid: UUID = Field(
-        default=None,
-        nullable=False,
-        sa_type=SA_UUID(as_uuid=True)
-        ) # auditoriumGUID
-    name: str = Field(sa_column=Column(
-        "name",
-        String,
-        nullable=False
-    ))
-    building: str = Field(sa_column=Column(
-        "building",
-        String,
-        nullable=False
-    ))
+        default=None, nullable=False, sa_type=SA_UUID(as_uuid=True)
+    )  # auditoriumGUID
+    name: str = Field(sa_column=Column("name", String, nullable=False))
+    building: str = Field(sa_column=Column("building", String, nullable=False))
 
     lessons: List["Lesson"] = Relationship(back_populates="auditorium")
 
@@ -284,41 +222,32 @@ class Lesson(SQLModel, table=True):
     Returns:
         Lesson: An instance representing a scheduled lesson or class event.
     """
+
     __tablename__ = "lesson"
-    id: int = Field(default=None, primary_key=True) # lessonOid
+    id: int = Field(default=None, primary_key=True)  # lessonOid
     kind_of_work_id: int = Field(
         sa_column=Column(
             ForeignKey("kind_of_work.id", ondelete="CASCADE")
-        ) # kindOfWorkOid
+        )  # kindOfWorkOid
     )
     discipline_id: int = Field(
-        sa_column=Column(
-            ForeignKey("discipline.id", ondelete="CASCADE")
-        )
-    ) # disciplineOid
+        sa_column=Column(ForeignKey("discipline.id", ondelete="CASCADE"))
+    )  # disciplineOid
     auditorium_id: int = Field(
-        sa_column=Column(
-            ForeignKey("auditorium.id", ondelete="CASCADE")
-        )
-    ) # auditoriumOid
+        sa_column=Column(ForeignKey("auditorium.id", ondelete="CASCADE"))
+    )  # auditoriumOid
     lecturer_id: int = Field(
-        sa_column=Column(
-            ForeignKey("lecturer.id", ondelete="CASCADE")
-        )
+        sa_column=Column(ForeignKey("lecturer.id", ondelete="CASCADE"))
     )
     date: datetime.date = Field(default=datetime.datetime.now(timezone.utc))
 
     # SQL column type is TIME, so the Python-side type must be datetime.time.
-    begin_lesson: datetime.time = Field(sa_column=Column(
-        "begin_lesson",
-        Time,
-        nullable=False
-    ))
-    end_lesson: datetime.time = Field(sa_column=Column(
-        "end_lesson",
-        Time,
-        nullable=False
-    ))
+    begin_lesson: datetime.time = Field(
+        sa_column=Column("begin_lesson", Time, nullable=False)
+    )
+    end_lesson: datetime.time = Field(
+        sa_column=Column("end_lesson", Time, nullable=False)
+    )
     updated_at: datetime.datetime = Field(default=datetime.datetime.now(timezone.utc))
     sub_group: int = Field(default=0)
 

@@ -7,7 +7,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 ROOT = Path(__file__).resolve().parents[3]
 
 from dotenv import load_dotenv
+
 load_dotenv()
+
 
 class Settings(BaseSettings):
     """
@@ -40,8 +42,9 @@ class Settings(BaseSettings):
     Raises:
         ValidationError: If required environment variables are missing or invalid.
     """
+
     model_config = SettingsConfigDict(
-        env_file=str(ROOT / ".env"),   # ЯВНО указываем .env
+        env_file=str(ROOT / ".env"),  # ЯВНО указываем .env
         env_file_encoding="utf-8",
         env_prefix="",
         case_sensitive=False,
@@ -64,5 +67,6 @@ class Settings(BaseSettings):
     refresh_timezone: str = "Europe/Moscow"
     refresh_lock_file: str = str(ROOT / "logs" / "refresh.lock")
     enable_docs: bool = False
+
 
 settings = Settings()

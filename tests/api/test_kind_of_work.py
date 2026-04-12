@@ -8,7 +8,6 @@ from sqlalchemy.pool import StaticPool
 from sqlmodel import SQLModel, Session
 
 
-
 from ruz_server.api.app import app
 from ruz_server.api import kind_of_work
 from ruz_server.api.security import require_api_key
@@ -33,7 +32,9 @@ async def client():
 
     app.dependency_overrides[require_api_key] = lambda: None
     app.dependency_overrides[kind_of_work.get_db] = override_get_db
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as test_client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as test_client:
         yield test_client
     app.dependency_overrides.clear()
     SQLModel.metadata.drop_all(engine)
@@ -53,7 +54,10 @@ class TestKindOfWorkAPI:
 
     @pytest.mark.asyncio
     async def test_list_kind_of_work(self, client):
-        await client.post("/api/kind_of_work/", json={"id": 4002, "type_of_work": "Seminar", "complexity": 2})
+        await client.post(
+            "/api/kind_of_work/",
+            json={"id": 4002, "type_of_work": "Seminar", "complexity": 2},
+        )
         response = await client.get("/api/kind_of_work/")
         assert response.status_code == 200
         assert isinstance(response.json(), list)
@@ -61,15 +65,23 @@ class TestKindOfWorkAPI:
 
     @pytest.mark.asyncio
     async def test_get_kind_of_work_by_id(self, client):
-        await client.post("/api/kind_of_work/", json={"id": 4003, "type_of_work": "Lab", "complexity": 5})
+        await client.post(
+            "/api/kind_of_work/",
+            json={"id": 4003, "type_of_work": "Lab", "complexity": 5},
+        )
         response = await client.get("/api/kind_of_work/4003")
         assert response.status_code == 200
         assert response.json()["id"] == 4003
 
     @pytest.mark.asyncio
     async def test_update_kind_of_work(self, client):
-        await client.post("/api/kind_of_work/", json={"id": 4004, "type_of_work": "Practice", "complexity": 1})
-        response = await client.put("/api/kind_of_work/4004", json={"type_of_work": "Workshop", "complexity": 4})
+        await client.post(
+            "/api/kind_of_work/",
+            json={"id": 4004, "type_of_work": "Practice", "complexity": 1},
+        )
+        response = await client.put(
+            "/api/kind_of_work/4004", json={"type_of_work": "Workshop", "complexity": 4}
+        )
         assert response.status_code == 200
         assert response.json() is True
         get_response = await client.get("/api/kind_of_work/4004")
@@ -79,7 +91,10 @@ class TestKindOfWorkAPI:
 
     @pytest.mark.asyncio
     async def test_delete_kind_of_work(self, client):
-        await client.post("/api/kind_of_work/", json={"id": 4005, "type_of_work": "Colloquium", "complexity": 2})
+        await client.post(
+            "/api/kind_of_work/",
+            json={"id": 4005, "type_of_work": "Colloquium", "complexity": 2},
+        )
         response = await client.delete("/api/kind_of_work/4005")
         assert response.status_code == 200
         assert response.json() is True
@@ -100,7 +115,9 @@ class TestKindOfWorkAPI:
 
     @pytest.mark.asyncio
     async def test_update_kind_of_work_not_found_returns_404(self, client):
-        response = await client.put("/api/kind_of_work/999999", json={"type_of_work": "X"})
+        response = await client.put(
+            "/api/kind_of_work/999999", json={"type_of_work": "X"}
+        )
         assert response.status_code == 404
 
     @pytest.mark.asyncio

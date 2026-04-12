@@ -29,6 +29,7 @@ class LessonRepository:
     Returns:
         LessonRepository: Instance for performing operations on Lesson entities.
     """
+
     def __init__(self, session: Session):
         self.session = session
 

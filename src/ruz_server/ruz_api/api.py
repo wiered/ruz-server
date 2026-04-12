@@ -44,7 +44,8 @@ class LessonCreate(BaseModel):
     Returns:
         LessonCreate: An instance containing all lesson-related fields.
     """
-    id: int # lessonOid
+
+    id: int  # lessonOid
     lecturer_id: int
     lecturer_guid: UUID
     lecturer_full_name: str
@@ -55,7 +56,7 @@ class LessonCreate(BaseModel):
     type_of_work: str
     complexity: int
 
-    discipline_id: int # lesson Oid
+    discipline_id: int  # lesson Oid
     discipline_name: str
 
     auditorium_id: int
@@ -83,6 +84,7 @@ class RuzAPI:
     Returns:
         RuzAPI: An instance containing methods for communicating with the RUZ system.
     """
+
     LESSONS_URL = "https://ruz.mstuca.ru/api/schedule/group/{}?start={}&finish={}&lng=1"
     GROUP_SEARCH_URL = "https://ruz.mstuca.ru/api/search"
 
@@ -136,10 +138,7 @@ class RuzAPI:
         return start_str, end_str
 
     async def _parse_lessons(
-        self,
-        raw_data: dict,
-        group_id: str,
-        update_time: str
+        self, raw_data: dict, group_id: str, update_time: str
     ) -> List[dict]:
         """
         Parse raw lessons data from API response into a list of processed lessons
@@ -166,30 +165,26 @@ class RuzAPI:
             end_lesson = datetime.strptime(lesson["endLesson"], "%H:%M").time()
 
             lesson = LessonCreate(
-                id = lesson["lessonOid"],
-                lecturer_id = lesson["lecturerOid"],
-                lecturer_guid = lesson["lecturerCustomUID"],
-                lecturer_full_name = full_name,
-                lecturer_short_name = lesson["lecturer"],
-                lecturer_rank = lesson["lecturer_rank"],
-
-                kind_of_work_id = lesson["kindOfWorkOid"],
-                type_of_work = lesson["typeOfWork"],
-                complexity = lesson["kindOfWorkComplexity"],
-
-                discipline_id = lesson["disciplineOid"],
-                discipline_name = lesson["discipline"],
-
-                auditorium_id = lesson["auditoriumOid"],
-                auditorium_guid = lesson["auditoriumGUID"],
-                auditorium_name = lesson["auditorium"],
-                auditorium_building = lesson["building"],
-
-                date = lesson_date,
-                begin_lesson = begin_lesson,
-                end_lesson = end_lesson,
+                id=lesson["lessonOid"],
+                lecturer_id=lesson["lecturerOid"],
+                lecturer_guid=lesson["lecturerCustomUID"],
+                lecturer_full_name=full_name,
+                lecturer_short_name=lesson["lecturer"],
+                lecturer_rank=lesson["lecturer_rank"],
+                kind_of_work_id=lesson["kindOfWorkOid"],
+                type_of_work=lesson["typeOfWork"],
+                complexity=lesson["kindOfWorkComplexity"],
+                discipline_id=lesson["disciplineOid"],
+                discipline_name=lesson["discipline"],
+                auditorium_id=lesson["auditoriumOid"],
+                auditorium_guid=lesson["auditoriumGUID"],
+                auditorium_name=lesson["auditorium"],
+                auditorium_building=lesson["building"],
+                date=lesson_date,
+                begin_lesson=begin_lesson,
+                end_lesson=end_lesson,
                 group_id=group_id,
-                sub_group=subgroup
+                sub_group=subgroup,
             )
 
             processed.append(lesson)
@@ -222,7 +217,9 @@ class RuzAPI:
                     response.raise_for_status()
 
                 data = await response.json(encoding="Windows-1251")
-                logger.debug(f"Successfully received data ({len(str(data))} bytes) from {url}")
+                logger.debug(
+                    f"Successfully received data ({len(str(data))} bytes) from {url}"
+                )
                 return data
 
         raise aiohttp.ClientError(f"Exceeded {max_retries} retries for URL: {url}")
@@ -239,12 +236,14 @@ class RuzAPI:
         Returns:
             dict: Schedule in JSON format
         """
-        logger.info(f"Running parse for group={group}, start={start_date}, end={end_date}")
+        logger.info(
+            f"Running parse for group={group}, start={start_date}, end={end_date}"
+        )
         async with aiohttp.ClientSession() as session:
             json_data = await self._fetch(
                 session,
                 RuzAPI.LESSONS_URL.format(group, start_date, end_date),
-                ssl=False
+                ssl=False,
             )
 
         logger.debug(f"parse returned {len(json_data)} entries for group={group}")
@@ -264,7 +263,9 @@ class RuzAPI:
         date_str = date.strftime("%Y.%m.%d")
         logger.info(f"parseDay called for group={group}, date={date_str}")
         result = await self.get(group, date_str, date_str)
-        logger.debug(f"parseDay returned {len(result)} lessons for {group} on {date_str}")
+        logger.debug(
+            f"parseDay returned {len(result)} lessons for {group} on {date_str}"
+        )
         return result
 
     async def getWeek(self, group: str, date: datetime) -> List[dict]:
@@ -288,9 +289,10 @@ class RuzAPI:
         logger.debug(f"Week range for {group}: {start_str} - {end_str}")
         result = await self.get(group, start_str, end_str)
         logger.debug(
-            "parseWeek returned {} lessons for {} week starting {}"
-            .format(len(result), group, start_str)
+            "parseWeek returned {} lessons for {} week starting {}".format(
+                len(result), group, start_str
             )
+        )
         return result
 
     async def getSchedule(self, group_id: str) -> List[dict]:
@@ -309,9 +311,10 @@ class RuzAPI:
         update_time = datetime.now().isoformat()
 
         logger.debug(
-            "Month bounds for {}: start={}, end={}, update_time={}"
-            .format(group_id, start_str, end_str, update_time)
+            "Month bounds for {}: start={}, end={}, update_time={}".format(
+                group_id, start_str, end_str, update_time
             )
+        )
         raw_data = await self.get(group_id, start_str, end_str)
         processed = await self._parse_lessons(raw_data, group_id, update_time)
 
@@ -320,9 +323,10 @@ class RuzAPI:
             return []
 
         logger.info(
-            "parseSchedule completed with {} lessons for {}"
-            .format(len(processed), group_id)
+            "parseSchedule completed with {} lessons for {}".format(
+                len(processed), group_id
             )
+        )
         return processed
 
     async def getGroup(self, group_name: str) -> List[dict]:
@@ -340,5 +344,7 @@ class RuzAPI:
         url = f"{RuzAPI.GROUP_SEARCH_URL}?{query}"
         async with aiohttp.ClientSession() as session:
             json_data = await self._fetch(session, url, ssl=False)
-        logger.debug(f"search_group returned {len(json_data)} results for {group_name!r}")
+        logger.debug(
+            f"search_group returned {len(json_data)} results for {group_name!r}"
+        )
         return json_data

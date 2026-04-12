@@ -6,7 +6,6 @@ from unittest.mock import MagicMock
 from sqlalchemy.exc import SQLAlchemyError
 
 
-
 from ruz_server.repositories.lesson_repository import LessonRepository
 from ruz_server.models.models import Lesson
 
@@ -20,7 +19,9 @@ class TestLessonRepository:
         repo = LessonRepository(mock_session)
         assert repo.session == mock_session
 
-    def test_create_success(self, lesson_repository, sample_lesson_static, mock_session):
+    def test_create_success(
+        self, lesson_repository, sample_lesson_static, mock_session
+    ):
         mock_session.add.return_value = None
         mock_session.commit.return_value = None
 
@@ -30,12 +31,16 @@ class TestLessonRepository:
         mock_session.add.assert_called_once_with(sample_lesson_static)
         mock_session.commit.assert_called_once()
 
-    def test_create_with_session_error(self, lesson_repository, sample_lesson_static, mock_session):
+    def test_create_with_session_error(
+        self, lesson_repository, sample_lesson_static, mock_session
+    ):
         mock_session.add.side_effect = SQLAlchemyError("Database error")
         with pytest.raises(SQLAlchemyError):
             lesson_repository.Create(sample_lesson_static)
 
-    def test_bulk_save_lessons_success(self, lesson_repository, multiple_lessons, mock_session):
+    def test_bulk_save_lessons_success(
+        self, lesson_repository, multiple_lessons, mock_session
+    ):
         lesson_repository.BulkSaveLessons(multiple_lessons)
         mock_session.bulk_save_objects.assert_called_once_with(multiple_lessons)
         mock_session.commit.assert_called_once()
@@ -60,7 +65,9 @@ class TestLessonRepository:
         result = lesson_repository.ListAll()
         assert result == multiple_lessons
 
-    def test_get_by_id_success(self, lesson_repository, mock_session, sample_lesson_static):
+    def test_get_by_id_success(
+        self, lesson_repository, mock_session, sample_lesson_static
+    ):
         mock_result = MagicMock()
         mock_result.first.return_value = sample_lesson_static
         mock_session.exec.return_value = mock_result
@@ -73,63 +80,89 @@ class TestLessonRepository:
         mock_session.exec.return_value = mock_result
         assert lesson_repository.GetById(999999) is None
 
-    def test_get_with_relations_success(self, lesson_repository, mock_session, sample_lesson_static):
+    def test_get_with_relations_success(
+        self, lesson_repository, mock_session, sample_lesson_static
+    ):
         mock_result = MagicMock()
         mock_result.first.return_value = sample_lesson_static
         mock_session.exec.return_value = mock_result
         result = lesson_repository.GetWithRelations(sample_lesson_static.id)
         assert result == sample_lesson_static
 
-    def test_list_by_date_success(self, lesson_repository, mock_session, sample_lesson_static):
+    def test_list_by_date_success(
+        self, lesson_repository, mock_session, sample_lesson_static
+    ):
         mock_result = MagicMock()
         mock_result.all.return_value = [sample_lesson_static]
         mock_session.exec.return_value = mock_result
         result = lesson_repository.ListByDate(sample_lesson_static.date)
         assert len(result) == 1
 
-    def test_list_by_date_range_success(self, lesson_repository, mock_session, multiple_lessons):
+    def test_list_by_date_range_success(
+        self, lesson_repository, mock_session, multiple_lessons
+    ):
         mock_result = MagicMock()
         mock_result.all.return_value = multiple_lessons
         mock_session.exec.return_value = mock_result
-        result = lesson_repository.ListByDateRange(datetime.date(2025, 1, 1), datetime.date(2025, 1, 3))
+        result = lesson_repository.ListByDateRange(
+            datetime.date(2025, 1, 1), datetime.date(2025, 1, 3)
+        )
         assert len(result) == 3
 
-    def test_list_by_lecturer_id_success(self, lesson_repository, mock_session, sample_lesson_static):
+    def test_list_by_lecturer_id_success(
+        self, lesson_repository, mock_session, sample_lesson_static
+    ):
         mock_result = MagicMock()
         mock_result.all.return_value = [sample_lesson_static]
         mock_session.exec.return_value = mock_result
         result = lesson_repository.ListByLecturerId(sample_lesson_static.lecturer_id)
         assert len(result) == 1
 
-    def test_list_by_discipline_id_success(self, lesson_repository, mock_session, sample_lesson_static):
+    def test_list_by_discipline_id_success(
+        self, lesson_repository, mock_session, sample_lesson_static
+    ):
         mock_result = MagicMock()
         mock_result.all.return_value = [sample_lesson_static]
         mock_session.exec.return_value = mock_result
-        result = lesson_repository.ListByDisciplineId(sample_lesson_static.discipline_id)
+        result = lesson_repository.ListByDisciplineId(
+            sample_lesson_static.discipline_id
+        )
         assert len(result) == 1
 
-    def test_list_by_auditorium_id_success(self, lesson_repository, mock_session, sample_lesson_static):
+    def test_list_by_auditorium_id_success(
+        self, lesson_repository, mock_session, sample_lesson_static
+    ):
         mock_result = MagicMock()
         mock_result.all.return_value = [sample_lesson_static]
         mock_session.exec.return_value = mock_result
-        result = lesson_repository.ListByAuditoriumId(sample_lesson_static.auditorium_id)
+        result = lesson_repository.ListByAuditoriumId(
+            sample_lesson_static.auditorium_id
+        )
         assert len(result) == 1
 
-    def test_list_by_kind_of_work_id_success(self, lesson_repository, mock_session, sample_lesson_static):
+    def test_list_by_kind_of_work_id_success(
+        self, lesson_repository, mock_session, sample_lesson_static
+    ):
         mock_result = MagicMock()
         mock_result.all.return_value = [sample_lesson_static]
         mock_session.exec.return_value = mock_result
-        result = lesson_repository.ListByKindOfWorkId(sample_lesson_static.kind_of_work_id)
+        result = lesson_repository.ListByKindOfWorkId(
+            sample_lesson_static.kind_of_work_id
+        )
         assert len(result) == 1
 
-    def test_list_by_sub_group_success(self, lesson_repository, mock_session, sample_lesson_static):
+    def test_list_by_sub_group_success(
+        self, lesson_repository, mock_session, sample_lesson_static
+    ):
         mock_result = MagicMock()
         mock_result.all.return_value = [sample_lesson_static]
         mock_session.exec.return_value = mock_result
         result = lesson_repository.ListBySubGroup(sample_lesson_static.sub_group)
         assert len(result) == 1
 
-    def test_update_success(self, lesson_repository, mock_session, sample_lesson_static):
+    def test_update_success(
+        self, lesson_repository, mock_session, sample_lesson_static
+    ):
         lesson_repository.GetById = MagicMock(return_value=sample_lesson_static)
         mock_result = MagicMock()
         mock_result.rowcount = 1
@@ -149,7 +182,9 @@ class TestLessonRepository:
         assert result is True
         mock_session.commit.assert_called_once()
 
-    def test_update_with_none_values(self, lesson_repository, mock_session, sample_lesson_static):
+    def test_update_with_none_values(
+        self, lesson_repository, mock_session, sample_lesson_static
+    ):
         lesson_repository.GetById = MagicMock(return_value=sample_lesson_static)
         mock_result = MagicMock()
         mock_result.rowcount = 1
@@ -161,7 +196,9 @@ class TestLessonRepository:
         lesson_repository.GetById = MagicMock(return_value=None)
         assert lesson_repository.Update(999999) is False
 
-    def test_update_database_error(self, lesson_repository, mock_session, sample_lesson_static):
+    def test_update_database_error(
+        self, lesson_repository, mock_session, sample_lesson_static
+    ):
         lesson_repository.GetById = MagicMock(return_value=sample_lesson_static)
         mock_session.exec.side_effect = SQLAlchemyError("Database error")
         assert lesson_repository.Update(sample_lesson_static.id) is False
@@ -226,7 +263,9 @@ class TestLessonRepository:
         mock_result = MagicMock()
         mock_result.all.return_value = [1, 2, 3]
         mock_session.exec.return_value = mock_result
-        ids = lesson_repository.ListIdsInDateRange(datetime.date(2025, 1, 1), datetime.date(2025, 1, 3))
+        ids = lesson_repository.ListIdsInDateRange(
+            datetime.date(2025, 1, 1), datetime.date(2025, 1, 3)
+        )
         assert ids == [1, 2, 3]
 
     def test_delete_by_ids(self, lesson_repository, mock_session):
@@ -260,7 +299,14 @@ class TestLessonRepositoryIntegration:
         for lesson in multiple_lessons:
             lesson_repository_clean.Create(lesson)
         assert len(lesson_repository_clean.ListByDate(datetime.date(2025, 1, 1))) == 1
-        assert len(lesson_repository_clean.ListByDateRange(datetime.date(2025, 1, 1), datetime.date(2025, 1, 3))) == 3
+        assert (
+            len(
+                lesson_repository_clean.ListByDateRange(
+                    datetime.date(2025, 1, 1), datetime.date(2025, 1, 3)
+                )
+            )
+            == 3
+        )
         assert len(lesson_repository_clean.ListByLecturerId(1)) == 2
         assert len(lesson_repository_clean.ListByDisciplineId(2)) == 2
         assert len(lesson_repository_clean.ListByAuditoriumId(1)) == 2
@@ -314,10 +360,14 @@ class TestLessonRepositoryIntegration:
         assert updated_lesson is not None
         assert updated_lesson.sub_group == 5
 
-        ids = lesson_repository_clean.ListIdsInDateRange(datetime.date(2025, 1, 1), datetime.date(2025, 1, 3))
+        ids = lesson_repository_clean.ListIdsInDateRange(
+            datetime.date(2025, 1, 1), datetime.date(2025, 1, 3)
+        )
         assert len(ids) == 3
 
-        deleted = lesson_repository_clean.DeleteByIds([multiple_lessons[1].id, multiple_lessons[2].id])
+        deleted = lesson_repository_clean.DeleteByIds(
+            [multiple_lessons[1].id, multiple_lessons[2].id]
+        )
         lesson_repository_clean.session.commit()
         assert deleted == 2
         assert len(lesson_repository_clean.ListAll()) == 1

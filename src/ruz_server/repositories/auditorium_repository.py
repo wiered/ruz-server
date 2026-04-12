@@ -1,4 +1,4 @@
-﻿import logging
+import logging
 from typing import Optional
 
 from sqlalchemy import UUID
@@ -8,6 +8,7 @@ from sqlmodel import Session, delete, select, update
 from ruz_server.models import Auditorium
 
 logger = logging.getLogger(__name__)
+
 
 class AuditoriumRepository:
     """
@@ -20,6 +21,7 @@ class AuditoriumRepository:
     Returns:
         AuditoriumRepository: An instance to perform operations on Auditorium model.
     """
+
     def __init__(self, session: Session):
         logger.debug(f"Created AuditoriumRepository")
 
@@ -117,12 +119,7 @@ class AuditoriumRepository:
         stmt = select(Auditorium).where(Auditorium.name == value)
         return self.session.exec(stmt).first()
 
-    def Update(
-        self,
-        value: int,
-        name: Optional[str],
-        building: Optional[str]
-    ) -> bool:
+    def Update(self, value: int, name: Optional[str], building: Optional[str]) -> bool:
         """
         Updates a Auditorium by ID.
 

@@ -5,7 +5,6 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
 
-
 from ruz_server.api.app import app
 from ruz_server.api.security import require_api_key
 
@@ -14,14 +13,19 @@ from ruz_server.api.security import require_api_key
 async def client():
     """Create TestClient with API key dependency override."""
     app.dependency_overrides[require_api_key] = lambda: None
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as test_client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as test_client:
         yield test_client
     app.dependency_overrides.clear()
+
 
 @pytest_asyncio.fixture
 async def client_no_auth():
     """Create client without API key override."""
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as test_client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as test_client:
         yield test_client
 
 

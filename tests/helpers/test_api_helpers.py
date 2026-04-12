@@ -5,7 +5,6 @@ from fastapi import HTTPException
 from unittest.mock import MagicMock
 
 
-
 from ruz_server.helpers.api_helpers import (
     ensure_entity_exists,
     is_entity_exists,

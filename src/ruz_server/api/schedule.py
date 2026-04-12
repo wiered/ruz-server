@@ -83,7 +83,9 @@ def map_lesson_to_schedule_dto(
     """
     resolved_group_id = group_id
     if resolved_group_id is None:
-        resolved_group_id = lesson.lesson_groups[0].group_id if lesson.lesson_groups else 0
+        resolved_group_id = (
+            lesson.lesson_groups[0].group_id if lesson.lesson_groups else 0
+        )
 
     return UserScheduleLessonRead(
         lesson_id=lesson.id,

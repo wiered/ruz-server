@@ -42,7 +42,9 @@ async def client():
 
     app.dependency_overrides[require_api_key] = lambda: None
     app.dependency_overrides[search.get_db] = override_get_db
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as test_client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as test_client:
         test_client.engine = engine
         yield test_client
     app.dependency_overrides.clear()
@@ -52,8 +54,16 @@ async def client():
 
 def _seed_search_data(engine):
     with Session(engine) as session:
-        session.add(Group(id=7001, guid=uuid.uuid4(), name="IU8-7001", faculty_name="Informatics"))
-        session.add(Group(id=7002, guid=uuid.uuid4(), name="IU8-7002", faculty_name="Informatics"))
+        session.add(
+            Group(
+                id=7001, guid=uuid.uuid4(), name="IU8-7001", faculty_name="Informatics"
+            )
+        )
+        session.add(
+            Group(
+                id=7002, guid=uuid.uuid4(), name="IU8-7002", faculty_name="Informatics"
+            )
+        )
 
         session.add(
             Lecturer(
@@ -74,9 +84,15 @@ def _seed_search_data(engine):
             )
         )
         session.add(KindOfWork(id=8001, type_of_work="Лекция", complexity=2))
-        session.add(Discipline(id=7101, name="Algebra", examtype="Неизв.", has_labs=False))
-        session.add(Discipline(id=7102, name="Physics", examtype="Неизв.", has_labs=False))
-        session.add(Auditorium(id=6001, guid=uuid.uuid4(), name="A-101", building="Main"))
+        session.add(
+            Discipline(id=7101, name="Algebra", examtype="Неизв.", has_labs=False)
+        )
+        session.add(
+            Discipline(id=7102, name="Physics", examtype="Неизв.", has_labs=False)
+        )
+        session.add(
+            Auditorium(id=6001, guid=uuid.uuid4(), name="A-101", building="Main")
+        )
 
         lessons = [
             Lesson(

@@ -1,4 +1,4 @@
-﻿import logging
+import logging
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel import Session, delete, select, update
@@ -6,6 +6,7 @@ from sqlmodel import Session, delete, select, update
 from ruz_server.models import KindOfWork
 
 logger = logging.getLogger(__name__)
+
 
 class KindOfWorkRepository:
     """
@@ -19,6 +20,7 @@ class KindOfWorkRepository:
     Returns:
         KindOfWorkRepository: An instance for interacting with KindOfWork data.
     """
+
     def __init__(self, session: Session):
         self.session = session
 

@@ -6,7 +6,6 @@ from unittest.mock import MagicMock
 from sqlalchemy.exc import SQLAlchemyError
 
 
-
 from ruz_server.repositories.auditorium_repository import AuditoriumRepository
 from ruz_server.models.models import Auditorium
 
@@ -21,7 +20,9 @@ class TestAuditoriumRepository:
         repo = AuditoriumRepository(mock_session)
         assert repo.session == mock_session
 
-    def test_create_success(self, auditorium_repository, sample_auditorium_static, mock_session):
+    def test_create_success(
+        self, auditorium_repository, sample_auditorium_static, mock_session
+    ):
         """Test successful auditorium creation."""
         mock_session.add.return_value = None
         mock_session.commit.return_value = None
@@ -32,24 +33,34 @@ class TestAuditoriumRepository:
         mock_session.add.assert_called_once_with(sample_auditorium_static)
         mock_session.commit.assert_called_once()
 
-    def test_create_with_session_error(self, auditorium_repository, sample_auditorium_static, mock_session):
+    def test_create_with_session_error(
+        self, auditorium_repository, sample_auditorium_static, mock_session
+    ):
         """Test auditorium creation with database error."""
         mock_session.add.side_effect = SQLAlchemyError("Database error")
 
         with pytest.raises(SQLAlchemyError):
             auditorium_repository.Create(sample_auditorium_static)
 
-    def test_get_or_create_existing_auditorium(self, auditorium_repository, sample_auditorium_static):
+    def test_get_or_create_existing_auditorium(
+        self, auditorium_repository, sample_auditorium_static
+    ):
         """Test GetOrCreate when auditorium already exists."""
-        existing = Auditorium(id=sample_auditorium_static.id, name="A-202", building="Building A")
+        existing = Auditorium(
+            id=sample_auditorium_static.id, name="A-202", building="Building A"
+        )
         auditorium_repository.GetById = MagicMock(return_value=existing)
 
         result = auditorium_repository.GetOrCreate(sample_auditorium_static)
 
         assert result == existing
-        auditorium_repository.GetById.assert_called_once_with(sample_auditorium_static.id)
+        auditorium_repository.GetById.assert_called_once_with(
+            sample_auditorium_static.id
+        )
 
-    def test_get_or_create_new_auditorium(self, auditorium_repository, sample_auditorium_static):
+    def test_get_or_create_new_auditorium(
+        self, auditorium_repository, sample_auditorium_static
+    ):
         """Test GetOrCreate when auditorium does not exist."""
         auditorium_repository.GetById = MagicMock(return_value=None)
         auditorium_repository.Create = MagicMock(return_value=sample_auditorium_static)
@@ -57,14 +68,16 @@ class TestAuditoriumRepository:
         result = auditorium_repository.GetOrCreate(sample_auditorium_static)
 
         assert result == sample_auditorium_static
-        auditorium_repository.GetById.assert_called_once_with(sample_auditorium_static.id)
+        auditorium_repository.GetById.assert_called_once_with(
+            sample_auditorium_static.id
+        )
         auditorium_repository.Create.assert_called_once_with(sample_auditorium_static)
 
     def test_list_all_success(self, auditorium_repository, mock_session):
         """Test successful listing of all auditoriums."""
         expected = [
             Auditorium(id=1, name="A-101", building="Main"),
-            Auditorium(id=2, name="B-204", building="Second")
+            Auditorium(id=2, name="B-204", building="Second"),
         ]
         mock_result = MagicMock()
         mock_result.all.return_value = expected
@@ -75,7 +88,9 @@ class TestAuditoriumRepository:
         assert result == expected
         mock_session.exec.assert_called_once()
 
-    def test_get_by_id_success(self, auditorium_repository, mock_session, sample_auditorium_static):
+    def test_get_by_id_success(
+        self, auditorium_repository, mock_session, sample_auditorium_static
+    ):
         """Test successful auditorium retrieval by ID."""
         mock_result = MagicMock()
         mock_result.first.return_value = sample_auditorium_static
@@ -96,7 +111,9 @@ class TestAuditoriumRepository:
 
         assert result is None
 
-    def test_get_by_guid_success(self, auditorium_repository, mock_session, sample_auditorium_static):
+    def test_get_by_guid_success(
+        self, auditorium_repository, mock_session, sample_auditorium_static
+    ):
         """Test successful auditorium retrieval by GUID."""
         mock_result = MagicMock()
         mock_result.first.return_value = sample_auditorium_static
@@ -117,7 +134,9 @@ class TestAuditoriumRepository:
 
         assert result is None
 
-    def test_get_by_name_success(self, auditorium_repository, mock_session, sample_auditorium_static):
+    def test_get_by_name_success(
+        self, auditorium_repository, mock_session, sample_auditorium_static
+    ):
         """Test successful auditorium retrieval by name."""
         mock_result = MagicMock()
         mock_result.first.return_value = sample_auditorium_static
@@ -138,7 +157,9 @@ class TestAuditoriumRepository:
 
         assert result is None
 
-    def test_update_success(self, auditorium_repository, mock_session, sample_auditorium_static):
+    def test_update_success(
+        self, auditorium_repository, mock_session, sample_auditorium_static
+    ):
         """Test successful auditorium update."""
         auditorium_repository.GetById = MagicMock(return_value=sample_auditorium_static)
         mock_result = MagicMock()
@@ -147,16 +168,16 @@ class TestAuditoriumRepository:
         mock_session.commit.return_value = None
 
         result = auditorium_repository.Update(
-            sample_auditorium_static.id,
-            name="C-301",
-            building="Third Building"
+            sample_auditorium_static.id, name="C-301", building="Third Building"
         )
 
         assert result is True
         mock_session.exec.assert_called_once()
         mock_session.commit.assert_called_once()
 
-    def test_update_with_none_values(self, auditorium_repository, mock_session, sample_auditorium_static):
+    def test_update_with_none_values(
+        self, auditorium_repository, mock_session, sample_auditorium_static
+    ):
         """Test auditorium update with None values (should use current values)."""
         auditorium_repository.GetById = MagicMock(return_value=sample_auditorium_static)
         mock_result = MagicMock()
@@ -164,7 +185,9 @@ class TestAuditoriumRepository:
         mock_session.exec.return_value = mock_result
         mock_session.commit.return_value = None
 
-        result = auditorium_repository.Update(sample_auditorium_static.id, name=None, building=None)
+        result = auditorium_repository.Update(
+            sample_auditorium_static.id, name=None, building=None
+        )
 
         assert result is True
 
@@ -176,13 +199,17 @@ class TestAuditoriumRepository:
 
         assert result is False
 
-    def test_update_database_error(self, auditorium_repository, mock_session, sample_auditorium_static):
+    def test_update_database_error(
+        self, auditorium_repository, mock_session, sample_auditorium_static
+    ):
         """Test update with database error."""
         auditorium_repository.GetById = MagicMock(return_value=sample_auditorium_static)
         mock_session.exec.side_effect = SQLAlchemyError("Database error")
         mock_session.rollback.return_value = None
 
-        result = auditorium_repository.Update(sample_auditorium_static.id, name="A-102", building="Main")
+        result = auditorium_repository.Update(
+            sample_auditorium_static.id, name="A-102", building="Main"
+        )
 
         assert result is False
         mock_session.rollback.assert_called_once()
@@ -227,7 +254,9 @@ class TestAuditoriumRepository:
 class TestAuditoriumRepositoryIntegration:
     """Integration tests for AuditoriumRepository with real database session."""
 
-    def test_create_and_retrieve_auditorium(self, auditorium_repository_clean, sample_auditorium):
+    def test_create_and_retrieve_auditorium(
+        self, auditorium_repository_clean, sample_auditorium
+    ):
         """Test creating and retrieving an auditorium with real database."""
         created = auditorium_repository_clean.Create(sample_auditorium)
         retrieved = auditorium_repository_clean.GetById(sample_auditorium.id)
@@ -237,7 +266,9 @@ class TestAuditoriumRepositoryIntegration:
         assert retrieved.name == sample_auditorium.name
         assert retrieved.building == sample_auditorium.building
 
-    def test_get_or_create_existing(self, auditorium_repository_clean, sample_auditorium):
+    def test_get_or_create_existing(
+        self, auditorium_repository_clean, sample_auditorium
+    ):
         """Test GetOrCreate with existing auditorium."""
         auditorium_repository_clean.Create(sample_auditorium)
 
@@ -264,14 +295,14 @@ class TestAuditoriumRepositoryIntegration:
         assert result is not None
         assert result.name == sample_auditorium.name
 
-    def test_update_auditorium_data(self, auditorium_repository_clean, sample_auditorium):
+    def test_update_auditorium_data(
+        self, auditorium_repository_clean, sample_auditorium
+    ):
         """Test updating auditorium data with real database."""
         auditorium_repository_clean.Create(sample_auditorium)
 
         result = auditorium_repository_clean.Update(
-            sample_auditorium.id,
-            name="Updated Auditorium",
-            building="Updated Building"
+            sample_auditorium.id, name="Updated Auditorium", building="Updated Building"
         )
 
         assert result is True
@@ -280,13 +311,17 @@ class TestAuditoriumRepositoryIntegration:
         assert updated.name == "Updated Auditorium"
         assert updated.building == "Updated Building"
 
-    def test_update_with_none_values(self, auditorium_repository_clean, sample_auditorium):
+    def test_update_with_none_values(
+        self, auditorium_repository_clean, sample_auditorium
+    ):
         """Test updating auditorium with None values (should keep current values)."""
         auditorium_repository_clean.Create(sample_auditorium)
         original_name = sample_auditorium.name
         original_building = sample_auditorium.building
 
-        result = auditorium_repository_clean.Update(sample_auditorium.id, name=None, building=None)
+        result = auditorium_repository_clean.Update(
+            sample_auditorium.id, name=None, building=None
+        )
 
         assert result is True
 
@@ -294,7 +329,9 @@ class TestAuditoriumRepositoryIntegration:
         assert updated.name == original_name
         assert updated.building == original_building
 
-    def test_list_all_auditoriums(self, auditorium_repository_clean, multiple_auditoriums):
+    def test_list_all_auditoriums(
+        self, auditorium_repository_clean, multiple_auditoriums
+    ):
         """Test listing all auditoriums with real database."""
         for auditorium in multiple_auditoriums:
             auditorium_repository_clean.Create(auditorium)

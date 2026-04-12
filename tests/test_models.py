@@ -5,7 +5,6 @@ import uuid
 import pytest
 
 
-
 from ruz_server.models.models import (
     SQLModel,
     LessonGroup,

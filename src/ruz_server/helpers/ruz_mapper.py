@@ -145,6 +145,5 @@ def map_ruz_lessons_to_payloads(
         list[dict[str, Any]]: A list of dictionaries, each containing normalized lesson information.
     """
     return [
-        map_ruz_lesson_to_lesson_create_payload(raw, group_id)
-        for raw in raw_lessons
+        map_ruz_lesson_to_lesson_create_payload(raw, group_id) for raw in raw_lessons
     ]

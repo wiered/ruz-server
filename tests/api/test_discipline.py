@@ -8,7 +8,6 @@ from sqlalchemy.pool import StaticPool
 from sqlmodel import SQLModel, Session
 
 
-
 from ruz_server.api.app import app
 from ruz_server.api import discipline
 from ruz_server.api.security import require_api_key
@@ -33,7 +32,9 @@ async def client():
 
     app.dependency_overrides[require_api_key] = lambda: None
     app.dependency_overrides[discipline.get_db] = override_get_db
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as test_client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as test_client:
         yield test_client
     app.dependency_overrides.clear()
     SQLModel.metadata.drop_all(engine)
@@ -62,12 +63,15 @@ class TestDisciplineAPI:
 
     @pytest.mark.asyncio
     async def test_list_disciplines(self, client):
-        await client.post("/api/discipline/", json={
-            "id": 2002,
-            "name": "Physics",
-            "examtype": "credit",
-            "has_labs": False,
-        })
+        await client.post(
+            "/api/discipline/",
+            json={
+                "id": 2002,
+                "name": "Physics",
+                "examtype": "credit",
+                "has_labs": False,
+            },
+        )
 
         response = await client.get("/api/discipline/")
 
@@ -100,11 +104,14 @@ class TestDisciplineAPI:
         }
         await client.post("/api/discipline/", json=payload)
 
-        response = await client.put("/api/discipline/2004", json={
-            "name": "World History",
-            "examtype": "exam",
-            "has_labs": True,
-        })
+        response = await client.put(
+            "/api/discipline/2004",
+            json={
+                "name": "World History",
+                "examtype": "exam",
+                "has_labs": True,
+            },
+        )
 
         assert response.status_code == 200
         assert response.json() is True

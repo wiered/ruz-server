@@ -13,7 +13,10 @@ from apscheduler.triggers.cron import CronTrigger
 from ruz_server.api.security import require_api_key
 from ruz_server.api import api_router
 from ruz_server.database.database import db
-from ruz_server.services.refresh_scheduler import get_last_refresh_state, run_refresh_job
+from ruz_server.services.refresh_scheduler import (
+    get_last_refresh_state,
+    run_refresh_job,
+)
 from ruz_server.settings import settings
 
 from ruz_server.logging_config import LOGGING_CONFIG, ColoredFormatter
@@ -26,6 +29,7 @@ except PackageNotFoundError:
 # Setup logging
 dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -81,9 +85,10 @@ app = FastAPI(
     license_info={
         "name": "MIT License",
         "url": "https://github.com/ruz-server/LICENSE",
-    }
-    )
+    },
+)
 app.include_router(api_router, prefix="/api", dependencies=[Security(require_api_key)])
+
 
 @app.get("/")
 async def root(request: Request):
@@ -100,6 +105,7 @@ async def root(request: Request):
     """
     return {"message": "Hello World"}
 
+
 @app.get("/public")
 async def public():
     """
@@ -112,6 +118,7 @@ async def public():
     """
     logger.info("public ok")
     return {"message": "public ok"}
+
 
 @app.get("/protected")
 async def protected(_: None = Security(require_api_key)):
@@ -129,6 +136,7 @@ async def protected(_: None = Security(require_api_key)):
     """
     logger.info("protected ok")
     return {"message": "protected ok"}
+
 
 @app.get("/healthz")
 async def healthz():
@@ -151,7 +159,9 @@ async def healthz():
             status_code=503,
             content={
                 "status": "degraded",
-                "last_refresh_at": last_refresh_at.isoformat() if last_refresh_at else None,
+                "last_refresh_at": last_refresh_at.isoformat()
+                if last_refresh_at
+                else None,
                 "last_refresh_status": last_refresh_status,
             },
         )
@@ -161,6 +171,7 @@ async def healthz():
         "last_refresh_at": last_refresh_at.isoformat() if last_refresh_at else None,
         "last_refresh_status": last_refresh_status,
     }
+
 
 @app.get("/version")
 async def version():

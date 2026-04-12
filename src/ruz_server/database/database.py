@@ -1,4 +1,3 @@
-﻿
 """This is db module.
 
 This module handles dealing with postgre database.
@@ -16,6 +15,7 @@ import ruz_server.models as models
 from ruz_server.settings import settings
 
 logger = logging.getLogger(__name__)
+
 
 class DataBase:
     """
@@ -40,6 +40,7 @@ class DataBase:
         dropAllTables() -> None:
             Drops all tables defined in the SQLModel metadata from the connected database.
     """
+
     def __init__(self, postgresql_uri):
         self._sqlalchemy_url = postgresql_uri
         self.engine = create_engine(self._sqlalchemy_url, echo=True)
@@ -112,5 +113,6 @@ class DataBase:
         logger.warning(f"Dropping all tables")
 
         SQLModel.metadata.drop_all(self.engine)
+
 
 db = DataBase(settings.postgresql_uri)

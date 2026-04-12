@@ -1,4 +1,4 @@
-﻿from typing import Generator, List, Optional
+from typing import Generator, List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Security, status
@@ -7,12 +7,15 @@ from sqlmodel import Session
 
 from ruz_server.api.security import require_api_key
 from ruz_server.database import db
-from ruz_server.helpers.api_helpers import (ensure_entity_doesnot_exist,
-                                 ensure_entity_exists)
+from ruz_server.helpers.api_helpers import (
+    ensure_entity_doesnot_exist,
+    ensure_entity_exists,
+)
 from ruz_server.models import Auditorium
 from ruz_server.repositories import AuditoriumRepository
 
 router = APIRouter(prefix="/auditorium", tags=["auditorium"])
+
 
 def get_db() -> Generator[Session, None, None]:
     yield from db.get_session()
@@ -28,6 +31,7 @@ class AuditoriumRead(BaseModel):
         name (str): The name of the auditorium.
         building (str): The building where the auditorium is located.
     """
+
     id: int
     guid: UUID
     name: str
@@ -51,6 +55,7 @@ class AuditoriumCreate(BaseModel):
     Returns:
         AuditoriumCreate: Instance representing the new auditorium to be created.
     """
+
     id: int
     guid: UUID
     name: str
@@ -70,15 +75,13 @@ class AuditoriumUpdate(BaseModel):
     Returns:
         AuditoriumUpdate: Instance representing the requested changes to the auditorium.
     """
+
     name: Optional[str] | None = None
     building: Optional[str] | None = None
 
 
 @router.post("/", response_model=AuditoriumRead, status_code=status.HTTP_201_CREATED)
-def create_auditorium(
-    payload: AuditoriumCreate,
-    session: Session = Depends(get_db)
-):
+def create_auditorium(payload: AuditoriumCreate, session: Session = Depends(get_db)):
     """
     Create a new Auditorium entity in the database.
 
@@ -101,15 +104,13 @@ def create_auditorium(
             id=payload.id,
             guid=payload.guid,
             name=payload.name,
-            building=payload.building
+            building=payload.building,
         )
     )
 
 
 @router.get("/", response_model=List[AuditoriumRead])
-def list_auditoriums(
-    session: Session = Depends(get_db)
-):
+def list_auditoriums(session: Session = Depends(get_db)):
     """
     Retrieve a list of all Auditorium entities.
 
@@ -126,10 +127,7 @@ def list_auditoriums(
 
 
 @router.get("/{auditorium_id}", response_model=AuditoriumRead)
-def get_auditorium(
-    auditorium_id: int,
-    session: Session = Depends(get_db)
-):
+def get_auditorium(auditorium_id: int, session: Session = Depends(get_db)):
     """
     Retrieve a single Auditorium entity by its ID.
 
@@ -148,10 +146,7 @@ def get_auditorium(
 
 
 @router.get("/guid/{auditorium_guid}", response_model=AuditoriumRead)
-def get_auditorium_by_guid(
-    auditorium_guid: UUID,
-    session: Session = Depends(get_db)
-):
+def get_auditorium_by_guid(auditorium_guid: UUID, session: Session = Depends(get_db)):
     """
     Retrieve a single Auditorium entity by its GUID.
 
@@ -171,9 +166,7 @@ def get_auditorium_by_guid(
 
 @router.put("/{auditorium_id}")
 def update_auditorium(
-    auditorium_id: int,
-    payload: AuditoriumUpdate,
-    session: Session = Depends(get_db)
+    auditorium_id: int, payload: AuditoriumUpdate, session: Session = Depends(get_db)
 ):
     """
     Update an Auditorium entity by its ID.
@@ -192,18 +185,11 @@ def update_auditorium(
     repo = AuditoriumRepository(session)
     ensure_entity_exists(auditorium_id, repo.GetById)
 
-    return repo.Update(
-        auditorium_id,
-        payload.name,
-        payload.building
-    )
+    return repo.Update(auditorium_id, payload.name, payload.building)
 
 
 @router.delete("/{auditorium_id}")
-def delete_auditorium(
-    auditorium_id: int,
-    session: Session = Depends(get_db)
-):
+def delete_auditorium(auditorium_id: int, session: Session = Depends(get_db)):
     """
     Delete an Auditorium by its identifier.
 

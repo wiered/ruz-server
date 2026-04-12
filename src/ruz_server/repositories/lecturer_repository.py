@@ -1,4 +1,4 @@
-﻿import logging
+import logging
 from typing import List, Optional
 
 from sqlalchemy import UUID
@@ -23,6 +23,7 @@ class LecturerRepository:
     Returns:
         LecturerRepository: An instance for interacting with Lecturer data.
     """
+
     def __init__(self, session: Session):
         self.session = session
 
@@ -128,7 +129,7 @@ class LecturerRepository:
         value: int,
         full_name: str = None,
         short_name: str = None,
-        rank: str = None
+        rank: str = None,
     ) -> bool:
         """
         Updates a Lecturer by ID.
@@ -162,9 +163,9 @@ class LecturerRepository:
                 rank = current.rank
 
             stmt = (
-                update(Lecturer).
-                where(Lecturer.id == value).
-                values(full_name=full_name, short_name=short_name, rank=rank)
+                update(Lecturer)
+                .where(Lecturer.id == value)
+                .values(full_name=full_name, short_name=short_name, rank=rank)
             )
             result = self.session.exec(stmt)
             self.session.commit()

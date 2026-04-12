@@ -26,8 +26,10 @@ from ruz_server.ruz_api import RuzAPI
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/lesson", tags=["lesson"])
 
+
 def get_db() -> Generator[Session, None, None]:
     yield from db.get_session()
+
 
 EXAM_TYPES = ["Зачёт", "Экзамен"]
 
@@ -51,6 +53,7 @@ class LessonRead(BaseModel):
     Returns:
         LessonRead: Lesson data suitable for API responses.
     """
+
     id: int
     kind_of_work_id: int
     discipline_id: int
@@ -94,7 +97,8 @@ class LessonCreate(BaseModel):
     Returns:
         LessonCreate: Data structure for creating a new lesson record.
     """
-    id: int # lessonOid
+
+    id: int  # lessonOid
     lecturer_id: int
     lecturer_guid: UUID
     lecturer_full_name: str
@@ -105,7 +109,7 @@ class LessonCreate(BaseModel):
     type_of_work: str
     complexity: int
 
-    discipline_id: int # disciplineOid
+    discipline_id: int  # disciplineOid
     discipline_name: str
 
     auditorium_id: int
@@ -139,6 +143,7 @@ class LessonUpdate(BaseModel):
     Returns:
         LessonUpdate: An object containing the fields to update in the Lesson entity.
     """
+
     kind_of_work_id: Optional[int] | None = None
     discipline_id: Optional[int] | None = None
     auditorium_id: Optional[int] | None = None
@@ -185,7 +190,7 @@ def _set_has_labs_and_examtype(payload: LessonCreate, session: Session):
             payload.discipline_id,
             name=discipline.name,
             examtype=examtype,
-            has_labs=has_labs
+            has_labs=has_labs,
         )
 
 
@@ -273,15 +278,15 @@ def _upsert_reference_entities(payload: LessonCreate, session: Session) -> None:
         examtype = discipline.examtype
         if not has_labs and payload.type_of_work == "Лабораторная работа":
             discipline.has_labs = True
-        if (examtype == "Неизв." or examtype is None) and payload.type_of_work in EXAM_TYPES:
+        if (
+            examtype == "Неизв." or examtype is None
+        ) and payload.type_of_work in EXAM_TYPES:
             discipline.examtype = payload.type_of_work
         session.add(discipline)
 
 
 def _create_lesson_with_relations(
-    payload: LessonCreate,
-    session: Session,
-    skip_if_exists: bool = False
+    payload: LessonCreate, session: Session, skip_if_exists: bool = False
 ) -> tuple[Lesson, bool]:
     """
     Creates a lesson entity along with all required related entities if they do not exist.
@@ -311,8 +316,8 @@ def _create_lesson_with_relations(
             guid=payload.lecturer_guid,
             full_name=payload.lecturer_full_name,
             short_name=payload.lecturer_short_name,
-            rank=payload.lecturer_rank
-        )
+            rank=payload.lecturer_rank,
+        ),
     )
 
     kind_of_work_repository = KindOfWorkRepository(session)
@@ -323,8 +328,8 @@ def _create_lesson_with_relations(
         KindOfWork(
             id=payload.kind_of_work_id,
             type_of_work=payload.type_of_work,
-            complexity=payload.complexity
-        )
+            complexity=payload.complexity,
+        ),
     )
 
     discipline_repository = DisciplineRepository(session)
@@ -336,8 +341,8 @@ def _create_lesson_with_relations(
             id=payload.discipline_id,
             name=payload.discipline_name,
             examtype="Неизв.",
-            has_labs=False
-        )
+            has_labs=False,
+        ),
     )
     _set_has_labs_and_examtype(payload, session)
 
@@ -350,8 +355,8 @@ def _create_lesson_with_relations(
             id=payload.auditorium_id,
             guid=payload.auditorium_guid,
             name=payload.auditorium_name,
-            building=payload.auditorium_building
-        )
+            building=payload.auditorium_building,
+        ),
     )
 
     created = repo.Create(
@@ -371,10 +376,7 @@ def _create_lesson_with_relations(
 
 
 @router.post("/", response_model=LessonRead, status_code=status.HTTP_201_CREATED)
-def create_lesson(
-    payload: LessonCreate,
-    session: Session = Depends(get_db)
-):
+def create_lesson(payload: LessonCreate, session: Session = Depends(get_db)):
     """
     Creates a new Lesson entity and returns the persisted record.
 
@@ -387,6 +389,7 @@ def create_lesson(
     """
     lesson, _ = _create_lesson_with_relations(payload, session)
     return lesson
+
 
 async def parse_lessons_core(session: Session) -> dict[str, Any]:
     """
@@ -533,9 +536,7 @@ async def parse_lessons_core(session: Session) -> dict[str, Any]:
 
 
 @router.put("/parse")
-async def parse_lessons(
-    session: Session = Depends(get_db)
-):
+async def parse_lessons(session: Session = Depends(get_db)):
     """
     Parse lessons using the refresh scheduler.
 
@@ -551,9 +552,7 @@ async def parse_lessons(
 
 
 @router.get("/", response_model=List[LessonRead])
-def list_lessons(
-    session: Session = Depends(get_db)
-):
+def list_lessons(session: Session = Depends(get_db)):
     """
     Retrieve a list of all Lesson entities.
 
@@ -568,10 +567,7 @@ def list_lessons(
 
 
 @router.get("/{lesson_id}", response_model=LessonRead)
-def get_lesson(
-    lesson_id: int,
-    session: Session = Depends(get_db)
-):
+def get_lesson(lesson_id: int, session: Session = Depends(get_db)):
     """
     Retrieve a single Lesson by its numeric identifier.
 
@@ -589,9 +585,7 @@ def get_lesson(
 
 @router.put("/{lesson_id}", response_model=LessonRead)
 def update_lesson(
-    lesson_id: int,
-    payload: LessonUpdate,
-    session: Session = Depends(get_db)
+    lesson_id: int, payload: LessonUpdate, session: Session = Depends(get_db)
 ):
     """
     Update the mutable fields of a Lesson entity and return the updated lesson.
@@ -616,16 +610,13 @@ def update_lesson(
         payload.date,
         payload.begin_lesson,
         payload.end_lesson,
-        payload.sub_group
+        payload.sub_group,
     )
     return ensure_entity_exists(lesson_id, repo.GetById)
 
 
 @router.delete("/{lesson_id}")
-def delete_lesson(
-    lesson_id: int,
-    session: Session = Depends(get_db)
-):
+def delete_lesson(lesson_id: int, session: Session = Depends(get_db)):
     """
     Delete a lesson entity by its unique identifier.
 

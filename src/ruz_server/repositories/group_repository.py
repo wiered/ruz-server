@@ -1,4 +1,4 @@
-﻿import logging
+import logging
 from typing import List, Optional
 
 from sqlalchemy import UUID
@@ -8,6 +8,7 @@ from sqlmodel import Session, delete, select, update
 from ruz_server.models import Group
 
 logger = logging.getLogger(__name__)
+
 
 class GroupRepository:
     """
@@ -20,13 +21,11 @@ class GroupRepository:
     Returns:
         GroupRepository: An instance to access and manipulate Group records.
     """
+
     def __init__(self, session: Session):
         self.session = session
 
-    def Create(
-        self,
-        group: Group
-    ) -> Group:
+    def Create(self, group: Group) -> Group:
         """
         Creates a new group.
 
@@ -150,7 +149,7 @@ class GroupRepository:
                 update(Group)
                 .where(Group.id == value)
                 .values(name=name, faculty_name=faculty_name)
-                )
+            )
             result = self.session.exec(stmt)
             self.session.commit()
             logger.debug(f"Group {value} updated")

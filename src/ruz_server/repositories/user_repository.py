@@ -1,4 +1,4 @@
-﻿import datetime
+import datetime
 import logging
 from typing import List, Optional
 
@@ -22,6 +22,7 @@ class UserRepository:
     Returns:
         UserRepository: Instance for performing operations on User entities.
     """
+
     def __init__(self, session: Session):
         self.session = session
 
@@ -156,7 +157,7 @@ class UserRepository:
         username: Optional[str] | object = _UNSET,
         group_oid: Optional[int] | object = _UNSET,
         subgroup: Optional[int] | object = _UNSET,
-        ) -> bool:
+    ) -> bool:
         """Updates a user's details by ID.
 
         Args:
@@ -173,13 +174,25 @@ class UserRepository:
         if not isinstance(value, int):
             raise ValueError("UserId must be an integer")
 
-        if username is not _UNSET and username is not None and not isinstance(username, str):
+        if (
+            username is not _UNSET
+            and username is not None
+            and not isinstance(username, str)
+        ):
             raise ValueError("Username must be a string")
 
-        if group_oid is not _UNSET and group_oid is not None and not isinstance(group_oid, int):
+        if (
+            group_oid is not _UNSET
+            and group_oid is not None
+            and not isinstance(group_oid, int)
+        ):
             raise ValueError("GroupOid must be an integer")
 
-        if subgroup is not _UNSET and subgroup is not None and not isinstance(subgroup, int):
+        if (
+            subgroup is not _UNSET
+            and subgroup is not None
+            and not isinstance(subgroup, int)
+        ):
             raise ValueError("Subgroup must be an integer")
 
         try:
@@ -201,7 +214,11 @@ class UserRepository:
                 logger.debug(f"Payload does not have a subgroup")
                 subgroup = current.subgroup
 
-            stmt = update(User).where(User.id == value).values(username=username, group_oid=group_oid, subgroup=subgroup)
+            stmt = (
+                update(User)
+                .where(User.id == value)
+                .values(username=username, group_oid=group_oid, subgroup=subgroup)
+            )
             result = self.session.exec(stmt)
             self.session.commit()
             logger.debug(f"Updated user {value}")
@@ -229,7 +246,8 @@ class UserRepository:
             stmt = (
                 update(User)
                 .where(User.id == value)
-                .values(last_used_at=datetime.datetime.now(datetime.timezone.utc)))
+                .values(last_used_at=datetime.datetime.now(datetime.timezone.utc))
+            )
             result = self.session.exec(stmt)
             self.session.commit()
             logger.debug(f"Updated last used at for user {value}")

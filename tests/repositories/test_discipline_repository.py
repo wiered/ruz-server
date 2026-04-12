@@ -5,7 +5,6 @@ from unittest.mock import MagicMock
 from sqlalchemy.exc import SQLAlchemyError
 
 
-
 from ruz_server.repositories.discipline_repository import DisciplineRepository
 from ruz_server.models.models import Discipline
 
@@ -20,7 +19,9 @@ class TestDisciplineRepository:
         repo = DisciplineRepository(mock_session)
         assert repo.session == mock_session
 
-    def test_create_success(self, discipline_repository, sample_discipline_static, mock_session):
+    def test_create_success(
+        self, discipline_repository, sample_discipline_static, mock_session
+    ):
         """Test successful discipline creation."""
         mock_session.add.return_value = None
         mock_session.commit.return_value = None
@@ -31,24 +32,37 @@ class TestDisciplineRepository:
         mock_session.add.assert_called_once_with(sample_discipline_static)
         mock_session.commit.assert_called_once()
 
-    def test_create_with_session_error(self, discipline_repository, sample_discipline_static, mock_session):
+    def test_create_with_session_error(
+        self, discipline_repository, sample_discipline_static, mock_session
+    ):
         """Test discipline creation with database error."""
         mock_session.add.side_effect = SQLAlchemyError("Database error")
 
         with pytest.raises(SQLAlchemyError):
             discipline_repository.Create(sample_discipline_static)
 
-    def test_get_or_create_existing_discipline(self, discipline_repository, sample_discipline_static):
+    def test_get_or_create_existing_discipline(
+        self, discipline_repository, sample_discipline_static
+    ):
         """Test GetOrCreate when discipline already exists."""
-        existing = Discipline(id=sample_discipline_static.id, name="Existing", examtype="credit", has_labs=False)
+        existing = Discipline(
+            id=sample_discipline_static.id,
+            name="Existing",
+            examtype="credit",
+            has_labs=False,
+        )
         discipline_repository.GetById = MagicMock(return_value=existing)
 
         result = discipline_repository.GetOrCreate(sample_discipline_static)
 
         assert result == existing
-        discipline_repository.GetById.assert_called_once_with(sample_discipline_static.id)
+        discipline_repository.GetById.assert_called_once_with(
+            sample_discipline_static.id
+        )
 
-    def test_get_or_create_new_discipline(self, discipline_repository, sample_discipline_static):
+    def test_get_or_create_new_discipline(
+        self, discipline_repository, sample_discipline_static
+    ):
         """Test GetOrCreate when discipline does not exist."""
         discipline_repository.GetById = MagicMock(return_value=None)
         discipline_repository.Create = MagicMock(return_value=sample_discipline_static)
@@ -56,14 +70,16 @@ class TestDisciplineRepository:
         result = discipline_repository.GetOrCreate(sample_discipline_static)
 
         assert result == sample_discipline_static
-        discipline_repository.GetById.assert_called_once_with(sample_discipline_static.id)
+        discipline_repository.GetById.assert_called_once_with(
+            sample_discipline_static.id
+        )
         discipline_repository.Create.assert_called_once_with(sample_discipline_static)
 
     def test_list_all_success(self, discipline_repository, mock_session):
         """Test successful listing of all disciplines."""
         expected = [
             Discipline(id=1, name="Math", examtype="exam", has_labs=True),
-            Discipline(id=2, name="History", examtype="credit", has_labs=False)
+            Discipline(id=2, name="History", examtype="credit", has_labs=False),
         ]
         mock_result = MagicMock()
         mock_result.all.return_value = expected
@@ -74,7 +90,9 @@ class TestDisciplineRepository:
         assert result == expected
         mock_session.exec.assert_called_once()
 
-    def test_get_by_id_success(self, discipline_repository, mock_session, sample_discipline_static):
+    def test_get_by_id_success(
+        self, discipline_repository, mock_session, sample_discipline_static
+    ):
         """Test successful discipline retrieval by ID."""
         mock_result = MagicMock()
         mock_result.first.return_value = sample_discipline_static
@@ -95,7 +113,9 @@ class TestDisciplineRepository:
 
         assert result is None
 
-    def test_get_by_name_success(self, discipline_repository, mock_session, sample_discipline_static):
+    def test_get_by_name_success(
+        self, discipline_repository, mock_session, sample_discipline_static
+    ):
         """Test successful discipline retrieval by name."""
         mock_result = MagicMock()
         mock_result.first.return_value = sample_discipline_static
@@ -120,7 +140,7 @@ class TestDisciplineRepository:
         """Test successful discipline retrieval by exam type."""
         expected = [
             Discipline(id=1, name="Math", examtype="exam", has_labs=True),
-            Discipline(id=2, name="Physics", examtype="exam", has_labs=True)
+            Discipline(id=2, name="Physics", examtype="exam", has_labs=True),
         ]
         mock_result = MagicMock()
         mock_result.all.return_value = expected
@@ -141,7 +161,9 @@ class TestDisciplineRepository:
 
         assert result == []
 
-    def test_update_success(self, discipline_repository, mock_session, sample_discipline_static):
+    def test_update_success(
+        self, discipline_repository, mock_session, sample_discipline_static
+    ):
         """Test successful discipline update."""
         discipline_repository.GetById = MagicMock(return_value=sample_discipline_static)
         mock_result = MagicMock()
@@ -153,14 +175,16 @@ class TestDisciplineRepository:
             sample_discipline_static.id,
             name="Updated Name",
             examtype="credit",
-            has_labs=False
+            has_labs=False,
         )
 
         assert result is True
         mock_session.exec.assert_called_once()
         mock_session.commit.assert_called_once()
 
-    def test_update_with_none_values(self, discipline_repository, mock_session, sample_discipline_static):
+    def test_update_with_none_values(
+        self, discipline_repository, mock_session, sample_discipline_static
+    ):
         """Test discipline update with None values (should use current values)."""
         discipline_repository.GetById = MagicMock(return_value=sample_discipline_static)
         mock_result = MagicMock()
@@ -169,10 +193,7 @@ class TestDisciplineRepository:
         mock_session.commit.return_value = None
 
         result = discipline_repository.Update(
-            sample_discipline_static.id,
-            name=None,
-            examtype=None,
-            has_labs=None
+            sample_discipline_static.id, name=None, examtype=None, has_labs=None
         )
 
         assert result is True
@@ -181,21 +202,22 @@ class TestDisciplineRepository:
         """Test update when discipline does not exist."""
         discipline_repository.GetById = MagicMock(return_value=None)
 
-        result = discipline_repository.Update(999999, name="Name", examtype="exam", has_labs=True)
+        result = discipline_repository.Update(
+            999999, name="Name", examtype="exam", has_labs=True
+        )
 
         assert result is False
 
-    def test_update_database_error(self, discipline_repository, mock_session, sample_discipline_static):
+    def test_update_database_error(
+        self, discipline_repository, mock_session, sample_discipline_static
+    ):
         """Test update with database error."""
         discipline_repository.GetById = MagicMock(return_value=sample_discipline_static)
         mock_session.exec.side_effect = SQLAlchemyError("Database error")
         mock_session.rollback.return_value = None
 
         result = discipline_repository.Update(
-            sample_discipline_static.id,
-            name="Name",
-            examtype="exam",
-            has_labs=True
+            sample_discipline_static.id, name="Name", examtype="exam", has_labs=True
         )
 
         assert result is False
@@ -241,7 +263,9 @@ class TestDisciplineRepository:
 class TestDisciplineRepositoryIntegration:
     """Integration tests for DisciplineRepository with real database session."""
 
-    def test_create_and_retrieve_discipline(self, discipline_repository_clean, sample_discipline):
+    def test_create_and_retrieve_discipline(
+        self, discipline_repository_clean, sample_discipline
+    ):
         """Test creating and retrieving a discipline with real database."""
         created = discipline_repository_clean.Create(sample_discipline)
         retrieved = discipline_repository_clean.GetById(sample_discipline.id)
@@ -252,7 +276,9 @@ class TestDisciplineRepositoryIntegration:
         assert retrieved.examtype == sample_discipline.examtype
         assert retrieved.has_labs == sample_discipline.has_labs
 
-    def test_get_or_create_existing(self, discipline_repository_clean, sample_discipline):
+    def test_get_or_create_existing(
+        self, discipline_repository_clean, sample_discipline
+    ):
         """Test GetOrCreate with existing discipline."""
         discipline_repository_clean.Create(sample_discipline)
 
@@ -280,7 +306,9 @@ class TestDisciplineRepositoryIntegration:
         for item in result:
             assert item.examtype == "exam"
 
-    def test_update_discipline_data(self, discipline_repository_clean, sample_discipline):
+    def test_update_discipline_data(
+        self, discipline_repository_clean, sample_discipline
+    ):
         """Test updating discipline data with real database."""
         discipline_repository_clean.Create(sample_discipline)
 
@@ -288,7 +316,7 @@ class TestDisciplineRepositoryIntegration:
             sample_discipline.id,
             name="Updated Discipline",
             examtype="credit",
-            has_labs=False
+            has_labs=False,
         )
 
         assert result is True
@@ -298,7 +326,9 @@ class TestDisciplineRepositoryIntegration:
         assert updated.examtype == "credit"
         assert updated.has_labs is False
 
-    def test_update_with_none_values(self, discipline_repository_clean, sample_discipline):
+    def test_update_with_none_values(
+        self, discipline_repository_clean, sample_discipline
+    ):
         """Test updating discipline with None values (should keep current values)."""
         discipline_repository_clean.Create(sample_discipline)
         original_name = sample_discipline.name
@@ -306,10 +336,7 @@ class TestDisciplineRepositoryIntegration:
         original_has_labs = sample_discipline.has_labs
 
         result = discipline_repository_clean.Update(
-            sample_discipline.id,
-            name=None,
-            examtype=None,
-            has_labs=None
+            sample_discipline.id, name=None, examtype=None, has_labs=None
         )
 
         assert result is True
@@ -319,7 +346,9 @@ class TestDisciplineRepositoryIntegration:
         assert updated.examtype == original_examtype
         assert updated.has_labs == original_has_labs
 
-    def test_list_all_disciplines(self, discipline_repository_clean, multiple_disciplines):
+    def test_list_all_disciplines(
+        self, discipline_repository_clean, multiple_disciplines
+    ):
         """Test listing all disciplines with real database."""
         for discipline in multiple_disciplines:
             discipline_repository_clean.Create(discipline)

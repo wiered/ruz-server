@@ -6,7 +6,6 @@ import pytest
 import aiohttp
 
 
-
 from ruz_server.ruz_api.api import RuzAPI, LessonCreate
 
 
@@ -126,27 +125,29 @@ class TestRuzApi:
     @pytest.mark.asyncio
     async def test_parse_lessons_success(self):
         api = RuzAPI()
-        raw = [{
-            "lessonOid": 1,
-            "lecturerOid": 100,
-            "lecturerCustomUID": str(uuid.uuid4()),
-            "listOfLecturers": [{"lecturer_title": "John Smith"}],
-            "lecturer": "J. Smith",
-            "lecturer_rank": "Professor",
-            "kindOfWorkOid": 10,
-            "typeOfWork": "Лекция",
-            "kindOfWorkComplexity": 2,
-            "disciplineOid": 20,
-            "discipline": "Math",
-            "auditoriumOid": 30,
-            "auditoriumGUID": str(uuid.uuid4()),
-            "auditorium": "A-101",
-            "building": "Main",
-            "date": "2025.01.15",
-            "beginLesson": "09:00",
-            "endLesson": "10:30",
-            "listSubGroups": [{"subgroup": "Подгруппа 2"}],
-        }]
+        raw = [
+            {
+                "lessonOid": 1,
+                "lecturerOid": 100,
+                "lecturerCustomUID": str(uuid.uuid4()),
+                "listOfLecturers": [{"lecturer_title": "John Smith"}],
+                "lecturer": "J. Smith",
+                "lecturer_rank": "Professor",
+                "kindOfWorkOid": 10,
+                "typeOfWork": "Лекция",
+                "kindOfWorkComplexity": 2,
+                "disciplineOid": 20,
+                "discipline": "Math",
+                "auditoriumOid": 30,
+                "auditoriumGUID": str(uuid.uuid4()),
+                "auditorium": "A-101",
+                "building": "Main",
+                "date": "2025.01.15",
+                "beginLesson": "09:00",
+                "endLesson": "10:30",
+                "listSubGroups": [{"subgroup": "Подгруппа 2"}],
+            }
+        ]
 
         result = await api._parse_lessons(raw, "500", "2025-01-15T10:00:00")
 
@@ -169,10 +170,12 @@ class TestRuzApi:
     @pytest.mark.asyncio
     async def test_fetch_retries_after_429(self, monkeypatch):
         api = RuzAPI()
-        client = FakeClient([
-            FakeResponse(status=429, headers={"Retry-After": "1"}),
-            FakeResponse(status=200, json_data={"ok": True}),
-        ])
+        client = FakeClient(
+            [
+                FakeResponse(status=429, headers={"Retry-After": "1"}),
+                FakeResponse(status=200, json_data={"ok": True}),
+            ]
+        )
         sleeps = []
 
         async def fake_sleep(value):
@@ -249,4 +252,3 @@ class TestRuzApi:
         result = await api.getSchedule("500")
 
         assert result == []
-

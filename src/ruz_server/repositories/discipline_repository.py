@@ -1,4 +1,4 @@
-﻿import logging
+import logging
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel import Session, delete, select, update
@@ -6,6 +6,7 @@ from sqlmodel import Session, delete, select, update
 from ruz_server.models import Discipline
 
 logger = logging.getLogger(__name__)
+
 
 class DisciplineRepository:
     """
@@ -18,6 +19,7 @@ class DisciplineRepository:
     Returns:
         DisciplineRepository: An instance to interact with Discipline entities in the database.
     """
+
     def __init__(self, session: Session):
         self.session = session
 

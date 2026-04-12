@@ -14,17 +14,22 @@ logger = logging.getLogger(__name__)
 
 from ruz_server.api.security import require_api_key
 from ruz_server.database import db
-from ruz_server.helpers.api_helpers import (ensure_entity_doesnot_exist,
-                                 ensure_entity_exists)
+from ruz_server.helpers.api_helpers import (
+    ensure_entity_doesnot_exist,
+    ensure_entity_exists,
+)
 from ruz_server.models import Group
 from ruz_server.repositories import GroupRepository
 
 router = APIRouter(prefix="/group", tags=["group"])
 
+
 def get_db() -> Generator[Session, None, None]:
     yield from db.get_session()
 
+
 # Pydantic-схемы
+
 
 class GroupRead(BaseModel):
     """
@@ -51,6 +56,7 @@ class GroupRead(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class GroupCreate(BaseModel):
     """
     Schema for creating a new Group entity.
@@ -68,6 +74,7 @@ class GroupCreate(BaseModel):
     guid: UUID
     name: str
     faculty_name: str
+
 
 class GroupUpdate(BaseModel):
     """
@@ -87,7 +94,9 @@ class GroupUpdate(BaseModel):
 class GroupSearchHit(BaseModel):
     """Результат объединённого поиска группы в локальной БД и на ruz.mstuca.ru."""
 
-    oid: int = Field(description="Идентификатор группы в RUZ (groupOid), совпадает с Group.id в БД")
+    oid: int = Field(
+        description="Идентификатор группы в RUZ (groupOid), совпадает с Group.id в БД"
+    )
     name: str
     guid: UUID
     faculty_name: Optional[str] = Field(
@@ -169,8 +178,8 @@ async def search_groups_by_name_db_and_ruz(
 @router.post("/", response_model=GroupRead, status_code=status.HTTP_201_CREATED)
 def create_group(
     payload: GroupCreate,
-    session: Session =  Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    session: Session = Depends(get_db),
+    _api_key: str = Security(require_api_key),
 ):
     """
     Create a new Group entity.
@@ -194,14 +203,14 @@ def create_group(
             id=payload.id,
             guid=payload.guid,
             name=payload.name,
-            faculty_name=payload.faculty_name
+            faculty_name=payload.faculty_name,
         )
     )
 
+
 @router.get("/", response_model=List[GroupRead])
 def list_groups(
-    session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    session: Session = Depends(get_db), _api_key: str = Security(require_api_key)
 ):
     """
     Retrieves all group entities from the database.
@@ -218,11 +227,12 @@ def list_groups(
     repo = GroupRepository(session)
     return repo.ListAll()
 
+
 @router.get("/{group_id}", response_model=GroupRead)
 def get_group(
     group_id: int,
     session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    _api_key: str = Security(require_api_key),
 ):
     """
     Retrieve a group entity by its ID.
@@ -238,11 +248,12 @@ def get_group(
     repo = GroupRepository(session)
     return ensure_entity_exists(group_id, repo.GetById)
 
+
 @router.get("/guid/{group_guid}", response_model=GroupRead)
 def get_group_by_guid(
     group_guid: UUID,
     session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    _api_key: str = Security(require_api_key),
 ):
     """
     Retrieve a group entity by its GUID.
@@ -258,12 +269,13 @@ def get_group_by_guid(
     repo = GroupRepository(session)
     return ensure_entity_exists(group_guid, repo.GetByGUID)
 
+
 @router.put("/{group_id}")
 def update_group(
     group_id: int,
     payload: GroupUpdate,
     session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    _api_key: str = Security(require_api_key),
 ):
     """
     Update a group entity by its ID.
@@ -284,11 +296,12 @@ def update_group(
 
     return repo.Update(group_id, payload.name, payload.faculty_name)
 
+
 @router.delete("/{group_id}")
 def delete_group(
     group_id: int,
     session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    _api_key: str = Security(require_api_key),
 ):
     """
     Delete a group entity by its ID.

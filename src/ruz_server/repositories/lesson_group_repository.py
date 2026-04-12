@@ -21,6 +21,7 @@ class LessonGroupRepository:
     Returns:
         LessonGroupRepository: Instance to perform operations on LessonGroup relations.
     """
+
     def __init__(self, session: Session):
         self.session = session
 
@@ -115,7 +116,9 @@ class LessonGroupRepository:
         stmt = select(LessonGroup).where(LessonGroup.group_id == group_id)
         return self.session.exec(stmt).all()
 
-    def GetWithLessonAndGroup(self, lesson_id: int, group_id: int) -> Optional[LessonGroup]:
+    def GetWithLessonAndGroup(
+        self, lesson_id: int, group_id: int
+    ) -> Optional[LessonGroup]:
         """Returns an association with related Lesson and Group eagerly loaded.
 
         Args:
@@ -190,7 +193,9 @@ class LessonGroupRepository:
                 created_count += 1
         return created_count
 
-    def ListPairsInDateRange(self, start: datetime.date, end: datetime.date) -> List[tuple[int, int]]:
+    def ListPairsInDateRange(
+        self, start: datetime.date, end: datetime.date
+    ) -> List[tuple[int, int]]:
         """List (lesson_id, group_id) pairs linked to lessons in date range."""
         stmt = (
             select(LessonGroup.lesson_id, LessonGroup.group_id)
@@ -248,7 +253,9 @@ class LessonGroupRepository:
             return result.rowcount > 0
         except SQLAlchemyError as e:
             self.session.rollback()
-            logger.error(f"Failed to delete LessonGroup by IDs {lesson_id} and {group_id}: \n{e}")
+            logger.error(
+                f"Failed to delete LessonGroup by IDs {lesson_id} and {group_id}: \n{e}"
+            )
             return False
 
     def DeleteByLessonId(self, lesson_id: int) -> bool:
@@ -269,7 +276,9 @@ class LessonGroupRepository:
             return result.rowcount > 0
         except SQLAlchemyError as e:
             self.session.rollback()
-            logger.error(f"Failed to delete LessonGroup by lesson ID {lesson_id}: \n{e}")
+            logger.error(
+                f"Failed to delete LessonGroup by lesson ID {lesson_id}: \n{e}"
+            )
             return False
 
     def DeleteByGroupId(self, group_id: int) -> bool:

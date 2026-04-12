@@ -43,63 +43,62 @@ class SecretMaskingFilter(logging.Filter):
 
 
 LOGGING_CONFIG = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'filters': {
-        'secret_masking': {
-            '()': 'ruz_server.logging_config.logging_config.SecretMaskingFilter',
+    "version": 1,
+    "disable_existing_loggers": False,
+    "filters": {
+        "secret_masking": {
+            "()": "ruz_server.logging_config.logging_config.SecretMaskingFilter",
         }
     },
-    'formatters': {
-        'standard': {
-            'format': '%(levelname)s: %(asctime)s %(name)s - %(message)s'
-        },
-        'detailed': {
-            'format': '%(levelname)s: %(asctime)s %(name)s (%(filename)s:%(lineno)d) - %(message)s'
+    "formatters": {
+        "standard": {"format": "%(levelname)s: %(asctime)s %(name)s - %(message)s"},
+        "detailed": {
+            "format": "%(levelname)s: %(asctime)s %(name)s (%(filename)s:%(lineno)d) - %(message)s"
         },
     },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': console_handler_format,
-            'level': console_handler_level,
-            'stream': 'ext://sys.stdout',
-            'filters': ['secret_masking'],
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": console_handler_format,
+            "level": console_handler_level,
+            "stream": "ext://sys.stdout",
+            "filters": ["secret_masking"],
         },
-        'file_debug': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'formatter': 'detailed',
-            'level': 'DEBUG',
-            'filename': str(LOGS_DIR / 'debug.log'),
-            'maxBytes': 1024*1024*5,
-            'backupCount': 3,
-            'encoding': 'utf8',
-            'filters': ['secret_masking'],
+        "file_debug": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "formatter": "detailed",
+            "level": "DEBUG",
+            "filename": str(LOGS_DIR / "debug.log"),
+            "maxBytes": 1024 * 1024 * 5,
+            "backupCount": 3,
+            "encoding": "utf8",
+            "filters": ["secret_masking"],
         },
-        'file_error': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'formatter': 'detailed',
-            'level': 'ERROR',
-            'filename': str(LOGS_DIR / 'error.log'),
-            'maxBytes': 1024*1024*5,
-            'backupCount': 3,
-            'encoding': 'utf8',
-            'filters': ['secret_masking'],
+        "file_error": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "formatter": "detailed",
+            "level": "ERROR",
+            "filename": str(LOGS_DIR / "error.log"),
+            "maxBytes": 1024 * 1024 * 5,
+            "backupCount": 3,
+            "encoding": "utf8",
+            "filters": ["secret_masking"],
         },
     },
-    'loggers': {
-        '': {
-            'handlers': ['console', 'file_debug', 'file_error'],
-            'level': 'DEBUG',
-            'propagate': False
+    "loggers": {
+        "": {
+            "handlers": ["console", "file_debug", "file_error"],
+            "level": "DEBUG",
+            "propagate": False,
         },
-        'sqlalchemy.engine': {
-            'level': 'INFO',
-            'handlers': ['console'],
-            'propagate': False
-        }
-    }
+        "sqlalchemy.engine": {
+            "level": "INFO",
+            "handlers": ["console"],
+            "propagate": False,
+        },
+    },
 }
+
 
 class ColoredFormatter(logging.Formatter):
     green = "\033[0;32m"
@@ -124,5 +123,6 @@ class ColoredFormatter(logging.Formatter):
             message = message.replace(levelname, colored_level)
         return message
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     dictConfig(LOGGING_CONFIG)

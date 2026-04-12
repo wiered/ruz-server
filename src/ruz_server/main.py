@@ -1,4 +1,4 @@
-﻿import os
+import os
 import uvicorn
 
 from ruz_server.api.app import app

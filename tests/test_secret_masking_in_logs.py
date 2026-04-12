@@ -47,4 +47,3 @@ def test_secret_masking_removes_real_password_from_logs(caplog):
     logger.info("db url=%s", settings.postgresql_uri)
 
     assert real_password not in caplog.text
-

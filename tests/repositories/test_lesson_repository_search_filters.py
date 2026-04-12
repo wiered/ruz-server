@@ -35,8 +35,18 @@ def session():
 
 
 def _seed_entities(session: Session):
-    session.add(Group(id=7001, guid=uuid.uuid4(), name="IU8-31", faculty_name="Informatics"))
-    session.add(Lecturer(id=9001, guid=uuid.uuid4(), full_name="Lecturer", short_name="Lec", rank="Prof"))
+    session.add(
+        Group(id=7001, guid=uuid.uuid4(), name="IU8-31", faculty_name="Informatics")
+    )
+    session.add(
+        Lecturer(
+            id=9001,
+            guid=uuid.uuid4(),
+            full_name="Lecturer",
+            short_name="Lec",
+            rank="Prof",
+        )
+    )
     session.add(KindOfWork(id=8001, type_of_work="Лекция", complexity=2))
     session.add(Discipline(id=7101, name="Math", examtype="Неизв.", has_labs=False))
     session.add(Auditorium(id=6001, guid=uuid.uuid4(), name="A-101", building="Main"))
@@ -58,7 +68,9 @@ def _lesson(lesson_id: int, *, sub_group: int, day: int, begin_hour: int) -> Les
 
 
 @pytest.mark.repositories
-def test_list_for_user_by_date_range_applies_subgroup_policy_and_order(session: Session):
+def test_list_for_user_by_date_range_applies_subgroup_policy_and_order(
+    session: Session,
+):
     _seed_entities(session)
     lessons = [
         _lesson(1003, sub_group=2, day=13, begin_hour=12),
@@ -67,7 +79,9 @@ def test_list_for_user_by_date_range_applies_subgroup_policy_and_order(session: 
         _lesson(1004, sub_group=1, day=14, begin_hour=9),
     ]
     session.add_all(lessons)
-    session.add_all([LessonGroup(lesson_id=lesson.id, group_id=7001) for lesson in lessons])
+    session.add_all(
+        [LessonGroup(lesson_id=lesson.id, group_id=7001) for lesson in lessons]
+    )
     session.commit()
 
     repo = LessonRepository(session)
@@ -82,7 +96,9 @@ def test_list_for_user_by_date_range_applies_subgroup_policy_and_order(session: 
 
 
 @pytest.mark.repositories
-def test_list_for_user_by_date_range_subgroup_zero_returns_all_sub_groups(session: Session):
+def test_list_for_user_by_date_range_subgroup_zero_returns_all_sub_groups(
+    session: Session,
+):
     _seed_entities(session)
     lessons = [
         _lesson(1003, sub_group=2, day=13, begin_hour=12),
@@ -91,7 +107,9 @@ def test_list_for_user_by_date_range_subgroup_zero_returns_all_sub_groups(sessio
         _lesson(1004, sub_group=1, day=14, begin_hour=9),
     ]
     session.add_all(lessons)
-    session.add_all([LessonGroup(lesson_id=lesson.id, group_id=7001) for lesson in lessons])
+    session.add_all(
+        [LessonGroup(lesson_id=lesson.id, group_id=7001) for lesson in lessons]
+    )
     session.commit()
 
     repo = LessonRepository(session)
@@ -166,7 +184,9 @@ def test_list_by_lecturer_and_date_range_sub_group_zero_returns_all(session: Ses
 
 
 @pytest.mark.repositories
-def test_list_by_lecturer_and_date_range_includes_common_sub_group_zero_lessons(session: Session):
+def test_list_by_lecturer_and_date_range_includes_common_sub_group_zero_lessons(
+    session: Session,
+):
     _seed_entities(session)
     lessons = [
         _lesson(3001, sub_group=0, day=13, begin_hour=8),
@@ -222,7 +242,9 @@ def test_list_by_discipline_and_date_range_sub_group_zero_returns_all(session: S
 
 
 @pytest.mark.repositories
-def test_list_by_discipline_and_date_range_includes_common_sub_group_zero_lessons(session: Session):
+def test_list_by_discipline_and_date_range_includes_common_sub_group_zero_lessons(
+    session: Session,
+):
     _seed_entities(session)
     lessons = [
         _lesson(5001, sub_group=0, day=13, begin_hour=8),

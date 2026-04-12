@@ -5,16 +5,24 @@ from unittest.mock import MagicMock, patch
 from sqlalchemy.exc import SQLAlchemyError
 
 
-
-from ruz_server.repositories.user_repository import UserRepository # noqa: F401
-from ruz_server.repositories.group_repository import GroupRepository # noqa: F401
-from ruz_server.repositories.auditorium_repository import AuditoriumRepository # noqa: F401
-from ruz_server.repositories.discipline_repository import DisciplineRepository # noqa: F401
-from ruz_server.repositories.kind_of_work_repository import KindOfWorkRepository # noqa: F401
-from ruz_server.repositories.lecturer_repository import LecturerRepository # noqa: F401
-from ruz_server.repositories.lesson_group_repository import LessonGroupRepository # noqa: F401
-from ruz_server.repositories.lesson_repository import LessonRepository # noqa: F401
-from ruz_server.models.models import User, Group, Auditorium, Discipline, KindOfWork, Lecturer, LessonGroup, Lesson # noqa: F401
+from ruz_server.repositories.user_repository import UserRepository  # noqa: F401
+from ruz_server.repositories.group_repository import GroupRepository  # noqa: F401
+from ruz_server.repositories.auditorium_repository import AuditoriumRepository  # noqa: F401
+from ruz_server.repositories.discipline_repository import DisciplineRepository  # noqa: F401
+from ruz_server.repositories.kind_of_work_repository import KindOfWorkRepository  # noqa: F401
+from ruz_server.repositories.lecturer_repository import LecturerRepository  # noqa: F401
+from ruz_server.repositories.lesson_group_repository import LessonGroupRepository  # noqa: F401
+from ruz_server.repositories.lesson_repository import LessonRepository  # noqa: F401
+from ruz_server.models.models import (
+    User,
+    Group,
+    Auditorium,
+    Discipline,
+    KindOfWork,
+    Lecturer,
+    LessonGroup,
+    Lesson,
+)  # noqa: F401
 
 
 @pytest.fixture
@@ -176,7 +184,7 @@ def multiple_users(unique_user_id):
             id=unique_user_id + i,
             username=f"user_{unique_user_id}_{i}",
             group_oid=i + 1,
-            subgroup=i
+            subgroup=i,
         )
         users.append(user)
     return users
@@ -186,13 +194,14 @@ def multiple_users(unique_user_id):
 def multiple_groups(unique_group_id):
     """Create multiple group objects for testing with unique IDs."""
     import uuid
+
     groups = []
     for i in range(3):
         group = Group(
             id=unique_group_id + i,
             guid=uuid.uuid4(),
             name=f"Group {unique_group_id + i}",
-            faculty_name=f"Faculty {i + 1}"
+            faculty_name=f"Faculty {i + 1}",
         )
         groups.append(group)
     return groups
@@ -202,13 +211,14 @@ def multiple_groups(unique_group_id):
 def multiple_auditoriums(unique_auditorium_id):
     """Create multiple auditorium objects for testing with unique IDs."""
     import uuid
+
     auditoriums = []
     for i in range(3):
         auditorium = Auditorium(
             id=unique_auditorium_id + i,
             guid=uuid.uuid4(),
             name=f"Auditorium {unique_auditorium_id + i}",
-            building=f"Building {i + 1}"
+            building=f"Building {i + 1}",
         )
         auditoriums.append(auditorium)
     return auditoriums
@@ -224,7 +234,7 @@ def multiple_disciplines(unique_discipline_id):
             id=unique_discipline_id + i,
             name=f"Discipline {unique_discipline_id + i}",
             examtype=examtypes[i],
-            has_labs=i % 2 == 0
+            has_labs=i % 2 == 0,
         )
         disciplines.append(discipline)
     return disciplines
@@ -238,7 +248,7 @@ def multiple_kinds_of_work(unique_kind_of_work_id):
         kind = KindOfWork(
             id=unique_kind_of_work_id + i,
             type_of_work=f"Type {unique_kind_of_work_id + i}",
-            complexity=i + 1
+            complexity=i + 1,
         )
         kinds.append(kind)
     return kinds
@@ -248,6 +258,7 @@ def multiple_kinds_of_work(unique_kind_of_work_id):
 def multiple_lecturers(unique_lecturer_id):
     """Create multiple lecturer objects for testing with unique IDs."""
     import uuid
+
     lecturers = []
     for i in range(3):
         lecturer = Lecturer(
@@ -255,7 +266,7 @@ def multiple_lecturers(unique_lecturer_id):
             guid=uuid.uuid4(),
             full_name=f"Lecturer {unique_lecturer_id + i}",
             short_name=f"L{unique_lecturer_id + i}",
-            rank=f"Rank {i + 1}"
+            rank=f"Rank {i + 1}",
         )
         lecturers.append(lecturer)
     return lecturers
@@ -275,6 +286,7 @@ def multiple_lesson_groups():
 def multiple_lessons(unique_lesson_id):
     """Create multiple lesson objects for testing with unique IDs."""
     import datetime
+
     return [
         Lesson(
             id=unique_lesson_id,

@@ -1,4 +1,4 @@
-﻿from typing import Generator, List, Optional
+from typing import Generator, List, Optional
 
 from fastapi import APIRouter, Depends, Security, status
 from pydantic import BaseModel, ConfigDict
@@ -6,12 +6,15 @@ from sqlmodel import Session
 
 from ruz_server.api.security import require_api_key
 from ruz_server.database import db
-from ruz_server.helpers.api_helpers import (ensure_entity_doesnot_exist,
-                                 ensure_entity_exists)
+from ruz_server.helpers.api_helpers import (
+    ensure_entity_doesnot_exist,
+    ensure_entity_exists,
+)
 from ruz_server.models import Discipline
 from ruz_server.repositories import DisciplineRepository
 
 router = APIRouter(prefix="/discipline", tags=["discipline"])
+
 
 def get_db() -> Generator[Session, None, None]:
     yield from db.get_session()
@@ -27,6 +30,7 @@ class DisciplineRead(BaseModel):
         examtype (Optional[str]): The exam type associated with the discipline.
         has_labs (bool): Indicates whether this discipline includes laboratory work.
     """
+
     id: int
     name: str
     examtype: Optional[str] = None
@@ -45,6 +49,7 @@ class DisciplineCreate(BaseModel):
         examtype (Optional[str], optional): The exam type associated with the discipline. Defaults to None.
         has_labs (Optional[bool], optional): Indicates if the discipline includes laboratory work. Defaults to False.
     """
+
     id: int
     name: str
     examtype: Optional[str] | None = None
@@ -60,6 +65,7 @@ class DisciplineUpdate(BaseModel):
         examtype (Optional[str], optional): The updated exam type associated with the discipline. Defaults to None.
         has_labs (Optional[bool], optional): Indicates if the discipline includes laboratory work. Defaults to None.
     """
+
     name: Optional[str] | None = None
     examtype: Optional[str] | None = None
     has_labs: Optional[bool] | None = None
@@ -69,7 +75,7 @@ class DisciplineUpdate(BaseModel):
 def create_discipline(
     payload: DisciplineCreate,
     session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    _api_key: str = Security(require_api_key),
 ):
     """
     Creates a new discipline entity based on the provided payload.
@@ -97,8 +103,7 @@ def create_discipline(
 
 @router.get("/", response_model=List[DisciplineRead])
 def list_disciplines(
-    session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    session: Session = Depends(get_db), _api_key: str = Security(require_api_key)
 ):
     """
     Retrieves a list of all discipline entities.
@@ -118,7 +123,7 @@ def list_disciplines(
 def get_discipline(
     discipline_id: int,
     session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    _api_key: str = Security(require_api_key),
 ):
     """
     Retrieves a discipline entity by its unique identifier.
@@ -140,7 +145,7 @@ def update_discipline(
     discipline_id: int,
     payload: DisciplineUpdate,
     session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    _api_key: str = Security(require_api_key),
 ):
     """
     Updates an existing discipline entity by its unique identifier.
@@ -156,19 +161,14 @@ def update_discipline(
     """
     repo = DisciplineRepository(session)
     ensure_entity_exists(discipline_id, repo.GetById)
-    return repo.Update(
-        discipline_id,
-        payload.name,
-        payload.examtype,
-        payload.has_labs
-    )
+    return repo.Update(discipline_id, payload.name, payload.examtype, payload.has_labs)
 
 
 @router.delete("/{discipline_id}")
 def delete_discipline(
     discipline_id: int,
     session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    _api_key: str = Security(require_api_key),
 ):
     """
     Deletes a discipline entity by its unique identifier.
