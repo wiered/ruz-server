@@ -14,6 +14,7 @@ from ruz_server.logging_config.logging_config import (
     LOGS_DIR,
     ColoredFormatter,
 )
+from ruz_server.main import run as main_run
 from ruz_server.settings import ROOT, settings
 
 
@@ -86,3 +87,33 @@ class TestInfrastructure:
         assert main_module.settings.port == settings.port
         assert main_module.settings.postgresql_uri == settings.postgresql_uri
         assert uvicorn_run_called is False
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    ("configured", "expected_uvicorn"),
+    [
+        ("DEBUG", "debug"),
+        ("INFO", "info"),
+        ("WARNING", "warning"),
+        ("ERROR", "error"),
+        ("CRITICAL", "critical"),
+        ("DeBuG", "debug"),
+        ("InFo", "info"),
+    ],
+)
+def test_main_run_passes_lowercase_uvicorn_log_level(
+    monkeypatch, configured: str, expected_uvicorn: str
+):
+    """Uvicorn expects log_level keys like 'debug', not 'DEBUG'."""
+    captured: dict[str, object] = {}
+
+    def fake_uvicorn_run(*_args, **kwargs):
+        captured.update(kwargs)
+
+    monkeypatch.setattr(uvicorn, "run", fake_uvicorn_run)
+    monkeypatch.setattr(settings, "log_level", configured)
+
+    main_run()
+
+    assert captured["log_level"] == expected_uvicorn

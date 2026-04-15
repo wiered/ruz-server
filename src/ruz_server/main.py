@@ -3,15 +3,13 @@ import uvicorn
 from ruz_server.api.app import app
 from ruz_server.settings import settings
 
-if __name__ == "__main__":
+
+def run() -> None:
     """
     Runs the FastAPI application using uvicorn server.
 
-    Args:
-        None
-
-    Returns:
-        None
+    Kept as a callable so tests can assert uvicorn.run kwargs without
+    subprocess / __main__ execution.
     """
     host = settings.host
     port = settings.port
@@ -31,3 +29,7 @@ if __name__ == "__main__":
         forwarded_allow_ips="*",
         log_level=settings.log_level.lower(),
     )
+
+
+if __name__ == "__main__":
+    run()
