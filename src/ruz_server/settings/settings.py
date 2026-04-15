@@ -85,6 +85,7 @@ class Settings(BaseSettings):
     refresh_timezone: str = "Europe/Moscow"
     refresh_lock_file: str = str(ROOT / "logs" / "refresh.lock")
     enable_docs: bool = False
+    echo_sql: bool = False
 
 
 settings = Settings()

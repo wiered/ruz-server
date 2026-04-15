@@ -45,7 +45,7 @@ class DataBase:
 
     def __init__(self, postgresql_uri):
         self._sqlalchemy_url = postgresql_uri
-        self.engine = create_engine(self._sqlalchemy_url, echo=True)
+        self.engine = create_engine(self._sqlalchemy_url, echo=settings.echo_sql)
         logger.info("Started database engine")
 
     def getSession(self) -> Session:
