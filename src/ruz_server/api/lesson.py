@@ -22,19 +22,19 @@ from ruz_server.helpers.ruz_mapper import map_ruz_lessons_to_payloads
 from ruz_server.models import (
     Auditorium,
     Discipline,
-    GroupRepository,
     KindOfWork,
     Lecturer,
     Lesson,
     LessonGroup,
-    LessonGroupRepository,
-    LessonRepository,
 )
 from ruz_server.repositories import (
     AuditoriumRepository,
     DisciplineRepository,
+    GroupRepository,
     KindOfWorkRepository,
     LecturerRepository,
+    LessonGroupRepository,
+    LessonRepository,
 )
 from ruz_server.ruz_api import RuzAPI
 
