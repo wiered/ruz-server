@@ -42,6 +42,7 @@ description = "RUZ Server API"
 dependencies = [
     "aiohttp==3.12.15",
     "apscheduler==3.11.2",
+    "alembic==1.18.4",
     "fastapi==0.135.2",
     "pydantic-settings==2.6.1",
     "sqlalchemy==2.0.41",
