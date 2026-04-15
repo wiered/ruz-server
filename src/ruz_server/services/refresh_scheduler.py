@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 RefreshRunner = Callable[[Session], Awaitable[dict[str, Any]]]
 
 _refresh_lock = asyncio.Lock()
+_LOCK_IS_TEMPORARY_ON_WINDOWS = os.name == "nt" and hasattr(os, "O_TEMPORARY")
 
 # Последняя завершенная попытка refresh (для health endpoint).
 # Поля обновляются только когда refresh реально стартовал и завершился
@@ -42,6 +43,8 @@ def _acquire_file_lock(lock_path: str) -> int | None:
     path = Path(lock_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY
+    if _LOCK_IS_TEMPORARY_ON_WINDOWS:
+        flags |= os.O_TEMPORARY
     try:
         return os.open(str(path), flags)
     except FileExistsError:
@@ -65,7 +68,8 @@ def _release_file_lock(lock_path: str, fd: int | None) -> None:
     try:
         os.close(fd)
     finally:
-        Path(lock_path).unlink(missing_ok=True)
+        if not _LOCK_IS_TEMPORARY_ON_WINDOWS:
+            Path(lock_path).unlink(missing_ok=True)
 
 
 def get_last_refresh_state() -> dict[str, Any]:

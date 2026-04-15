@@ -34,3 +34,4 @@ async def test_run_refresh_with_session_skips_parallel_run(monkeypatch, tmp_path
 
     assert first_result["status"] == "ok"
     assert second_result == {"status": "skipped", "reason": "refresh already running"}
+    assert not lock_path.exists()
