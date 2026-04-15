@@ -84,7 +84,7 @@ app = FastAPI(
     version=__version__,
     license_info={
         "name": "GPL-3.0",
-        "url": "https://github.com/ruz-server/LICENSE",
+        "url": "https://github.com/wiered/ruz-server/blob/main/LICENSE",
     },
 )
 app.include_router(api_router, prefix="/api", dependencies=[Security(require_api_key)])
