@@ -8,6 +8,8 @@ import uvicorn
 from fastapi import FastAPI
 from sqlmodel import Session
 
+from ruz_server.api.app import app as fastapi_app
+from ruz_server.api.app import lifespan
 from ruz_server.database import DataBase
 from ruz_server.logging_config.logging_config import (
     LOGGING_CONFIG,
@@ -117,3 +119,20 @@ def test_main_run_passes_lowercase_uvicorn_log_level(
     main_run()
 
     assert captured["log_level"] == expected_uvicorn
+
+
+@pytest.mark.asyncio
+async def test_lifespan_does_not_create_tables(monkeypatch):
+    called = False
+
+    def fail_create_all(*_args, **_kwargs):
+        nonlocal called
+        called = True
+        raise AssertionError("createAllTables should not run during startup")
+
+    monkeypatch.setattr(DataBase, "createAllTables", fail_create_all)
+
+    async with lifespan(fastapi_app):
+        pass
+
+    assert called is False
