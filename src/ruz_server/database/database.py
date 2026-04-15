@@ -1,4 +1,3 @@
-﻿
 """This is db module.
 
 This module handles dealing with postgre database.
@@ -8,14 +7,14 @@ __all__ = ["DataBase"]
 __author__ = "Wiered"
 
 import logging
-from typing import Generator
+from collections.abc import Generator
 
 from sqlmodel import Session, SQLModel, create_engine
 
-import ruz_server.models as models
 from ruz_server.settings import settings
 
 logger = logging.getLogger(__name__)
+
 
 class DataBase:
     """
@@ -32,18 +31,22 @@ class DataBase:
             Returns a new SQLModel Session instance for database transactions.
 
         get_session() -> Generator[Session, None, None]:
-            Provides a context-managed SQLModel Session generator for use in dependency injection.
+            Provides a context-managed SQLModel Session generator
+                for use in dependency injection.
 
         createAllTables() -> None:
-            Creates all tables defined in the SQLModel metadata within the connected database.
+            Creates all tables defined in the SQLModel metadata
+                within the connected database.
 
         dropAllTables() -> None:
-            Drops all tables defined in the SQLModel metadata from the connected database.
+            Drops all tables defined in the SQLModel metadata
+                from the connected database.
     """
+
     def __init__(self, postgresql_uri):
         self._sqlalchemy_url = postgresql_uri
-        self.engine = create_engine(self._sqlalchemy_url, echo=True)
-        logger.info(f"Started database engine")
+        self.engine = create_engine(self._sqlalchemy_url, echo=settings.echo_sql)
+        logger.info("Started database engine")
 
     def getSession(self) -> Session:
         """
@@ -62,10 +65,12 @@ class DataBase:
         Provides a generator for a context-managed SQLModel Session.
 
         This method is typically used for dependency injection in FastAPI routes.
-        It yields a database Session instance and ensures that the session is closed after use.
+        It yields a database Session instance and ensures that the session is
+        closed after use.
 
         Yields:
-            Session: A context-managed SQLModel Session object for interacting with the database.
+            Session: A context-managed SQLModel Session object for
+                interacting with the database.
 
         Example:
             @app.get("/items/")
@@ -74,7 +79,7 @@ class DataBase:
         """
         session = Session(self.engine)
         try:
-            logger.info(f"Started session")
+            logger.info("Started session")
             yield session
         finally:
             session.close()
@@ -83,8 +88,8 @@ class DataBase:
         """
         Creates all tables defined in the SQLModel models in the connected database.
 
-        This method creates the database schema by generating all tables specified in the
-        SQLModel models' metadata if they do not already exist.
+        This method creates the database schema by generating all tables specified in
+        the SQLModel models' metadata if they do not already exist.
 
         Args:
             None
@@ -92,7 +97,7 @@ class DataBase:
         Returns:
             None
         """
-        logger.info(f"Creating all tables")
+        logger.info("Creating all tables")
 
         SQLModel.metadata.create_all(self.engine)
 
@@ -109,8 +114,9 @@ class DataBase:
         Returns:
             None
         """
-        logger.warning(f"Dropping all tables")
+        logger.warning("Dropping all tables")
 
         SQLModel.metadata.drop_all(self.engine)
+
 
 db = DataBase(settings.postgresql_uri)

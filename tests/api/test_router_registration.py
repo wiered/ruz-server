@@ -1,8 +1,6 @@
 """Contract tests for API router registration."""
 
-
 import pytest
-
 
 from ruz_server.api import api_router
 

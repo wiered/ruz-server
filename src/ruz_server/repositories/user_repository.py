@@ -1,6 +1,5 @@
-﻿import datetime
+import datetime
 import logging
-from typing import List, Optional
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload
@@ -22,6 +21,7 @@ class UserRepository:
     Returns:
         UserRepository: Instance for performing operations on User entities.
     """
+
     def __init__(self, session: Session):
         self.session = session
 
@@ -71,7 +71,7 @@ class UserRepository:
         logger.debug(f"User {user} does not exist, creating")
         return self.Create(user)
 
-    def ListAll(self) -> List[User]:
+    def ListAll(self) -> list[User]:
         """Возвращает список всех пользователей
 
         Returns:
@@ -82,7 +82,7 @@ class UserRepository:
         stmt = select(User)
         return self.session.exec(stmt).all()
 
-    def ListByGroupOid(self, value: int) -> List[User]:
+    def ListByGroupOid(self, value: int) -> list[User]:
         """Возвращает список пользователей по ID группы
 
         Args:
@@ -99,7 +99,7 @@ class UserRepository:
         stmt = select(User).where(User.group_oid == value)
         return self.session.exec(stmt).all()
 
-    def GetById(self, value: int) -> Optional[User]:
+    def GetById(self, value: int) -> User | None:
         """Возвращает пользователя по ID
 
         Args:
@@ -116,7 +116,7 @@ class UserRepository:
         stmt = select(User).where(User.id == value)
         return self.session.exec(stmt).first()
 
-    def GetByUsername(self, value: str) -> Optional[User]:
+    def GetByUsername(self, value: str) -> User | None:
         """Возвращает пользователя по тегу телеграм
 
         Args:
@@ -133,7 +133,7 @@ class UserRepository:
         stmt = select(User).where(User.username == value)
         return self.session.exec(stmt).first()
 
-    def GetWithGroup(self, value: int) -> Optional[User]:
+    def GetWithGroup(self, value: int) -> User | None:
         """Возвращает пользователя и его группу по ID
 
         Args:
@@ -153,17 +153,22 @@ class UserRepository:
     def Update(
         self,
         value: int,
-        username: Optional[str] | object = _UNSET,
-        group_oid: Optional[int] | object = _UNSET,
-        subgroup: Optional[int] | object = _UNSET,
-        ) -> bool:
+        username: str | None | object = _UNSET,
+        group_oid: int | None | object = _UNSET,
+        subgroup: int | None | object = _UNSET,
+    ) -> bool:
         """Updates a user's details by ID.
 
         Args:
             value (int): ID of the user to be updated.
-            username (str, optional): New username for the user. Defaults to the current username if not provided.
-            group_oid (int, optional): New group ID for the user. Defaults to the current group ID if not provided.
-            subgroup (int, optional): New subgroup for the user. Defaults to the current subgroup if not provided.
+            username (str, optional): New username for the user.
+                Defaults to the current username if not provided.
+
+            group_oid (int, optional): New group ID for the user.
+                Defaults to the current group ID if not provided.
+
+            subgroup (int, optional): New subgroup for the user.
+                Defaults to the current subgroup if not provided.
 
         Returns:
             bool: True if the update was successful, False otherwise.
@@ -173,13 +178,25 @@ class UserRepository:
         if not isinstance(value, int):
             raise ValueError("UserId must be an integer")
 
-        if username is not _UNSET and username is not None and not isinstance(username, str):
+        if (
+            username is not _UNSET
+            and username is not None
+            and not isinstance(username, str)
+        ):
             raise ValueError("Username must be a string")
 
-        if group_oid is not _UNSET and group_oid is not None and not isinstance(group_oid, int):
+        if (
+            group_oid is not _UNSET
+            and group_oid is not None
+            and not isinstance(group_oid, int)
+        ):
             raise ValueError("GroupOid must be an integer")
 
-        if subgroup is not _UNSET and subgroup is not None and not isinstance(subgroup, int):
+        if (
+            subgroup is not _UNSET
+            and subgroup is not None
+            and not isinstance(subgroup, int)
+        ):
             raise ValueError("Subgroup must be an integer")
 
         try:
@@ -190,18 +207,22 @@ class UserRepository:
                 return False
 
             if username is _UNSET:
-                logger.debug(f"Payload does not have a username")
+                logger.debug("Payload does not have a username")
                 username = current.username
 
             if group_oid is _UNSET:
-                logger.debug(f"Payload does not have a group_oid")
+                logger.debug("Payload does not have a group_oid")
                 group_oid = current.group_oid
 
             if subgroup is _UNSET:
-                logger.debug(f"Payload does not have a subgroup")
+                logger.debug("Payload does not have a subgroup")
                 subgroup = current.subgroup
 
-            stmt = update(User).where(User.id == value).values(username=username, group_oid=group_oid, subgroup=subgroup)
+            stmt = (
+                update(User)
+                .where(User.id == value)
+                .values(username=username, group_oid=group_oid, subgroup=subgroup)
+            )
             result = self.session.exec(stmt)
             self.session.commit()
             logger.debug(f"Updated user {value}")
@@ -229,7 +250,8 @@ class UserRepository:
             stmt = (
                 update(User)
                 .where(User.id == value)
-                .values(last_used_at=datetime.datetime.now(datetime.timezone.utc)))
+                .values(last_used_at=datetime.datetime.now(datetime.UTC))
+            )
             result = self.session.exec(stmt)
             self.session.commit()
             logger.debug(f"Updated last used at for user {value}")

@@ -1,5 +1,5 @@
 import logging
-from typing import Generator, List, Optional
+from collections.abc import Generator
 from uuid import UUID
 
 import aiohttp
@@ -7,24 +7,27 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Security, status
 from pydantic import BaseModel, ConfigDict, Field
 from sqlmodel import Session
 
+from ruz_server.api.security import require_api_key
+from ruz_server.database import db
+from ruz_server.helpers.api_helpers import (
+    ensure_entity_doesnot_exist,
+    ensure_entity_exists,
+)
+from ruz_server.models import Group
+from ruz_server.repositories import GroupRepository
 from ruz_server.ruz_api.api import RuzAPI
 from ruz_server.ruz_api.group_search import parse_ruz_group_search_response
 
 logger = logging.getLogger(__name__)
-
-from ruz_server.api.security import require_api_key
-from ruz_server.database import db
-from ruz_server.helpers.api_helpers import (ensure_entity_doesnot_exist,
-                                 ensure_entity_exists)
-from ruz_server.models import Group
-from ruz_server.repositories import GroupRepository
-
 router = APIRouter(prefix="/group", tags=["group"])
+
 
 def get_db() -> Generator[Session, None, None]:
     yield from db.get_session()
 
+
 # Pydantic-схемы
+
 
 class GroupRead(BaseModel):
     """
@@ -33,15 +36,16 @@ class GroupRead(BaseModel):
     This schema is intended for outbound responses (serialization) that expose
     the essential, non-relational fields of the Group table. It mirrors the
     core attributes from the ORM model:
-      - id (int): primary key, also known as groupOid.
-      - guid (UUID): stable UUID identifier, also known as groupGUID.
-      - name (str): unique group name.
-      - faculty_name (str): name of the faculty the group belongs to.
+        - id (int): primary key, also known as groupOid.
+        - guid (UUID): stable UUID identifier, also known as groupGUID.
+        - name (str): unique group name.
+        - faculty_name (str): name of the faculty the group belongs to.
 
     Notes:
     - Relationships (users, lesson_groups, lessons) are intentionally omitted to
-      keep the schema lightweight and avoid recursive/n+1 serialization concerns.
-    - Enable orm_mode to support constructing this schema directly from ORM/SQLModel instances.
+        keep the schema lightweight and avoid recursive/n+1 serialization concerns.
+    - Enable orm_mode to support constructing this schema directly
+        from ORM/SQLModel instances.
     """
 
     id: int
@@ -50,6 +54,7 @@ class GroupRead(BaseModel):
     faculty_name: str
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class GroupCreate(BaseModel):
     """
@@ -69,6 +74,7 @@ class GroupCreate(BaseModel):
     name: str
     faculty_name: str
 
+
 class GroupUpdate(BaseModel):
     """
     Schema for updating an existing Group entity.
@@ -87,30 +93,36 @@ class GroupUpdate(BaseModel):
 class GroupSearchHit(BaseModel):
     """Результат объединённого поиска группы в локальной БД и на ruz.mstuca.ru."""
 
-    oid: int = Field(description="Идентификатор группы в RUZ (groupOid), совпадает с Group.id в БД")
+    oid: int = Field(
+        description="Идентификатор группы в RUZ (groupOid), совпадает с Group.id в БД"
+    )
     name: str
     guid: UUID
-    faculty_name: Optional[str] = Field(
+    faculty_name: str | None = Field(
         default=None,
         description="Факультет из локальной БД; для строк только из RUZ — null",
     )
 
 
-@router.get("/search", response_model=List[GroupSearchHit])
+@router.get("/search", response_model=list[GroupSearchHit])
 async def search_groups_by_name_db_and_ruz(
     q: str = Query(
         ...,
         min_length=1,
-        description="Строка поиска: точное имя группы для выборки из БД (GetByName), подстрока для поиска на ruz.mstuca.ru",
+        description=(
+            "Строка поиска: точное имя группы для выборки из БД (GetByName),"
+            "подстрока для поиска на ruz.mstuca.ru"
+        ),
     ),
     session: Session = Depends(get_db),
     _api_key: str = Security(require_api_key),
 ):
     """
-    Поиск групп по имени одновременно в БД и на ruz.mstuca.ru.
+    Search for groups by name simultaneously in the local database and on ruz.mstuca.ru.
 
-    Сначала возвращаются совпадения из БД (`GetByName` по точному имени), затем дополняются
-    уникальные по `oid` результаты из API RUZ (как в `/api/search?type=group`).
+    First, matches from the database (`GetByName` by exact name) are returned,
+    then unique results by `oid` from the RUZ API (as in `/api/search?type=group`)
+    are added.
     """
     term = q.strip()
     if not term:
@@ -123,7 +135,7 @@ async def search_groups_by_name_db_and_ruz(
     db_groups = repo.GetByName(term)
 
     seen: set[int] = set()
-    out: List[GroupSearchHit] = []
+    out: list[GroupSearchHit] = []
 
     for g in db_groups:
         seen.add(g.id)
@@ -169,16 +181,18 @@ async def search_groups_by_name_db_and_ruz(
 @router.post("/", response_model=GroupRead, status_code=status.HTTP_201_CREATED)
 def create_group(
     payload: GroupCreate,
-    session: Session =  Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    session: Session = Depends(get_db),
+    _api_key: str = Security(require_api_key),
 ):
     """
     Create a new Group entity.
 
-    This endpoint creates a new group entry in the database with the specified attributes.
+    This endpoint creates a new group entry in the database
+    with the specified attributes.
 
     Args:
-        payload (GroupCreate): The incoming group data containing id, guid, name, and faculty_name.
+        payload (GroupCreate): The incoming group data
+            containing id, guid, name, and faculty_name.
         session (Session, optional): The database session dependency.
         _api_key (str, optional): The validated API key for authorization.
 
@@ -194,14 +208,14 @@ def create_group(
             id=payload.id,
             guid=payload.guid,
             name=payload.name,
-            faculty_name=payload.faculty_name
+            faculty_name=payload.faculty_name,
         )
     )
 
-@router.get("/", response_model=List[GroupRead])
+
+@router.get("/", response_model=list[GroupRead])
 def list_groups(
-    session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    session: Session = Depends(get_db), _api_key: str = Security(require_api_key)
 ):
     """
     Retrieves all group entities from the database.
@@ -218,11 +232,12 @@ def list_groups(
     repo = GroupRepository(session)
     return repo.ListAll()
 
+
 @router.get("/{group_id}", response_model=GroupRead)
 def get_group(
     group_id: int,
     session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    _api_key: str = Security(require_api_key),
 ):
     """
     Retrieve a group entity by its ID.
@@ -238,11 +253,12 @@ def get_group(
     repo = GroupRepository(session)
     return ensure_entity_exists(group_id, repo.GetById)
 
+
 @router.get("/guid/{group_guid}", response_model=GroupRead)
 def get_group_by_guid(
     group_guid: UUID,
     session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    _api_key: str = Security(require_api_key),
 ):
     """
     Retrieve a group entity by its GUID.
@@ -258,12 +274,13 @@ def get_group_by_guid(
     repo = GroupRepository(session)
     return ensure_entity_exists(group_guid, repo.GetByGUID)
 
+
 @router.put("/{group_id}")
 def update_group(
     group_id: int,
     payload: GroupUpdate,
     session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    _api_key: str = Security(require_api_key),
 ):
     """
     Update a group entity by its ID.
@@ -284,11 +301,12 @@ def update_group(
 
     return repo.Update(group_id, payload.name, payload.faculty_name)
 
+
 @router.delete("/{group_id}")
 def delete_group(
     group_id: int,
     session: Session = Depends(get_db),
-    _api_key: str = Security(require_api_key)
+    _api_key: str = Security(require_api_key),
 ):
     """
     Delete a group entity by its ID.

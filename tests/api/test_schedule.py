@@ -8,7 +8,7 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool
-from sqlmodel import SQLModel, Session
+from sqlmodel import Session, SQLModel
 
 from ruz_server.api import schedule
 from ruz_server.api.app import app
@@ -43,7 +43,9 @@ async def client():
 
     app.dependency_overrides[require_api_key] = lambda: None
     app.dependency_overrides[schedule.get_db] = override_get_db
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as test_client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as test_client:
         test_client.engine = engine
         yield test_client
     app.dependency_overrides.clear()
@@ -51,7 +53,9 @@ async def client():
     engine.dispose()
 
 
-def _seed_user_and_lessons(engine, *, user_group_oid: int = 7001, user_subgroup: int = 1):
+def _seed_user_and_lessons(
+    engine, *, user_group_oid: int = 7001, user_subgroup: int = 1
+):
     with Session(engine) as session:
         group = Group(
             id=user_group_oid,
@@ -78,7 +82,9 @@ def _seed_user_and_lessons(engine, *, user_group_oid: int = 7001, user_subgroup:
         )
         kind = KindOfWork(id=8001, type_of_work="Лекция", complexity=2)
         discipline = Discipline(id=7001, name="Math", examtype="Неизв.", has_labs=False)
-        auditorium = Auditorium(id=6001, guid=uuid.uuid4(), name="A-101", building="Main")
+        auditorium = Auditorium(
+            id=6001, guid=uuid.uuid4(), name="A-101", building="Main"
+        )
         session.add(lecturer)
         session.add(kind)
         session.add(discipline)
@@ -143,7 +149,10 @@ def _seed_user_and_lessons(engine, *, user_group_oid: int = 7001, user_subgroup:
         ]
         session.add_all(lessons)
         session.add_all(
-            [LessonGroup(lesson_id=lesson.id, group_id=user_group_oid) for lesson in lessons]
+            [
+                LessonGroup(lesson_id=lesson.id, group_id=user_group_oid)
+                for lesson in lessons
+            ]
         )
         session.commit()
 
@@ -153,7 +162,9 @@ class TestScheduleAPI:
     @pytest.mark.asyncio
     async def test_day_returns_only_date_and_sorted(self, client):
         _seed_user_and_lessons(client.engine)
-        response = await client.get("/api/schedule/user/123456/day", params={"date": "2025-01-13"})
+        response = await client.get(
+            "/api/schedule/user/123456/day", params={"date": "2025-01-13"}
+        )
         assert response.status_code == 200
         data = response.json()
         assert [row["lesson_id"] for row in data] == [1001, 1002]
@@ -162,7 +173,9 @@ class TestScheduleAPI:
     @pytest.mark.asyncio
     async def test_week_returns_lessons_in_week_range(self, client):
         _seed_user_and_lessons(client.engine)
-        response = await client.get("/api/schedule/user/123456/week", params={"date": "2025-01-14"})
+        response = await client.get(
+            "/api/schedule/user/123456/week", params={"date": "2025-01-14"}
+        )
         assert response.status_code == 200
         data = response.json()
         lesson_ids = [row["lesson_id"] for row in data]
@@ -175,7 +188,9 @@ class TestScheduleAPI:
     @pytest.mark.asyncio
     async def test_subgroup_policy_includes_common_and_user_only(self, client):
         _seed_user_and_lessons(client.engine, user_subgroup=1)
-        response = await client.get("/api/schedule/user/123456/day", params={"date": "2025-01-13"})
+        response = await client.get(
+            "/api/schedule/user/123456/day", params={"date": "2025-01-13"}
+        )
         assert response.status_code == 200
         lesson_ids = [row["lesson_id"] for row in response.json()]
         assert set(lesson_ids) == {1001, 1002}
@@ -183,9 +198,13 @@ class TestScheduleAPI:
     @pytest.mark.asyncio
     async def test_user_without_group_returns_400(self, client):
         with Session(client.engine) as session:
-            session.add(User(id=200001, username="no_group_user", group_oid=None, subgroup=1))
+            session.add(
+                User(id=200001, username="no_group_user", group_oid=None, subgroup=1)
+            )
             session.commit()
-        response = await client.get("/api/schedule/user/200001/day", params={"date": "2025-01-13"})
+        response = await client.get(
+            "/api/schedule/user/200001/day", params={"date": "2025-01-13"}
+        )
         assert response.status_code == 400
         assert response.json()["detail"] == "User has no group assigned"
 
@@ -198,7 +217,9 @@ class TestScheduleAPI:
             session.add(user)
             session.commit()
 
-        response = await client.get("/api/schedule/user/123456/day", params={"date": "2025-01-13"})
+        response = await client.get(
+            "/api/schedule/user/123456/day", params={"date": "2025-01-13"}
+        )
         assert response.status_code == 400
         assert response.json()["detail"] == "User has no subgroup assigned"
 
@@ -211,26 +232,34 @@ class TestScheduleAPI:
             session.add(user)
             session.commit()
 
-        response = await client.get("/api/schedule/user/123456/week", params={"date": "2025-01-14"})
+        response = await client.get(
+            "/api/schedule/user/123456/week", params={"date": "2025-01-14"}
+        )
         assert response.status_code == 400
         assert response.json()["detail"] == "User has no subgroup assigned"
 
     @pytest.mark.asyncio
     async def test_user_not_found_returns_404(self, client):
-        response = await client.get("/api/schedule/user/999999/day", params={"date": "2025-01-13"})
+        response = await client.get(
+            "/api/schedule/user/999999/day", params={"date": "2025-01-13"}
+        )
         assert response.status_code == 404
 
     @pytest.mark.asyncio
     async def test_empty_result_returns_empty_list(self, client):
         _seed_user_and_lessons(client.engine)
-        response = await client.get("/api/schedule/user/123456/day", params={"date": "2025-02-01"})
+        response = await client.get(
+            "/api/schedule/user/123456/day", params={"date": "2025-02-01"}
+        )
         assert response.status_code == 200
         assert response.json() == []
 
     @pytest.mark.asyncio
     async def test_day_response_has_expected_dto_fields(self, client):
         _seed_user_and_lessons(client.engine)
-        response = await client.get("/api/schedule/user/123456/day", params={"date": "2025-01-13"})
+        response = await client.get(
+            "/api/schedule/user/123456/day", params={"date": "2025-01-13"}
+        )
         assert response.status_code == 200
         first = response.json()[0]
         expected_keys = {
@@ -256,7 +285,9 @@ class TestScheduleAPI:
     @pytest.mark.asyncio
     async def test_week_boundary_excludes_next_week_lessons(self, client):
         _seed_user_and_lessons(client.engine)
-        response = await client.get("/api/schedule/user/123456/week", params={"date": "2025-01-19"})
+        response = await client.get(
+            "/api/schedule/user/123456/week", params={"date": "2025-01-19"}
+        )
         assert response.status_code == 200
         lesson_ids = [row["lesson_id"] for row in response.json()]
         assert 1005 not in lesson_ids

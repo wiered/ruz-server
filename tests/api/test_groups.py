@@ -1,17 +1,16 @@
 """API tests for groups endpoints."""
 
 import uuid
+
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool
-from sqlmodel import SQLModel, Session
+from sqlmodel import Session, SQLModel
 
-
-
-from ruz_server.api.app import app
 from ruz_server.api import groups
+from ruz_server.api.app import app
 from ruz_server.api.security import require_api_key
 from ruz_server.ruz_api.api import RuzAPI
 
@@ -35,7 +34,9 @@ async def client():
 
     app.dependency_overrides[require_api_key] = lambda: None
     app.dependency_overrides[groups.get_db] = override_get_db
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as test_client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as test_client:
         yield test_client
     app.dependency_overrides.clear()
     SQLModel.metadata.drop_all(engine)
@@ -60,12 +61,15 @@ class TestGroupsAPI:
 
     @pytest.mark.asyncio
     async def test_list_groups(self, client):
-        await client.post("/api/group/", json={
-            "id": 3002,
-            "guid": str(uuid.uuid4()),
-            "name": "IU8-12",
-            "faculty_name": "Informatics",
-        })
+        await client.post(
+            "/api/group/",
+            json={
+                "id": 3002,
+                "guid": str(uuid.uuid4()),
+                "name": "IU8-12",
+                "faculty_name": "Informatics",
+            },
+        )
         response = await client.get("/api/group/")
         assert response.status_code == 200
         assert isinstance(response.json(), list)
@@ -107,10 +111,13 @@ class TestGroupsAPI:
             "faculty_name": "Old Faculty",
         }
         await client.post("/api/group/", json=payload)
-        response = await client.put("/api/group/3005", json={
-            "name": "IU8-15-Updated",
-            "faculty_name": "New Faculty",
-        })
+        response = await client.put(
+            "/api/group/3005",
+            json={
+                "name": "IU8-15-Updated",
+                "faculty_name": "New Faculty",
+            },
+        )
         assert response.status_code == 200
         assert response.json() is True
         get_response = await client.get("/api/group/3005")
@@ -169,7 +176,9 @@ class TestGroupsAPI:
 
     @pytest.mark.asyncio
     async def test_update_group_not_found_returns_404(self, client):
-        response = await client.put("/api/group/999999", json={"name": "X", "faculty_name": "Y"})
+        response = await client.put(
+            "/api/group/999999", json={"name": "X", "faculty_name": "Y"}
+        )
         assert response.status_code == 404
 
     @pytest.mark.asyncio
@@ -226,7 +235,9 @@ class TestGroupsAPI:
         }
 
     @pytest.mark.asyncio
-    async def test_search_groups_db_then_ruz_skips_duplicate_oid(self, client, monkeypatch):
+    async def test_search_groups_db_then_ruz_skips_duplicate_oid(
+        self, client, monkeypatch
+    ):
         gid_a = uuid.UUID("c72c7026-7e2d-4a76-af57-f1247a6d2e25")
         gid_b = uuid.UUID("f07651c5-4709-4190-b82a-269c7078e6b7")
 

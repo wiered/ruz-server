@@ -1,20 +1,23 @@
 """API tests for lesson endpoints."""
 
-import datetime
 import uuid
+
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool
-from sqlmodel import SQLModel, Session, select
+from sqlmodel import Session, SQLModel, select
 
-
-
-from ruz_server.api.app import app
 from ruz_server.api import lesson
+from ruz_server.api.app import app
 from ruz_server.api.security import require_api_key
-from ruz_server.models.models import Lecturer, KindOfWork, Discipline, Auditorium, Lesson
+from ruz_server.models.models import (
+    Auditorium,
+    Discipline,
+    KindOfWork,
+    Lecturer,
+)
 
 
 @pytest_asyncio.fixture
@@ -35,7 +38,9 @@ async def client():
 
     app.dependency_overrides[require_api_key] = lambda: None
     app.dependency_overrides[lesson.get_db] = override_get_db
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as test_client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as test_client:
         test_client.engine = engine
         yield test_client
     app.dependency_overrides.clear()
@@ -84,10 +89,22 @@ class TestLessonAPI:
         await client.post("/api/lesson/", json=lesson_payload(10011))
 
         with Session(client.engine) as session:
-            assert session.exec(select(Lecturer).where(Lecturer.id == 9001)).first() is not None
-            assert session.exec(select(KindOfWork).where(KindOfWork.id == 8001)).first() is not None
-            assert session.exec(select(Discipline).where(Discipline.id == 7001)).first() is not None
-            assert session.exec(select(Auditorium).where(Auditorium.id == 6001)).first() is not None
+            assert (
+                session.exec(select(Lecturer).where(Lecturer.id == 9001)).first()
+                is not None
+            )
+            assert (
+                session.exec(select(KindOfWork).where(KindOfWork.id == 8001)).first()
+                is not None
+            )
+            assert (
+                session.exec(select(Discipline).where(Discipline.id == 7001)).first()
+                is not None
+            )
+            assert (
+                session.exec(select(Auditorium).where(Auditorium.id == 6001)).first()
+                is not None
+            )
 
     @pytest.mark.asyncio
     async def test_create_lesson_sets_has_labs_for_lab(self, client):
@@ -98,7 +115,9 @@ class TestLessonAPI:
         assert response.status_code == 201
 
         with Session(client.engine) as session:
-            discipline = session.exec(select(Discipline).where(Discipline.id == 7001)).first()
+            discipline = session.exec(
+                select(Discipline).where(Discipline.id == 7001)
+            ).first()
             assert discipline is not None
             assert discipline.has_labs is True
 
@@ -111,7 +130,9 @@ class TestLessonAPI:
         assert response.status_code == 201
 
         with Session(client.engine) as session:
-            discipline = session.exec(select(Discipline).where(Discipline.id == 7001)).first()
+            discipline = session.exec(
+                select(Discipline).where(Discipline.id == 7001)
+            ).first()
             assert discipline is not None
             assert discipline.examtype == "Зачёт"
 
@@ -138,7 +159,9 @@ class TestLessonAPI:
     async def test_update_lesson(self, client):
         await client.post("/api/lesson/", json=lesson_payload(10004))
         lesson_id = (await client.get("/api/lesson/")).json()[0]["id"]
-        before_update = (await client.get(f"/api/lesson/{lesson_id}")).json()["updated_at"]
+        before_update = (await client.get(f"/api/lesson/{lesson_id}")).json()[
+            "updated_at"
+        ]
 
         response = await client.put(
             f"/api/lesson/{lesson_id}",

@@ -1,9 +1,9 @@
 import logging
 import re
+from logging.config import dictConfig
 from urllib.parse import urlparse
 
 import pytest
-from logging.config import dictConfig
 
 from ruz_server.logging_config.logging_config import LOGGING_CONFIG
 from ruz_server.settings import settings
@@ -47,4 +47,3 @@ def test_secret_masking_removes_real_password_from_logs(caplog):
     logger.info("db url=%s", settings.postgresql_uri)
 
     assert real_password not in caplog.text
-

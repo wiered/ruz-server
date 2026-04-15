@@ -1,10 +1,10 @@
 import datetime
 import logging
-from typing import Iterable, List, Optional
+from collections.abc import Iterable
 
+from sqlalchemy import or_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload
-from sqlalchemy import or_
 from sqlmodel import Session, delete, select, update
 
 from ruz_server.models import Lesson, LessonGroup
@@ -13,7 +13,11 @@ logger = logging.getLogger(__name__)
 
 
 def _sub_group_sql_condition(requested_sub_group: int):
-    """SQL condition: requested 0 → no subgroup restriction; else common (0) or same subgroup."""
+    """
+    Return SQL condition:
+        if requested_sub_group is 0, return None;
+        else return common (0) or same subgroup.
+    """
     if requested_sub_group == 0:
         return None
     return or_(Lesson.sub_group == 0, Lesson.sub_group == requested_sub_group)
@@ -29,6 +33,7 @@ class LessonRepository:
     Returns:
         LessonRepository: Instance for performing operations on Lesson entities.
     """
+
     def __init__(self, session: Session):
         self.session = session
 
@@ -47,7 +52,7 @@ class LessonRepository:
         self.session.commit()
         return lesson
 
-    def BulkSaveLessons(self, lessons: List[Lesson]) -> None:
+    def BulkSaveLessons(self, lessons: list[Lesson]) -> None:
         """Saves a list of lessons to the database.
 
         Args:
@@ -78,7 +83,7 @@ class LessonRepository:
         logger.debug(f"Lesson {lesson} does not exist, creating")
         return self.Create(lesson)
 
-    def ListAll(self) -> List[Lesson]:
+    def ListAll(self) -> list[Lesson]:
         """Returns a list of all lessons.
 
         Returns:
@@ -89,7 +94,7 @@ class LessonRepository:
         stmt = select(Lesson)
         return self.session.exec(stmt).all()
 
-    def GetById(self, value: int) -> Optional[Lesson]:
+    def GetById(self, value: int) -> Lesson | None:
         """Returns a lesson by ID.
 
         Args:
@@ -103,7 +108,7 @@ class LessonRepository:
         stmt = select(Lesson).where(Lesson.id == value)
         return self.session.exec(stmt).first()
 
-    def GetWithRelations(self, value: int) -> Optional[Lesson]:
+    def GetWithRelations(self, value: int) -> Lesson | None:
         """Returns a lesson by ID with related entities eagerly loaded.
 
         Args:
@@ -128,7 +133,7 @@ class LessonRepository:
         )
         return self.session.exec(stmt).first()
 
-    def ListByDate(self, value: datetime.date) -> List[Lesson]:
+    def ListByDate(self, value: datetime.date) -> list[Lesson]:
         """Returns a list of lessons for a specific date.
 
         Args:
@@ -142,7 +147,7 @@ class LessonRepository:
         stmt = select(Lesson).where(Lesson.date == value)
         return self.session.exec(stmt).all()
 
-    def ListByDateRange(self, start: datetime.date, end: datetime.date) -> List[Lesson]:
+    def ListByDateRange(self, start: datetime.date, end: datetime.date) -> list[Lesson]:
         """Returns a list of lessons within a date range (inclusive).
 
         Args:
@@ -163,7 +168,7 @@ class LessonRepository:
         subgroup: int,
         start: datetime.date,
         end: datetime.date,
-    ) -> List[Lesson]:
+    ) -> list[Lesson]:
         """Return lessons for a user's group/date range with subgroup policy.
 
         Subgroup policy: if user ``subgroup`` is 0, return all lessons for the group
@@ -200,7 +205,7 @@ class LessonRepository:
         # One lesson may be linked multiple times in joins; return unique rows.
         return list(self.session.exec(stmt).unique().all())
 
-    def ListByLecturerId(self, value: int) -> List[Lesson]:
+    def ListByLecturerId(self, value: int) -> list[Lesson]:
         """Returns a list of lessons by lecturer ID.
 
         Args:
@@ -217,18 +222,19 @@ class LessonRepository:
     def _build_search_stmt(
         self,
         *,
-        lecturer_id: Optional[int] = None,
-        discipline_id: Optional[int] = None,
+        lecturer_id: int | None = None,
+        discipline_id: int | None = None,
         start: datetime.date,
         end: datetime.date,
-        group_id: Optional[int] = None,
-        sub_group: Optional[int] = None,
+        group_id: int | None = None,
+        sub_group: int | None = None,
     ):
-        """Build lecturer/discipline search query (used by ListByLecturer* / ListByDiscipline*).
+        """Build a search query for lessons filtered by lecturer or discipline.
 
-        ``sub_group``: if omitted, no subgroup filter. If ``0``, no restriction on ``Lesson.sub_group``.
-        Otherwise require ``Lesson.sub_group == 0`` (общее) or match the requested value
-        (same policy as :meth:`ListForUserByDateRange`).
+        If sub_group is not set, there is no subgroup filter.
+        If sub_group is 0, there is no restriction on Lesson.sub_group.
+        Otherwise, only lessons where Lesson.sub_group is 0 or equals the
+            requested value are included.
         """
         stmt = select(Lesson)
         if group_id is not None:
@@ -266,10 +272,10 @@ class LessonRepository:
         self,
         lecturer_id: int,
         value: datetime.date,
-        group_id: Optional[int] = None,
-        sub_group: Optional[int] = None,
-    ) -> List[Lesson]:
-        """Lecturer lessons for one day; ``sub_group`` uses :meth:`_build_search_stmt` policy."""
+        group_id: int | None = None,
+        sub_group: int | None = None,
+    ) -> list[Lesson]:
+        """Return lecturer lessons for one day"""
         return self.ListByLecturerAndDateRange(
             lecturer_id=lecturer_id,
             start=value,
@@ -283,10 +289,10 @@ class LessonRepository:
         lecturer_id: int,
         start: datetime.date,
         end: datetime.date,
-        group_id: Optional[int] = None,
-        sub_group: Optional[int] = None,
-    ) -> List[Lesson]:
-        """Lecturer lessons in date range; ``sub_group`` uses :meth:`_build_search_stmt` policy."""
+        group_id: int | None = None,
+        sub_group: int | None = None,
+    ) -> list[Lesson]:
+        """Return lecturer lessons in date range"""
         stmt = self._build_search_stmt(
             lecturer_id=lecturer_id,
             start=start,
@@ -296,7 +302,7 @@ class LessonRepository:
         )
         return list(self.session.exec(stmt).unique().all())
 
-    def ListByDisciplineId(self, value: int) -> List[Lesson]:
+    def ListByDisciplineId(self, value: int) -> list[Lesson]:
         """Returns a list of lessons by discipline ID.
 
         Args:
@@ -314,10 +320,10 @@ class LessonRepository:
         self,
         discipline_id: int,
         value: datetime.date,
-        group_id: Optional[int] = None,
-        sub_group: Optional[int] = None,
-    ) -> List[Lesson]:
-        """Discipline lessons for one day; ``sub_group`` uses :meth:`_build_search_stmt` policy."""
+        group_id: int | None = None,
+        sub_group: int | None = None,
+    ) -> list[Lesson]:
+        """Return discipline lessons for one day"""
         return self.ListByDisciplineAndDateRange(
             discipline_id=discipline_id,
             start=value,
@@ -331,10 +337,11 @@ class LessonRepository:
         discipline_id: int,
         start: datetime.date,
         end: datetime.date,
-        group_id: Optional[int] = None,
-        sub_group: Optional[int] = None,
-    ) -> List[Lesson]:
-        """Discipline lessons in date range; ``sub_group`` uses :meth:`_build_search_stmt` policy."""
+        group_id: int | None = None,
+        sub_group: int | None = None,
+    ) -> list[Lesson]:
+        """Return discipline lessons in date range."""
+
         stmt = self._build_search_stmt(
             discipline_id=discipline_id,
             start=start,
@@ -344,7 +351,7 @@ class LessonRepository:
         )
         return list(self.session.exec(stmt).unique().all())
 
-    def ListByAuditoriumId(self, value: int) -> List[Lesson]:
+    def ListByAuditoriumId(self, value: int) -> list[Lesson]:
         """Returns a list of lessons by auditorium ID.
 
         Args:
@@ -358,7 +365,7 @@ class LessonRepository:
         stmt = select(Lesson).where(Lesson.auditorium_id == value)
         return self.session.exec(stmt).all()
 
-    def ListByKindOfWorkId(self, value: int) -> List[Lesson]:
+    def ListByKindOfWorkId(self, value: int) -> list[Lesson]:
         """Returns a list of lessons by kind of work ID.
 
         Args:
@@ -372,7 +379,7 @@ class LessonRepository:
         stmt = select(Lesson).where(Lesson.kind_of_work_id == value)
         return self.session.exec(stmt).all()
 
-    def ListBySubGroup(self, value: int) -> List[Lesson]:
+    def ListBySubGroup(self, value: int) -> list[Lesson]:
         """Returns a list of lessons by subgroup.
 
         Args:
@@ -406,7 +413,7 @@ class LessonRepository:
         existing.begin_lesson = lesson.begin_lesson
         existing.end_lesson = lesson.end_lesson
         existing.sub_group = lesson.sub_group
-        existing.updated_at = datetime.datetime.now(datetime.timezone.utc)
+        existing.updated_at = datetime.datetime.now(datetime.UTC)
         self.session.add(existing)
         return existing, False
 
@@ -426,7 +433,7 @@ class LessonRepository:
                 updated_count += 1
         return created_count, updated_count
 
-    def ListIdsInDateRange(self, start: datetime.date, end: datetime.date) -> List[int]:
+    def ListIdsInDateRange(self, start: datetime.date, end: datetime.date) -> list[int]:
         """List lesson IDs inside date range (inclusive)."""
         logger.info(f"Listing lesson IDs for date range {start} to {end}")
         stmt = select(Lesson.id).where(Lesson.date >= start, Lesson.date <= end)
@@ -449,14 +456,14 @@ class LessonRepository:
     def Update(
         self,
         value: int,
-        kind_of_work_id: Optional[int] = None,
-        discipline_id: Optional[int] = None,
-        auditorium_id: Optional[int] = None,
-        lecturer_id: Optional[int] = None,
-        date: Optional[datetime.date] = None,
-        begin_lesson: Optional[datetime.time] = None,
-        end_lesson: Optional[datetime.time] = None,
-        sub_group: Optional[int] = None,
+        kind_of_work_id: int | None = None,
+        discipline_id: int | None = None,
+        auditorium_id: int | None = None,
+        lecturer_id: int | None = None,
+        date: datetime.date | None = None,
+        begin_lesson: datetime.time | None = None,
+        end_lesson: datetime.time | None = None,
+        sub_group: int | None = None,
     ) -> bool:
         """Updates a lesson by ID.
 
@@ -483,35 +490,35 @@ class LessonRepository:
                 return False
 
             if kind_of_work_id is None:
-                logger.debug(f"Payload kind_of_work_id is None")
+                logger.debug("Payload kind_of_work_id is None")
                 kind_of_work_id = current.kind_of_work_id
 
             if discipline_id is None:
-                logger.debug(f"Payload discipline_id is None")
+                logger.debug("Payload discipline_id is None")
                 discipline_id = current.discipline_id
 
             if auditorium_id is None:
-                logger.debug(f"Payload auditorium_id is None")
+                logger.debug("Payload auditorium_id is None")
                 auditorium_id = current.auditorium_id
 
             if lecturer_id is None:
-                logger.debug(f"Payload lecturer_id is None")
+                logger.debug("Payload lecturer_id is None")
                 lecturer_id = current.lecturer_id
 
             if date is None:
-                logger.debug(f"Payload date is None")
+                logger.debug("Payload date is None")
                 date = current.date
 
             if begin_lesson is None:
-                logger.debug(f"Payload begin_lesson is None")
+                logger.debug("Payload begin_lesson is None")
                 begin_lesson = current.begin_lesson
 
             if end_lesson is None:
-                logger.debug(f"Payload end_lesson is None")
+                logger.debug("Payload end_lesson is None")
                 end_lesson = current.end_lesson
 
             if sub_group is None:
-                logger.debug(f"Payload sub_group is None")
+                logger.debug("Payload sub_group is None")
                 sub_group = current.sub_group
 
             stmt = (
@@ -526,7 +533,7 @@ class LessonRepository:
                     begin_lesson=begin_lesson,
                     end_lesson=end_lesson,
                     sub_group=sub_group,
-                    updated_at=datetime.datetime.now(datetime.timezone.utc),
+                    updated_at=datetime.datetime.now(datetime.UTC),
                 )
             )
             result = self.session.exec(stmt)
@@ -553,7 +560,7 @@ class LessonRepository:
             stmt = (
                 update(Lesson)
                 .where(Lesson.id == value)
-                .values(updated_at=datetime.datetime.now(datetime.timezone.utc))
+                .values(updated_at=datetime.datetime.now(datetime.UTC))
             )
             result = self.session.exec(stmt)
             self.session.commit()

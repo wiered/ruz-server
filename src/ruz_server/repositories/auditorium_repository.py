@@ -1,5 +1,4 @@
-﻿import logging
-from typing import Optional
+import logging
 
 from sqlalchemy import UUID
 from sqlalchemy.exc import SQLAlchemyError
@@ -9,10 +8,12 @@ from ruz_server.models import Auditorium
 
 logger = logging.getLogger(__name__)
 
+
 class AuditoriumRepository:
     """
-    AuditoriumRepository provides CRUD operations and database access methods for Auditorium objects.
-    It facilitates creating, retrieving, and listing auditorium entities using a SQLModel session.
+    AuditoriumRepository provides CRUD operations and database access methods
+    for Auditorium objects. It facilitates creating, retrieving, and listing
+    auditorium entities using a SQLModel session.
 
     Args:
         session (Session): SQLModel database session used for auditorium operations.
@@ -20,8 +21,9 @@ class AuditoriumRepository:
     Returns:
         AuditoriumRepository: An instance to perform operations on Auditorium model.
     """
+
     def __init__(self, session: Session):
-        logger.debug(f"Created AuditoriumRepository")
+        logger.debug("Created AuditoriumRepository")
 
         self.session = session
 
@@ -67,7 +69,7 @@ class AuditoriumRepository:
         Returns:
             List[Auditorium]: List of all Auditorium objects.
         """
-        logger.info(f"Listing all Auditoriums")
+        logger.info("Listing all Auditoriums")
 
         stmt = select(Auditorium)
         return self.session.exec(stmt).all()
@@ -80,7 +82,8 @@ class AuditoriumRepository:
             value (int): The ID of the Auditorium to get.
 
         Returns:
-            Optional[Auditorium]: The Auditorium with the given ID, or None if no such Auditorium exists.
+            Optional[Auditorium]: The Auditorium with the given ID,
+                or None if no such Auditorium exists.
         """
         logger.info(f"Getting Auditorium by ID {value}")
 
@@ -95,7 +98,8 @@ class AuditoriumRepository:
             value (UUID): The GUID of the Auditorium to get.
 
         Returns:
-            Optional[Auditorium]: The Auditorium with the given GUID, or None if no such Auditorium exists.
+            Optional[Auditorium]: The Auditorium with the given GUID,
+                or None if no such Auditorium exists.
         """
         logger.info(f"Getting Auditorium by GUID {value}")
 
@@ -110,26 +114,26 @@ class AuditoriumRepository:
             value (str): The name of the Auditorium to get.
 
         Returns:
-            Optional[Auditorium]: The Auditorium with the given name, or None if no such Auditorium exists.
+            Optional[Auditorium]: The Auditorium with the given name,
+                or None if no such Auditorium exists.
         """
         logger.info(f"Getting Auditorium by name {value}")
 
         stmt = select(Auditorium).where(Auditorium.name == value)
         return self.session.exec(stmt).first()
 
-    def Update(
-        self,
-        value: int,
-        name: Optional[str],
-        building: Optional[str]
-    ) -> bool:
+    def Update(self, value: int, name: str | None, building: str | None) -> bool:
         """
         Updates a Auditorium by ID.
 
         Args:
             value (int): The ID of the Auditorium to update.
-            name (Optional[str], optional): New name of the Auditorium. Defaults to the current name if not provided.
-            building (Optional[str], optional): New name of the building of the Auditorium. Defaults to the current building if not provided.
+            name (Optional[str], optional): New name of the Auditorium.
+                Defaults to the current name if not provided.
+
+            building (Optional[str], optional):
+                New name of the building of the Auditorium.
+                Defaults to the current building if not provided.
 
         Returns:
             bool: True if the update was successful, False otherwise.
@@ -144,10 +148,10 @@ class AuditoriumRepository:
                 return False
 
             if name is None:
-                logger.debug(f"Payload does not have a name")
+                logger.debug("Payload does not have a name")
                 name = current.name
             if building is None:
-                logger.debug(f"Payload does not have a building")
+                logger.debug("Payload does not have a building")
                 building = current.building
 
             stmt = (

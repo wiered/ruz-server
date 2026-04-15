@@ -1,14 +1,13 @@
 """Unit tests for GroupRepository."""
 
-import pytest
-from unittest.mock import MagicMock
-from sqlalchemy.exc import SQLAlchemyError
 import uuid
+from unittest.mock import MagicMock
 
+import pytest
+from sqlalchemy.exc import SQLAlchemyError
 
-
-from ruz_server.repositories.group_repository import GroupRepository
 from ruz_server.models.models import Group
+from ruz_server.repositories.group_repository import GroupRepository
 
 
 @pytest.mark.repositories
@@ -37,7 +36,9 @@ class TestGroupRepository:
         mock_session.commit.assert_called_once()
         mock_session.refresh.assert_called_once_with(sample_group_static)
 
-    def test_create_with_session_error(self, group_repository, sample_group_static, mock_session):
+    def test_create_with_session_error(
+        self, group_repository, sample_group_static, mock_session
+    ):
         """Test group creation with database error."""
         # Setup
         mock_session.add.side_effect = SQLAlchemyError("Database error")
@@ -46,7 +47,9 @@ class TestGroupRepository:
         with pytest.raises(SQLAlchemyError):
             group_repository.Create(sample_group_static)
 
-    def test_get_or_create_existing_group(self, group_repository, sample_group_static, mock_session):
+    def test_get_or_create_existing_group(
+        self, group_repository, sample_group_static, mock_session
+    ):
         """Test GetOrCreate when group already exists."""
         # Setup
         existing_group = Group(id=sample_group_static.id, name="existing_group")
@@ -59,7 +62,9 @@ class TestGroupRepository:
         assert result == existing_group
         group_repository.GetById.assert_called_once_with(sample_group_static.id)
 
-    def test_get_or_create_new_group(self, group_repository, sample_group_static, mock_session):
+    def test_get_or_create_new_group(
+        self, group_repository, sample_group_static, mock_session
+    ):
         """Test GetOrCreate when group doesn't exist."""
         # Setup
         group_repository.GetById = MagicMock(return_value=None)
@@ -76,10 +81,7 @@ class TestGroupRepository:
     def test_list_all_success(self, group_repository, mock_session):
         """Test successful listing of all groups."""
         # Setup
-        expected_groups = [
-            Group(id=1, name="group1"),
-            Group(id=2, name="group2")
-        ]
+        expected_groups = [Group(id=1, name="group1"), Group(id=2, name="group2")]
         mock_result = MagicMock()
         mock_result.all.return_value = expected_groups
         mock_session.exec.return_value = mock_result
@@ -91,7 +93,9 @@ class TestGroupRepository:
         assert result == expected_groups
         mock_session.exec.assert_called_once()
 
-    def test_get_by_id_success(self, group_repository, mock_session, sample_group_static):
+    def test_get_by_id_success(
+        self, group_repository, mock_session, sample_group_static
+    ):
         """Test successful group retrieval by ID."""
         # Setup
         group_id = sample_group_static.id
@@ -120,7 +124,9 @@ class TestGroupRepository:
         # Assert
         assert result is None
 
-    def test_get_by_guid_success(self, group_repository, mock_session, sample_group_static):
+    def test_get_by_guid_success(
+        self, group_repository, mock_session, sample_group_static
+    ):
         """Test successful group retrieval by GUID."""
         # Setup
         group_guid = sample_group_static.guid
@@ -153,10 +159,7 @@ class TestGroupRepository:
         """Test successful group retrieval by name."""
         # Setup
         group_name = "Test Group"
-        expected_groups = [
-            Group(id=1, name=group_name),
-            Group(id=2, name=group_name)
-        ]
+        expected_groups = [Group(id=1, name=group_name), Group(id=2, name=group_name)]
         mock_result = MagicMock()
         mock_result.all.return_value = expected_groups
         mock_session.exec.return_value = mock_result
@@ -203,7 +206,9 @@ class TestGroupRepository:
         mock_session.exec.assert_called_once()
         mock_session.commit.assert_called_once()
 
-    def test_update_with_none_values(self, group_repository, mock_session, sample_group_static):
+    def test_update_with_none_values(
+        self, group_repository, mock_session, sample_group_static
+    ):
         """Test group update with None values (should use current values)."""
         # Setup
         group_id = sample_group_static.id
@@ -234,7 +239,9 @@ class TestGroupRepository:
         # Assert
         assert result is False
 
-    def test_update_database_error(self, group_repository, mock_session, sample_group_static):
+    def test_update_database_error(
+        self, group_repository, mock_session, sample_group_static
+    ):
         """Test update with database error."""
         # Setup
         group_id = sample_group_static.id
@@ -358,9 +365,7 @@ class TestGroupRepositoryIntegration:
 
         # Execute
         result = group_repository_clean.Update(
-            sample_group.id,
-            name="Updated Group Name",
-            faculty_name="Updated Faculty"
+            sample_group.id, name="Updated Group Name", faculty_name="Updated Faculty"
         )
 
         # Assert
@@ -380,9 +385,7 @@ class TestGroupRepositoryIntegration:
 
         # Execute
         result = group_repository_clean.Update(
-            sample_group.id,
-            name=None,
-            faculty_name=None
+            sample_group.id, name=None, faculty_name=None
         )
 
         # Assert

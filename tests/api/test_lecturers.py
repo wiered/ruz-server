@@ -1,17 +1,16 @@
 """API tests for lecturers endpoints."""
 
 import uuid
+
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool
-from sqlmodel import SQLModel, Session
+from sqlmodel import Session, SQLModel
 
-
-
-from ruz_server.api.app import app
 from ruz_server.api import lecturers
+from ruz_server.api.app import app
 from ruz_server.api.security import require_api_key
 
 
@@ -34,7 +33,9 @@ async def client():
 
     app.dependency_overrides[require_api_key] = lambda: None
     app.dependency_overrides[lecturers.get_db] = override_get_db
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as test_client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as test_client:
         yield test_client
     app.dependency_overrides.clear()
     SQLModel.metadata.drop_all(engine)
@@ -60,13 +61,16 @@ class TestLecturersAPI:
 
     @pytest.mark.asyncio
     async def test_list_lecturers(self, client):
-        await client.post("/api/lecturer/", json={
-            "id": 5002,
-            "guid": str(uuid.uuid4()),
-            "full_name": "Jane Doe",
-            "short_name": "J. Doe",
-            "rank": "Docent",
-        })
+        await client.post(
+            "/api/lecturer/",
+            json={
+                "id": 5002,
+                "guid": str(uuid.uuid4()),
+                "full_name": "Jane Doe",
+                "short_name": "J. Doe",
+                "rank": "Docent",
+            },
+        )
         response = await client.get("/api/lecturer/")
         assert response.status_code == 200
         assert isinstance(response.json(), list)
@@ -111,11 +115,14 @@ class TestLecturersAPI:
             "rank": "Assistant",
         }
         await client.post("/api/lecturer/", json=payload)
-        response = await client.put("/api/lecturer/5005", json={
-            "full_name": "New Name",
-            "short_name": "N. Name",
-            "rank": "Professor",
-        })
+        response = await client.put(
+            "/api/lecturer/5005",
+            json={
+                "full_name": "New Name",
+                "short_name": "N. Name",
+                "rank": "Professor",
+            },
+        )
         assert response.status_code == 200
         assert response.json() is True
         get_response = await client.get("/api/lecturer/5005")

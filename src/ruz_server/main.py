@@ -1,4 +1,3 @@
-﻿import os
 import uvicorn
 
 from ruz_server.api.app import app
@@ -30,5 +29,5 @@ if __name__ == "__main__":
         workers=(1 if reload_enabled else workers),
         proxy_headers=True,
         forwarded_allow_ips="*",
-        log_level=os.getenv("LOG_LEVEL", "info"),
+        log_level=settings.logging_level,
     )

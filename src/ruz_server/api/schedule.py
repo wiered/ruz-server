@@ -1,5 +1,5 @@
 import datetime
-from typing import Generator, List
+from collections.abc import Generator
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
@@ -58,10 +58,12 @@ def get_week_range(anchor_date: datetime.date) -> tuple[datetime.date, datetime.
     Calculate the start (Monday) and end (Sunday) dates of the week for a given date.
 
     Args:
-        anchor_date (datetime.date): The reference date for which the week range is calculated.
+        anchor_date (datetime.date): The reference date
+            for which the week range is calculated.
 
     Returns:
-        tuple[datetime.date, datetime.date]: A tuple containing the Monday (start) and Sunday (end) dates of the week.
+        tuple[datetime.date, datetime.date]: A tuple containing the Monday (start)
+            and Sunday (end) dates of the week.
     """
     start = anchor_date - datetime.timedelta(days=anchor_date.weekday())
     end = start + datetime.timedelta(days=6)
@@ -76,14 +78,17 @@ def map_lesson_to_schedule_dto(
     Resolves the group ID for the lesson mapping.
 
     Args:
-        group_id (int | None): The group identifier to use, or None if it should be determined.
+        group_id (int | None): The group identifier to use,
+            or None if it should be determined.
 
     Returns:
         int | None: The resolved group identifier value.
     """
     resolved_group_id = group_id
     if resolved_group_id is None:
-        resolved_group_id = lesson.lesson_groups[0].group_id if lesson.lesson_groups else 0
+        resolved_group_id = (
+            lesson.lesson_groups[0].group_id if lesson.lesson_groups else 0
+        )
 
     return UserScheduleLessonRead(
         lesson_id=lesson.id,
@@ -136,7 +141,7 @@ def _get_user_group_and_subgroup(user_id: int, session: Session) -> tuple[int, i
     return user.group_oid, user.subgroup
 
 
-@router.get("/user/{user_id}/day", response_model=List[UserScheduleLessonRead])
+@router.get("/user/{user_id}/day", response_model=list[UserScheduleLessonRead])
 def get_user_schedule_day(
     user_id: int,
     date: datetime.date = Query(...),
@@ -151,7 +156,8 @@ def get_user_schedule_day(
         session (Session): The database session dependency.
 
     Returns:
-        List[UserScheduleLessonRead]: A list of schedule lesson data for the user on the specified day.
+        List[UserScheduleLessonRead]: A list of schedule lesson data
+            for the user on the specified day.
     """
     group_id, subgroup = _get_user_group_and_subgroup(user_id, session)
     lesson_repo = LessonRepository(session)
@@ -164,7 +170,7 @@ def get_user_schedule_day(
     return [map_lesson_to_schedule_dto(lesson, group_id) for lesson in lessons]
 
 
-@router.get("/user/{user_id}/week", response_model=List[UserScheduleLessonRead])
+@router.get("/user/{user_id}/week", response_model=list[UserScheduleLessonRead])
 def get_user_schedule_week(
     user_id: int,
     date: datetime.date = Query(...),
@@ -179,7 +185,8 @@ def get_user_schedule_week(
         session (Session): The database session dependency.
 
     Returns:
-        List[UserScheduleLessonRead]: A list of schedule lesson data for the user for the specified week.
+        List[UserScheduleLessonRead]: A list of schedule lesson data for
+            the user for the specified week.
     """
     group_id, subgroup = _get_user_group_and_subgroup(user_id, session)
     start, end = get_week_range(date)

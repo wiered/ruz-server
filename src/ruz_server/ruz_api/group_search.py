@@ -1,7 +1,7 @@
 """Парсинг ответа поиска групп RUZ (`/api/search?type=group`)."""
 
 import logging
-from typing import Any, List
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -17,7 +17,7 @@ class RuzGroupSearchItem(BaseModel):
     guid: UUID = Field(description="GUID группы в RUZ")
 
 
-def parse_ruz_group_search_response(raw: Any) -> List[RuzGroupSearchItem]:
+def parse_ruz_group_search_response(raw: Any) -> list[RuzGroupSearchItem]:
     """
     Разбирает JSON-массив ответа поиска групп RUZ в список моделей.
 
@@ -26,7 +26,7 @@ def parse_ruz_group_search_response(raw: Any) -> List[RuzGroupSearchItem]:
     if not isinstance(raw, list):
         return []
 
-    items: List[RuzGroupSearchItem] = []
+    items: list[RuzGroupSearchItem] = []
     for row in raw:
         if not isinstance(row, dict):
             continue

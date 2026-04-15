@@ -1,23 +1,27 @@
 """Integration test for importing lessons from RUZ JSON examples."""
 
-from pathlib import Path
 import json
 import re
+from pathlib import Path
 
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool
-from sqlmodel import SQLModel, Session, select
+from sqlmodel import Session, SQLModel, select
 
-
-
-from ruz_server.api.app import app
 from ruz_server.api import lesson
+from ruz_server.api.app import app
 from ruz_server.api.security import require_api_key
 from ruz_server.helpers.ruz_mapper import map_ruz_lessons_to_payloads
-from ruz_server.models.models import Auditorium, Discipline, KindOfWork, Lecturer, Lesson
+from ruz_server.models.models import (
+    Auditorium,
+    Discipline,
+    KindOfWork,
+    Lecturer,
+    Lesson,
+)
 
 
 def _load_relaxed_json(file_path: Path) -> dict:
@@ -47,7 +51,9 @@ async def client():
 
     app.dependency_overrides[require_api_key] = lambda: None
     app.dependency_overrides[lesson.get_db] = override_get_db
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as test_client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as test_client:
         test_client.engine = engine
         yield test_client
     app.dependency_overrides.clear()
@@ -58,15 +64,32 @@ async def client():
 @pytest.mark.api
 @pytest.mark.asyncio
 async def test_import_lessons_from_example_multiple_json(client):
-    file_path = Path(__file__).resolve().parents[2] / "tests" / "fixtures" / "ruz" / "example.multiple.json"
+    file_path = (
+        Path(__file__).resolve().parents[2]
+        / "tests"
+        / "fixtures"
+        / "ruz"
+        / "example.multiple.json"
+    )
     data = json.loads(file_path.read_text(encoding="utf-8-sig"))
 
     payloads = map_ruz_lessons_to_payloads(data, group_id=841)
 
     # Manual expectation for source lesson identifiers from JSON
     expected_source_lesson_ids = {
-        94673, 94775, 95739, 95740, 96549, 96561, 96546,
-        95756, 95743, 95912, 95916, 95772, 95773
+        94673,
+        94775,
+        95739,
+        95740,
+        96549,
+        96561,
+        96546,
+        95756,
+        95743,
+        95912,
+        95916,
+        95772,
+        95773,
     }
     assert {payload["id"] for payload in payloads} == expected_source_lesson_ids
 
@@ -144,7 +167,13 @@ async def test_import_lessons_from_example_multiple_json(client):
 @pytest.mark.api
 @pytest.mark.asyncio
 async def test_import_lesson_from_example_practice_json(client):
-    file_path = Path(__file__).resolve().parents[2] / "tests" / "fixtures" / "ruz" / "example.practice.json"
+    file_path = (
+        Path(__file__).resolve().parents[2]
+        / "tests"
+        / "fixtures"
+        / "ruz"
+        / "example.practice.json"
+    )
     raw = _load_relaxed_json(file_path)
     payload = map_ruz_lessons_to_payloads([raw], group_id=841)[0]
 
@@ -205,7 +234,13 @@ async def test_import_lesson_from_example_practice_json(client):
 @pytest.mark.api
 @pytest.mark.asyncio
 async def test_import_lesson_from_example_lab_json(client):
-    file_path = Path(__file__).resolve().parents[2] / "tests" / "fixtures" / "ruz" / "example.lab.json"
+    file_path = (
+        Path(__file__).resolve().parents[2]
+        / "tests"
+        / "fixtures"
+        / "ruz"
+        / "example.lab.json"
+    )
     raw = _load_relaxed_json(file_path)
     # Manual fix for known fixture: disciplineOid is absent in example.lab.json
     raw["disciplineOid"] = 3251
@@ -266,7 +301,13 @@ async def test_import_lesson_from_example_lab_json(client):
 @pytest.mark.api
 @pytest.mark.asyncio
 async def test_import_lesson_from_example_lection_json(client):
-    file_path = Path(__file__).resolve().parents[2] / "tests" / "fixtures" / "ruz" / "example.lection.json"
+    file_path = (
+        Path(__file__).resolve().parents[2]
+        / "tests"
+        / "fixtures"
+        / "ruz"
+        / "example.lection.json"
+    )
     raw = _load_relaxed_json(file_path)
     payload = map_ruz_lessons_to_payloads([raw], group_id=841)[0]
 

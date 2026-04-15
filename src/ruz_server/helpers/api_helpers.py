@@ -1,5 +1,6 @@
 from fastapi import HTTPException, status
 
+
 def ensure_entity_exists(value, function):
     """Ensures that the object with the given value exists in the database.
 
@@ -14,11 +15,11 @@ def ensure_entity_exists(value, function):
     entity = function(value)
     if not entity:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Error: Not Found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Error: Not Found"
         )
 
     return entity
+
 
 def is_entity_exists(value, function):
     """Ensures that the object with the given value exists in the database.
@@ -34,14 +35,11 @@ def is_entity_exists(value, function):
     entity = function(value)
     return bool(entity)
 
-def create_if_not_exists(
-    repository,
-    value,
-    function,
-    entity
-):
+
+def create_if_not_exists(repository, value, function, entity):
     if not is_entity_exists(value, function):
         repository.Create(entity)
+
 
 def ensure_entity_doesnot_exist(value, function) -> None:
     """Ensures that the kind of work with the given ID does not exist in the database.
@@ -56,6 +54,5 @@ def ensure_entity_doesnot_exist(value, function) -> None:
     entity = function(value)
     if entity:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Error: Conflict"
+            status_code=status.HTTP_409_CONFLICT, detail="Error: Conflict"
         )

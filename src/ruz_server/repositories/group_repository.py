@@ -1,5 +1,4 @@
-﻿import logging
-from typing import List, Optional
+import logging
 
 from sqlalchemy import UUID
 from sqlalchemy.exc import SQLAlchemyError
@@ -9,24 +8,26 @@ from ruz_server.models import Group
 
 logger = logging.getLogger(__name__)
 
+
 class GroupRepository:
     """
-    GroupRepository provides methods for creating, retrieving, and managing Group entities in the database.
-    This class abstracts common database operations for groups, promoting code reuse and consistency.
+    GroupRepository provides methods for creating, retrieving,
+    and managing Group entities in the database. This class
+    abstracts common database operations for groups, promoting
+    code reuse and consistency.
 
     Args:
-        session (Session): The SQLModel database session used for performing group-related operations.
+        session (Session): The SQLModel database session used
+            for performing group-related operations.
 
     Returns:
         GroupRepository: An instance to access and manipulate Group records.
     """
+
     def __init__(self, session: Session):
         self.session = session
 
-    def Create(
-        self,
-        group: Group
-    ) -> Group:
+    def Create(self, group: Group) -> Group:
         """
         Creates a new group.
 
@@ -66,7 +67,7 @@ class GroupRepository:
         logger.debug(f"Group {group.name} does not exist, creating")
         return self.Create(group)
 
-    def ListAll(self) -> List[Group]:
+    def ListAll(self) -> list[Group]:
         """Returns all groups in the database.
 
         Returns:
@@ -77,35 +78,37 @@ class GroupRepository:
         stmt = select(Group)
         return self.session.exec(stmt).all()
 
-    def GetById(self, value: int) -> Optional[Group]:
+    def GetById(self, value: int) -> Group | None:
         """Gets a group by ID.
 
         Args:
             value (int): The ID of the group to get.
 
         Returns:
-            Optional[Group]: The group with the given ID, or None if no such group exists.
+            Optional[Group]: The group with the given ID,
+                or None if no such group exists.
         """
         logger.info(f"Getting Group {value}")
 
         stmt = select(Group).where(Group.id == value)
         return self.session.exec(stmt).first()
 
-    def GetByGUID(self, value: UUID) -> Optional[Group]:
+    def GetByGUID(self, value: UUID) -> Group | None:
         """Gets a group by GUID.
 
         Args:
             value (UUID): The GUID of the group to get.
 
         Returns:
-            Optional[Group]: The group with the given GUID, or None if no such group exists.
+            Optional[Group]: The group with the given GUID,
+                or None if no such group exists.
         """
         logger.info(f"Getting Group {value}")
 
         stmt = select(Group).where(Group.guid == value)
         return self.session.exec(stmt).first()
 
-    def GetByName(self, value: str) -> List[Group]:
+    def GetByName(self, value: str) -> list[Group]:
         """Gets all groups with the given name.
 
         Args:
@@ -140,17 +143,17 @@ class GroupRepository:
                 return False
 
             if name is None:
-                logger.debug(f"Payload does not have a name")
+                logger.debug("Payload does not have a name")
                 name = current.name
             if faculty_name is None:
-                logger.debug(f"Payload does not have a faculty name")
+                logger.debug("Payload does not have a faculty name")
                 faculty_name = current.faculty_name
 
             stmt = (
                 update(Group)
                 .where(Group.id == value)
                 .values(name=name, faculty_name=faculty_name)
-                )
+            )
             result = self.session.exec(stmt)
             self.session.commit()
             logger.debug(f"Group {value} updated")

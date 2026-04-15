@@ -1,22 +1,24 @@
-import os
-import logging
 import asyncio
+import logging
 from contextlib import asynccontextmanager
+from importlib.metadata import PackageNotFoundError, version
 from logging.config import dictConfig
 from zoneinfo import ZoneInfo
-from importlib.metadata import version, PackageNotFoundError
 
-from fastapi import FastAPI, Request, Security
-from fastapi.responses import JSONResponse
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
-from ruz_server.api.security import require_api_key
-from ruz_server.api import api_router
-from ruz_server.database.database import db
-from ruz_server.services.refresh_scheduler import get_last_refresh_state, run_refresh_job
-from ruz_server.settings import settings
+from fastapi import FastAPI, Request, Security
+from fastapi.responses import JSONResponse
 
-from ruz_server.logging_config import LOGGING_CONFIG, ColoredFormatter
+from ruz_server.api import api_router
+from ruz_server.api.security import require_api_key
+from ruz_server.database.database import db
+from ruz_server.logging_config import LOGGING_CONFIG
+from ruz_server.services.refresh_scheduler import (
+    get_last_refresh_state,
+    run_refresh_job,
+)
+from ruz_server.settings import settings
 
 try:
     __version__ = version("ruz-server")
@@ -27,14 +29,16 @@ except PackageNotFoundError:
 dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger(__name__)
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
     Lifespan context manager for FastAPI app.
 
-    This function manages application startup and shutdown events. It initializes database tables,
-    configures and starts the APScheduler for periodic background jobs (such as the daily refresh job),
-    and performs any necessary startup actions like triggering an update if specified in settings.
+    This function manages application startup and shutdown events.
+    It initializes database tables, configures and starts the APScheduler for
+    periodic background jobs (such as the daily refresh job), and performs any
+    necessary startup actions like triggering an update if specified in settings.
     On app shutdown, it ensures that the scheduler is properly shut down.
 
     Args:
@@ -79,18 +83,20 @@ app = FastAPI(
     description="API for the RUZ Server",
     version=__version__,
     license_info={
-        "name": "MIT License",
-        "url": "https://github.com/ruz-server/LICENSE",
-    }
-    )
+        "name": "GPL-3.0",
+        "url": "https://github.com/wiered/ruz-server/blob/main/LICENSE",
+    },
+)
 app.include_router(api_router, prefix="/api", dependencies=[Security(require_api_key)])
+
 
 @app.get("/")
 async def root(request: Request):
     """
     Root endpoint for the API.
 
-    This endpoint returns a simple greeting message. It can be used to check that the API is up and responding.
+    This endpoint returns a simple greeting message. It can be used to check that
+    the API is up and responding.
 
     Args:
         request (Request): The incoming HTTP request object.
@@ -100,12 +106,14 @@ async def root(request: Request):
     """
     return {"message": "Hello World"}
 
+
 @app.get("/public")
 async def public():
     """
     Public endpoint that returns a simple message.
 
-    This endpoint can be accessed without authentication and is useful for verifying the service is running.
+    This endpoint can be accessed without authentication and is useful for verifying
+    the service is running.
 
     Returns:
         dict: A JSON object indicating public access is successful.
@@ -113,13 +121,15 @@ async def public():
     logger.info("public ok")
     return {"message": "public ok"}
 
+
 @app.get("/protected")
 async def protected(_: None = Security(require_api_key)):
     """
     Protected endpoint that requires API key authentication.
 
     This endpoint can only be accessed if a valid API key is provided.
-    It is commonly used to verify that protected routes and API key validation are functioning.
+    It is commonly used to verify that protected routes and API key
+    validation are functioning.
 
     Args:
         _ (None): Dependency-injected placeholder to enforce API key security.
@@ -130,17 +140,20 @@ async def protected(_: None = Security(require_api_key)):
     logger.info("protected ok")
     return {"message": "protected ok"}
 
+
 @app.get("/healthz")
 async def healthz():
     """
     Health check endpoint for the API.
 
-    This endpoint is used to determine whether the service is running and able to respond to requests.
-    It examines the last refresh state of the backend to report the status.
+    This endpoint is used to determine whether the service is running and able
+    to respond to requests. It examines the last refresh state of the backend
+    to report the status.
 
     Returns:
-        JSONResponse or dict: Returns a JSON response with status "degraded" and 503 code if
-            the last refresh failed or was never performed, or a status "ok" if healthy.
+        JSONResponse or dict: Returns a JSON response with status "degraded"
+            and 503 code if the last refresh failed or was never performed,
+            or a status "ok" if healthy.
     """
     state = get_last_refresh_state()
     last_refresh_at = state["last_refresh_at"]
@@ -151,7 +164,9 @@ async def healthz():
             status_code=503,
             content={
                 "status": "degraded",
-                "last_refresh_at": last_refresh_at.isoformat() if last_refresh_at else None,
+                "last_refresh_at": last_refresh_at.isoformat()
+                if last_refresh_at
+                else None,
                 "last_refresh_status": last_refresh_status,
             },
         )
@@ -161,6 +176,7 @@ async def healthz():
         "last_refresh_at": last_refresh_at.isoformat() if last_refresh_at else None,
         "last_refresh_status": last_refresh_status,
     }
+
 
 @app.get("/version")
 async def version():

@@ -1,4 +1,4 @@
-﻿import logging
+import logging
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlmodel import Session, delete, select, update
@@ -6,6 +6,7 @@ from sqlmodel import Session, delete, select, update
 from ruz_server.models import KindOfWork
 
 logger = logging.getLogger(__name__)
+
 
 class KindOfWorkRepository:
     """
@@ -19,6 +20,7 @@ class KindOfWorkRepository:
     Returns:
         KindOfWorkRepository: An instance for interacting with KindOfWork data.
     """
+
     def __init__(self, session: Session):
         self.session = session
 
@@ -40,7 +42,8 @@ class KindOfWorkRepository:
 
     def GetOrCreate(self, kind_of_work: KindOfWork):
         """
-        Creates a new KindOfWork if it doesn't exist, otherwise it retrieves the existing one.
+        Creates a new KindOfWork if it doesn't exist,
+            otherwise it retrieves the existing one.
 
         Args:
             kind_of_work (KindOfWork): Kind of work to be created or retrieved.
@@ -107,10 +110,10 @@ class KindOfWorkRepository:
                 return False
 
             if type_of_work is None:
-                logger.debug(f"Payload does not have a type of work")
+                logger.debug("Payload does not have a type of work")
                 type_of_work = current.type_of_work
             if complexity is None:
-                logger.debug(f"Payload does not have a complexity")
+                logger.debug("Payload does not have a complexity")
                 complexity = current.complexity
 
             stmt = (

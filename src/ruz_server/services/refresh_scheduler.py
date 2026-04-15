@@ -2,11 +2,12 @@ import asyncio
 import json
 import logging
 import os
-from pathlib import Path
 import time
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Awaitable, Callable
+from collections.abc import Awaitable, Callable
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import Any
 
 from sqlmodel import Session
 
@@ -18,6 +19,7 @@ logger = logging.getLogger(__name__)
 RefreshRunner = Callable[[Session], Awaitable[dict[str, Any]]]
 
 _refresh_lock = asyncio.Lock()
+_LOCK_IS_TEMPORARY_ON_WINDOWS = os.name == "nt" and hasattr(os, "O_TEMPORARY")
 
 # Последняя завершенная попытка refresh (для health endpoint).
 # Поля обновляются только когда refresh реально стартовал и завершился
@@ -35,11 +37,14 @@ def _acquire_file_lock(lock_path: str) -> int | None:
         lock_path (str): The file path to the lock file.
 
     Returns:
-        int | None: File descriptor if the lock was acquired successfully, or None if the lock already exists.
+        int | None: File descriptor if the lock was acquired successfully,
+            or None if the lock already exists.
     """
     path = Path(lock_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY
+    if _LOCK_IS_TEMPORARY_ON_WINDOWS:
+        flags |= os.O_TEMPORARY
     try:
         return os.open(str(path), flags)
     except FileExistsError:
@@ -52,7 +57,8 @@ def _release_file_lock(lock_path: str, fd: int | None) -> None:
 
     Args:
         lock_path (str): The file path to the lock file.
-        fd (int | None): File descriptor of the lock file, or None if lock was not acquired.
+        fd (int | None): File descriptor of the lock file,
+            or None if lock was not acquired.
 
     Returns:
         None
@@ -62,7 +68,8 @@ def _release_file_lock(lock_path: str, fd: int | None) -> None:
     try:
         os.close(fd)
     finally:
-        Path(lock_path).unlink(missing_ok=True)
+        if not _LOCK_IS_TEMPORARY_ON_WINDOWS:
+            Path(lock_path).unlink(missing_ok=True)
 
 
 def get_last_refresh_state() -> dict[str, Any]:
@@ -77,9 +84,11 @@ def get_last_refresh_state() -> dict[str, Any]:
 
     Returns:
         dict[str, Any]: Dictionary containing:
-            - last_refresh_at (datetime | None): Timestamp of the last completed refresh attempt.
-            - last_refresh_status (str): Status string indicating the outcome of the last refresh
-              ("never", "success", "error", or "skipped").
+            - last_refresh_at (datetime | None):
+                Timestamp of the last completed refresh attempt.
+            - last_refresh_status (str):
+                Status string indicating the outcome of the last refresh
+                ("never", "success", "error", or "skipped").
     """
     return {
         "last_refresh_at": LAST_REFRESH_AT,
@@ -142,22 +151,25 @@ async def run_refresh_with_session(
 ) -> dict[str, Any]:
     """
     About:
-        Runs the refresh procedure using the provided database session and optional refresh runner.
-        Ensures that only one refresh can run at a time by using in-process and file locks.
-        Handles logging and lock management, and returns a status dictionary describing the outcome.
-        If no refresh runner is provided, uses the default lesson parser.
+        Runs the refresh procedure using the provided database session and optional
+        refresh runner. Ensures that only one refresh can run at a time by using
+        in-process and file locks. Handles logging and lock management, and returns
+        a status dictionary describing the outcome. If no refresh runner is provided,
+        uses the default lesson parser.
 
     Args:
         session (Session): The database session for database operations during refresh.
         source (str): A descriptive source string which triggered the refresh.
-        refresh_runner (RefreshRunner | None, optional): A coroutine or callable performing the refresh logic.
+        refresh_runner (RefreshRunner | None, optional):
+            A coroutine or callable performing the refresh logic.
             If None, uses the default lessons refresh routine.
 
     Returns:
-        dict[str, Any]: A dictionary indicating the status of the refresh (e.g., "skipped", "completed", or error details).
+        dict[str, Any]: A dictionary indicating the status of the refresh
+            (e.g., "skipped", "completed", or error details).
     """
     run_id = uuid.uuid4().hex
-    skip_at = datetime.now(timezone.utc)
+    skip_at = datetime.now(UTC)
 
     if _refresh_lock.locked():
         logger.info(
@@ -196,7 +208,7 @@ async def run_refresh_with_session(
             return {"status": "skipped", "reason": "refresh already running"}
 
         if refresh_runner is None:
-            from ruz_server.api.lesson import parse_lessons_core
+            from ruz_server.helpers.refresh_helper import parse_lessons_core
 
             refresh_runner = parse_lessons_core
 
@@ -206,7 +218,7 @@ async def run_refresh_with_session(
             result = await refresh_runner(session)
         except Exception as exc:
             duration_ms = int((time.perf_counter() - start) * 1000)
-            LAST_REFRESH_AT = datetime.now(timezone.utc)
+            LAST_REFRESH_AT = datetime.now(UTC)
             LAST_REFRESH_STATUS = "error"
 
             logger.error(
@@ -226,7 +238,7 @@ async def run_refresh_with_session(
             raise
 
         duration_ms = int((time.perf_counter() - start) * 1000)
-        LAST_REFRESH_AT = datetime.now(timezone.utc)
+        LAST_REFRESH_AT = datetime.now(UTC)
         LAST_REFRESH_STATUS = "success"
 
         lessons_pruned = _safe_int(result.get("lessons_pruned"))
@@ -262,7 +274,8 @@ async def run_refresh_job(source: str = "scheduler") -> dict[str, Any]:
     Create DB session and run refresh through shared orchestrator.
 
     Args:
-        source (str): The source of the refresh (e.g., "scheduler" or "startup_doupdate"). Defaults to "scheduler".
+        source (str): The source of the refresh (e.g., "scheduler", "startup_doupdate").
+            Defaults to "scheduler".
 
     Returns:
         dict[str, Any]: Dictionary containing the result of the refresh.

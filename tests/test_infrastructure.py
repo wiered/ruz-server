@@ -1,16 +1,19 @@
 """Smoke and contract tests for infrastructure modules."""
 
-from pathlib import Path
 import importlib.util
+from pathlib import Path
 
 import pytest
 import uvicorn
 from fastapi import FastAPI
 from sqlmodel import Session
 
-
-from ruz_server.database import DataBase, db
-from ruz_server.logging_config.logging_config import ColoredFormatter, LOGGING_CONFIG, LOGS_DIR
+from ruz_server.database import DataBase
+from ruz_server.logging_config.logging_config import (
+    LOGGING_CONFIG,
+    LOGS_DIR,
+    ColoredFormatter,
+)
 from ruz_server.settings import ROOT, settings
 
 

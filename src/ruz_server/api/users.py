@@ -1,23 +1,22 @@
+# Setup logging
+import logging
+from collections.abc import Generator
 from datetime import datetime
-from typing import Generator, List, Optional
+from logging.config import dictConfig
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Security, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict
 from sqlmodel import Session
 
-from ruz_server.api.security import require_api_key
 from ruz_server.database import db
-from ruz_server.helpers.api_helpers import (ensure_entity_doesnot_exist,
-                                 ensure_entity_exists)
+from ruz_server.helpers.api_helpers import (
+    ensure_entity_doesnot_exist,
+    ensure_entity_exists,
+)
+from ruz_server.logging_config import LOGGING_CONFIG, ColoredFormatter
 from ruz_server.models import Group, User
 from ruz_server.repositories import GroupRepository, UserRepository
-
-
-# Setup logging
-import logging
-from logging.config import dictConfig
-from ruz_server.logging_config import LOGGING_CONFIG, ColoredFormatter
 
 dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger(__name__)
@@ -25,12 +24,16 @@ logger = logging.getLogger(__name__)
 root_logger = logging.getLogger()
 for handler in root_logger.handlers:
     if type(handler) is logging.StreamHandler:
-        handler.setFormatter(ColoredFormatter('%(levelname)s:     %(asctime)s %(name)s - %(message)s'))
+        handler.setFormatter(
+            ColoredFormatter("%(levelname)s:     %(asctime)s %(name)s - %(message)s")
+        )
 
 router = APIRouter(prefix="/user", tags=["user"])
 
+
 def get_db() -> Generator[Session, None, None]:
     yield from db.get_session()
+
 
 class UserRead(BaseModel):
     """
@@ -48,14 +51,16 @@ class UserRead(BaseModel):
     Returns:
         UserRead: An instance containing user data for API output.
     """
+
     id: int
-    group_oid: Optional[int] = None
-    subgroup: Optional[int] = None
+    group_oid: int | None = None
+    subgroup: int | None = None
     username: str
     created_at: datetime
     last_used_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class UserCreate(BaseModel):
     """
@@ -73,13 +78,15 @@ class UserCreate(BaseModel):
     Returns:
         UserCreate: User creation schema instance.
     """
+
     id: int  # Telegram ID
     username: str
     group_oid: int
-    subgroup: Optional[int] = None
-    group_guid: Optional[UUID] | None = None
-    group_name: Optional[str] | None = None
-    faculty_name: Optional[str] | None = None
+    subgroup: int | None = None
+    group_guid: UUID | None | None = None
+    group_name: str | None | None = None
+    faculty_name: str | None | None = None
+
 
 class UserUpdate(BaseModel):
     """
@@ -97,16 +104,17 @@ class UserUpdate(BaseModel):
     Returns:
         UserUpdate: An instance containing fields to update in the user entity.
     """
-    username: Optional[str] | None = None
-    group_oid: Optional[int] | None = None
-    subgroup: Optional[int] | None = None
-    last_used_at: Optional[datetime] | None = None
-    group_guid: Optional[UUID] | None = None
-    group_name: Optional[str] | None = None
-    faculty_name: Optional[str] | None = None
+
+    username: str | None | None = None
+    group_oid: int | None | None = None
+    subgroup: int | None | None = None
+    last_used_at: datetime | None | None = None
+    group_guid: UUID | None | None = None
+    group_name: str | None | None = None
+    faculty_name: str | None | None = None
 
 
-def _validate_subgroup(subgroup: Optional[int]) -> None:
+def _validate_subgroup(subgroup: int | None) -> None:
     """
     Validates the subgroup value.
 
@@ -114,14 +122,14 @@ def _validate_subgroup(subgroup: Optional[int]) -> None:
         subgroup (Optional[int]): The subgroup number to validate.
 
     Returns:
-        None: Returns nothing if the subgroup is valid. Raises an HTTPException if invalid.
+        None: Returns nothing if the subgroup is valid.
+            Raises an HTTPException if invalid.
     """
     if subgroup is None:
         return
     if subgroup not in {0, 1, 2}:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="invalid subgroup"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="invalid subgroup"
         )
 
 
@@ -137,6 +145,7 @@ def _validate_nullable_subgroup_transition(payload: UserUpdate) -> None:
         detail="subgroup can be null only when group_oid is null",
     )
 
+
 def _check_payload(payload: UserCreate | UserUpdate) -> None:
     """
     Validates essential fields in the payload to ensure data integrity.
@@ -145,26 +154,25 @@ def _check_payload(payload: UserCreate | UserUpdate) -> None:
     Raises HTTPException if any of these fields are missing.
 
     Args:
-        payload (UserCreate | UserUpdate): The payload containing user/group information.
+        payload (UserCreate | UserUpdate): The payload containing user/group information
 
     Returns:
-        None: Returns nothing if all required fields are present. Raises an HTTPException if not.
+        None: Returns nothing if all required fields are present.
+            Raises an HTTPException if not.
     """
     if payload.group_guid is None:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid group GUID"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid group GUID"
         )
     if payload.group_name is None:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid group name"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid group name"
         )
     if payload.faculty_name is None:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid faculty name"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid faculty name"
         )
+
 
 def _ensure_group_exists(payload: UserCreate | UserUpdate, session: Session) -> None:
     """Ensures that the group with the given OID exists in the database.
@@ -183,20 +191,18 @@ def _ensure_group_exists(payload: UserCreate | UserUpdate, session: Session) -> 
     group_repo = GroupRepository(session)
     if not group_repo.GetById(payload.group_oid):
         _check_payload(payload)
-        group = group_repo.GetOrCreate(
+        group_repo.GetOrCreate(
             Group(
                 id=payload.group_oid,
                 guid=payload.group_guid,
                 name=payload.group_name,
-                faculty_name=payload.faculty_name
+                faculty_name=payload.faculty_name,
             )
         )
 
+
 @router.post("/", response_model=UserRead, status_code=status.HTTP_201_CREATED)
-def create_user(
-    payload: UserCreate,
-    session: Session =  Depends(get_db)
-):
+def create_user(payload: UserCreate, session: Session = Depends(get_db)):
     """
     Create a new user in the system.
 
@@ -221,14 +227,13 @@ def create_user(
             id=payload.id,
             username=payload.username,
             group_oid=payload.group_oid,
-            subgroup=payload.subgroup
+            subgroup=payload.subgroup,
         )
     )
 
-@router.get("/", response_model=List[UserRead])
-def list_users(
-    session: Session = Depends(get_db)
-):
+
+@router.get("/", response_model=list[UserRead])
+def list_users(session: Session = Depends(get_db)):
     """
     Retrieve a list of all users in the system.
 
@@ -241,11 +246,9 @@ def list_users(
     repo = UserRepository(session)
     return repo.ListAll()
 
+
 @router.get("/{user_id}", response_model=UserRead)
-def get_user(
-    user_id: int,
-    session: Session = Depends(get_db)
-):
+def get_user(user_id: int, session: Session = Depends(get_db)):
     """
     Retrieve a user by their unique ID.
 
@@ -262,11 +265,9 @@ def get_user(
     repo = UserRepository(session)
     return ensure_entity_exists(user_id, repo.GetById)
 
+
 @router.get("/guid/{user_guid}", response_model=UserRead)
-def get_user_by_username(
-    username: str,
-    session: Session = Depends(get_db)
-):
+def get_user_by_username(username: str, session: Session = Depends(get_db)):
     """
     Retrieve a user by their unique username.
 
@@ -283,12 +284,9 @@ def get_user_by_username(
     repo = UserRepository(session)
     return ensure_entity_exists(username, repo.GetByUsername)
 
+
 @router.put("/{user_id}", response_model=UserRead)
-def update_user(
-    user_id: int,
-    payload: UserUpdate,
-    session: Session = Depends(get_db)
-):
+def update_user(user_id: int, payload: UserUpdate, session: Session = Depends(get_db)):
     """
     Update user information by user ID.
 
@@ -320,15 +318,13 @@ def update_user(
     if not updated:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error: Update Failed"
+            detail="Error: Update Failed",
         )
     return ensure_entity_exists(user_id, repo.GetById)
 
+
 @router.put("/last_used_at/{user_guid}")
-def update_user_last_used_at(
-    user_id: int,
-    session: Session = Depends(get_db)
-):
+def update_user_last_used_at(user_id: int, session: Session = Depends(get_db)):
     """
     Update the 'last_used_at' timestamp for a user by user ID.
 
@@ -344,11 +340,9 @@ def update_user_last_used_at(
 
     return repo.UpdateLastUsedAt(user_id)
 
+
 @router.delete("/{user_id}")
-def delete_user(
-    user_id: int,
-    session: Session = Depends(get_db)
-):
+def delete_user(user_id: int, session: Session = Depends(get_db)):
     """
     Delete a user entity by its unique identifier.
 

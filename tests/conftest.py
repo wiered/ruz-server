@@ -1,18 +1,23 @@
 """Pytest configuration and shared fixtures."""
 
 import datetime
-import os
-import tempfile
-from typing import Generator
+from collections.abc import Generator
 from unittest.mock import MagicMock
 
 import pytest
 from sqlalchemy import create_engine
 from sqlmodel import Session, SQLModel
 
-
-
-from ruz_server.models.models import User, Group, Auditorium, Discipline, KindOfWork, Lecturer, LessonGroup, Lesson
+from ruz_server.models.models import (
+    Auditorium,
+    Discipline,
+    Group,
+    KindOfWork,
+    Lecturer,
+    Lesson,
+    LessonGroup,
+    User,
+)
 
 
 @pytest.fixture(scope="session")
@@ -71,8 +76,9 @@ def mock_session():
 @pytest.fixture
 def unique_user_id():
     """Generate unique user ID for each test."""
-    import time
     import random
+    import time
+
     # Генерируем уникальный ID на основе времени и случайного числа
     return int(time.time() * 1000000) % 1000000000 + random.randint(1000, 9999)
 
@@ -85,8 +91,8 @@ def sample_user_data(unique_user_id):
         "username": f"test_user_{unique_user_id}",
         "group_oid": 1,
         "subgroup": 1,
-        "created_at": datetime.datetime.now(datetime.timezone.utc),
-        "last_used_at": datetime.datetime.now(datetime.timezone.utc)
+        "created_at": datetime.datetime.now(datetime.UTC),
+        "last_used_at": datetime.datetime.now(datetime.UTC),
     }
 
 
@@ -98,8 +104,8 @@ def sample_user_data_static():
         "username": "test_user",
         "group_oid": 1,
         "subgroup": 1,
-        "created_at": datetime.datetime.now(datetime.timezone.utc),
-        "last_used_at": datetime.datetime.now(datetime.timezone.utc)
+        "created_at": datetime.datetime.now(datetime.UTC),
+        "last_used_at": datetime.datetime.now(datetime.UTC),
     }
 
 
@@ -118,8 +124,9 @@ def sample_user_static(sample_user_data_static):
 @pytest.fixture
 def unique_group_id():
     """Generate unique group ID for each test."""
-    import time
     import random
+    import time
+
     return int(time.time() * 1000) % 100000 + random.randint(100, 999)
 
 
@@ -127,11 +134,12 @@ def unique_group_id():
 def sample_group(unique_group_id):
     """Create a sample Group object with unique ID."""
     import uuid
+
     return Group(
         id=unique_group_id,
         guid=uuid.uuid4(),
         name=f"Test Group {unique_group_id}",
-        faculty_name="Test Faculty"
+        faculty_name="Test Faculty",
     )
 
 
@@ -142,15 +150,16 @@ def sample_group_static():
         id=1,
         guid="550e8400-e29b-41d4-a716-446655440000",
         name="Test Group",
-        faculty_name="Test Faculty"
+        faculty_name="Test Faculty",
     )
 
 
 @pytest.fixture
 def unique_auditorium_id():
     """Generate unique auditorium ID for each test."""
-    import time
     import random
+    import time
+
     return int(time.time() * 1000) % 100000 + random.randint(100, 999)
 
 
@@ -158,11 +167,12 @@ def unique_auditorium_id():
 def sample_auditorium(unique_auditorium_id):
     """Create a sample Auditorium object with unique ID."""
     import uuid
+
     return Auditorium(
         id=unique_auditorium_id,
         guid=uuid.uuid4(),
         name=f"Auditorium {unique_auditorium_id}",
-        building="Main Building"
+        building="Main Building",
     )
 
 
@@ -173,15 +183,16 @@ def sample_auditorium_static():
         id=1,
         guid="550e8400-e29b-41d4-a716-446655440000",
         name="A-101",
-        building="Main Building"
+        building="Main Building",
     )
 
 
 @pytest.fixture
 def unique_discipline_id():
     """Generate unique discipline ID for each test."""
-    import time
     import random
+    import time
+
     return int(time.time() * 1000) % 100000 + random.randint(100, 999)
 
 
@@ -192,26 +203,22 @@ def sample_discipline(unique_discipline_id):
         id=unique_discipline_id,
         name=f"Discipline {unique_discipline_id}",
         examtype="exam",
-        has_labs=True
+        has_labs=True,
     )
 
 
 @pytest.fixture
 def sample_discipline_static():
     """Create a static sample Discipline object for unit tests."""
-    return Discipline(
-        id=1,
-        name="Linear Algebra",
-        examtype="exam",
-        has_labs=True
-    )
+    return Discipline(id=1, name="Linear Algebra", examtype="exam", has_labs=True)
 
 
 @pytest.fixture
 def unique_kind_of_work_id():
     """Generate unique kind-of-work ID for each test."""
-    import time
     import random
+    import time
+
     return int(time.time() * 1000) % 100000 + random.randint(100, 999)
 
 
@@ -221,25 +228,22 @@ def sample_kind_of_work(unique_kind_of_work_id):
     return KindOfWork(
         id=unique_kind_of_work_id,
         type_of_work=f"Type {unique_kind_of_work_id}",
-        complexity=3
+        complexity=3,
     )
 
 
 @pytest.fixture
 def sample_kind_of_work_static():
     """Create a static sample KindOfWork object for unit tests."""
-    return KindOfWork(
-        id=1,
-        type_of_work="Lecture",
-        complexity=2
-    )
+    return KindOfWork(id=1, type_of_work="Lecture", complexity=2)
 
 
 @pytest.fixture
 def unique_lecturer_id():
     """Generate unique lecturer ID for each test."""
-    import time
     import random
+    import time
+
     return int(time.time() * 1000) % 100000 + random.randint(100, 999)
 
 
@@ -247,12 +251,13 @@ def unique_lecturer_id():
 def sample_lecturer(unique_lecturer_id):
     """Create a sample Lecturer object with unique ID."""
     import uuid
+
     return Lecturer(
         id=unique_lecturer_id,
         guid=uuid.uuid4(),
         full_name=f"Lecturer {unique_lecturer_id}",
         short_name=f"L{unique_lecturer_id}",
-        rank="Professor"
+        rank="Professor",
     )
 
 
@@ -264,33 +269,28 @@ def sample_lecturer_static():
         guid="550e8400-e29b-41d4-a716-446655440000",
         full_name="John Smith",
         short_name="J. Smith",
-        rank="Associate Professor"
+        rank="Associate Professor",
     )
 
 
 @pytest.fixture
 def sample_lesson_group():
     """Create a sample LessonGroup association object."""
-    return LessonGroup(
-        lesson_id=1,
-        group_id=1
-    )
+    return LessonGroup(lesson_id=1, group_id=1)
 
 
 @pytest.fixture
 def sample_lesson_group_alt():
     """Create an alternative LessonGroup association object."""
-    return LessonGroup(
-        lesson_id=1,
-        group_id=2
-    )
+    return LessonGroup(lesson_id=1, group_id=2)
 
 
 @pytest.fixture
 def unique_lesson_id():
     """Generate unique lesson ID for each test."""
-    import time
     import random
+    import time
+
     return int(time.time() * 1000) % 100000 + random.randint(100, 999)
 
 
