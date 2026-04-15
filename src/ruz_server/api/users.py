@@ -106,8 +106,8 @@ class UserUpdate(BaseModel):
     """
 
     username: str | None | None = None
-    group_oid: int | None | None = None
-    subgroup: int | None | None = None
+    group_oid: int | None = None
+    subgroup: int | None = None
     last_used_at: datetime | None | None = None
     group_guid: UUID | None | None = None
     group_name: str | None | None = None
