@@ -1,15 +1,12 @@
-import asyncio
 import logging
-import random
 from collections.abc import Generator
 from datetime import date, time
 from datetime import date as datetime_date
 from datetime import datetime as dt
-from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
-from pydantic import BaseModel, ConfigDict, ValidationError
+from pydantic import BaseModel, ConfigDict
 from sqlmodel import Session
 
 from ruz_server.database import db
@@ -18,25 +15,20 @@ from ruz_server.helpers.api_helpers import (
     ensure_entity_doesnot_exist,
     ensure_entity_exists,
 )
-from ruz_server.helpers.ruz_mapper import map_ruz_lessons_to_payloads
 from ruz_server.models import (
     Auditorium,
     Discipline,
     KindOfWork,
     Lecturer,
     Lesson,
-    LessonGroup,
 )
 from ruz_server.repositories import (
     AuditoriumRepository,
     DisciplineRepository,
-    GroupRepository,
     KindOfWorkRepository,
     LecturerRepository,
-    LessonGroupRepository,
     LessonRepository,
 )
-from ruz_server.ruz_api import RuzAPI
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/lesson", tags=["lesson"])
@@ -415,154 +407,6 @@ def create_lesson(payload: LessonCreate, session: Session = Depends(get_db)):
     """
     lesson, _ = _create_lesson_with_relations(payload, session)
     return lesson
-
-
-async def parse_lessons_core(session: Session) -> dict[str, Any]:
-    """
-    Initialize repositories and load all groups for lesson parsing.
-
-    Args:
-        session (Session): The database session used for repository operations.
-
-    Returns:
-        tuple: (group_repository, lesson_group_repository, lesson_repository, ruz_api, groups)
-            group_repository (GroupRepository): Handles Group entity operations.
-            lesson_group_repository (LessonGroupRepository):
-                Handles LessonGroup entity operations.
-
-            lesson_repository (LessonRepository): Handles Lesson entity operations.
-            ruz_api (RuzAPI):
-                API client for fetching schedule data from external service.
-
-            groups (list): List of all group entities loaded from the database.
-    """  # noqa: E501
-    group_repository = GroupRepository(session)
-    lesson_group_repository = LessonGroupRepository(session)
-    lesson_repository = LessonRepository(session)
-    ruz_api = RuzAPI()
-    groups = group_repository.ListAll()
-
-    stats: dict[str, Any] = {
-        "groups_total": len(groups),
-        "groups_processed": 0,
-        "lessons_received": 0,
-        "lessons_upserted": 0,
-        "lessons_created": 0,
-        "lessons_updated": 0,
-        "links_created": 0,
-        "links_pruned": 0,
-        "lessons_pruned": 0,
-        "lessons_skipped": 0,
-        "errors": [],
-    }
-
-    start_str, end_str = await ruz_api._get_borders_for_schedule()
-    range_start = dt.strptime(start_str, "%Y.%m.%d").date()
-    range_end = dt.strptime(end_str, "%Y.%m.%d").date()
-    incoming_lessons: dict[int, LessonCreate] = {}
-    incoming_pairs: set[tuple[int, int]] = set()
-
-    for i, group in enumerate(groups):
-        if i > 0:
-            await asyncio.sleep(random.uniform(7, 10))
-        try:
-            raw_lessons = await ruz_api.get(str(group.id), start_str, end_str)
-            stats["groups_processed"] += 1
-            stats["lessons_received"] += len(raw_lessons)
-        except Exception as exc:
-            stats["errors"].append(
-                {
-                    "group_id": group.id,
-                    "stage": "fetch",
-                    "message": str(exc),
-                }
-            )
-            continue
-
-        for raw_lesson in raw_lessons:
-            try:
-                mapped_payload = map_ruz_lessons_to_payloads([raw_lesson], group.id)[0]
-            except Exception as exc:
-                stats["lessons_skipped"] += 1
-                stats["errors"].append(
-                    {
-                        "group_id": group.id,
-                        "lesson_id": raw_lesson.get("lessonOid"),
-                        "stage": "map",
-                        "message": str(exc),
-                    }
-                )
-                continue
-
-            try:
-                payload = LessonCreate(**mapped_payload)
-            except ValidationError as exc:
-                stats["lessons_skipped"] += 1
-                stats["errors"].append(
-                    {
-                        "group_id": group.id,
-                        "stage": "validate",
-                        "message": str(exc),
-                    }
-                )
-                continue
-
-            incoming_lessons[payload.id] = payload
-            incoming_pairs.add((payload.id, group.id))
-
-    if not incoming_lessons:
-        logger.warning("Parse completed with empty snapshot; prune is skipped.")
-        return stats
-
-    try:
-        for payload in incoming_lessons.values():
-            _upsert_reference_entities(payload, session)
-            lesson_model = Lesson(
-                id=payload.id,
-                kind_of_work_id=payload.kind_of_work_id,
-                discipline_id=payload.discipline_id,
-                auditorium_id=payload.auditorium_id,
-                lecturer_id=payload.lecturer_id,
-                date=payload.date,
-                begin_lesson=payload.begin_lesson,
-                end_lesson=payload.end_lesson,
-                sub_group=payload.sub_group,
-            )
-            _, created = lesson_repository.Upsert(lesson_model)
-            stats["lessons_upserted"] += 1
-            if created:
-                stats["lessons_created"] += 1
-            else:
-                stats["lessons_updated"] += 1
-
-        links = [
-            LessonGroup(lesson_id=lesson_id, group_id=group_id)
-            for lesson_id, group_id in incoming_pairs
-        ]
-        stats["links_created"] = lesson_group_repository.BulkGetOrCreate(links)
-        stats["links_pruned"] = lesson_group_repository.DeleteMissingPairsInDateRange(
-            incoming_pairs=incoming_pairs,
-            start=range_start,
-            end=range_end,
-        )
-
-        existing_ids = set(lesson_repository.ListIdsInDateRange(range_start, range_end))
-        stale_ids = existing_ids - set(incoming_lessons.keys())
-        if stale_ids:
-            stats["lessons_pruned"] = lesson_repository.DeleteByIds(stale_ids)
-
-        session.commit()
-    except Exception as exc:
-        session.rollback()
-        stats["errors"].append(
-            {
-                "stage": "transaction",
-                "message": str(exc),
-            }
-        )
-        raise
-
-    return stats
 
 
 @router.put("/parse")

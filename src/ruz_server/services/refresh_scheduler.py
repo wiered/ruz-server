@@ -208,7 +208,7 @@ async def run_refresh_with_session(
             return {"status": "skipped", "reason": "refresh already running"}
 
         if refresh_runner is None:
-            from ruz_server.api.lesson import parse_lessons_core
+            from ruz_server.helpers.refresh_helper import parse_lessons_core
 
             refresh_runner = parse_lessons_core
 

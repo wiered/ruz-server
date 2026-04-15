@@ -1,99 +1,33 @@
 import asyncio
 import logging
 import random
-from collections.abc import Generator
-from datetime import date, time
 from datetime import datetime as dt
-from pickletools import int4
 from typing import Any
-from uuid import UUID
 
-from fastapi import APIRouter
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 from sqlmodel import Session
 
-from ruz_server.database import db
 from ruz_server.helpers.ruz_mapper import map_ruz_lessons_to_payloads
 from ruz_server.models import (
     Auditorium,
     Discipline,
-    Group,
-    GroupRepository,
     KindOfWork,
     Lecturer,
     Lesson,
     LessonGroup,
+)
+from ruz_server.models.models import Group
+from ruz_server.repositories import (
+    GroupRepository,
     LessonGroupRepository,
     LessonRepository,
 )
-from ruz_server.ruz_api import RuzAPI
+from ruz_server.ruz_api.api import LessonCreate, RuzAPI
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/lesson", tags=["lesson"])
-
-
-def get_db() -> Generator[Session, None, None]:
-    yield from db.get_session()
 
 
 EXAM_TYPES = ["Зачёт", "Экзамен"]
-
-
-class LessonCreate(BaseModel):
-    """
-    Schema for creating a Lesson entity.
-
-    Args:
-        id (int): Unique lesson identifier (lessonOid).
-        lecturer_id (int): Identifier of the lecturer.
-        lecturer_guid (UUID): GUID of the lecturer.
-        lecturer_full_name (str): Full name of the lecturer.
-        lecturer_short_name (str): Short name of the lecturer.
-        lecturer_rank (str): Academic rank or title of the lecturer.
-        kind_of_work_id (int): Identifier for the type of work (e.g., lecture, seminar).
-        type_of_work (str): Description of the type of academic work.
-        complexity (int): Difficulty or complexity level.
-        discipline_id (int): Identifier for the discipline (disciplineOid).
-        discipline_name (str): Name of the discipline.
-        auditorium_id (int): Identifier for the auditorium.
-        auditorium_guid (UUID): GUID of the auditorium.
-        auditorium_name (str): Name of the auditorium.
-        auditorium_building (str): Building location of the auditorium.
-        date (date): Date of the lesson.
-        begin_lesson (time): Start time of the lesson.
-        end_lesson (time): End time of the lesson.
-        group_id (int): Identifier for the group.
-        sub_group (int, optional): Subgroup number, default is 0.
-
-    Returns:
-        LessonCreate: Data structure for creating a new lesson record.
-    """
-
-    id: int  # lessonOid
-    lecturer_id: int
-    lecturer_guid: UUID
-    lecturer_full_name: str
-    lecturer_short_name: str
-    lecturer_rank: str
-
-    kind_of_work_id: int
-    type_of_work: str
-    complexity: int
-
-    discipline_id: int  # disciplineOid
-    discipline_name: str
-
-    auditorium_id: int
-    auditorium_guid: UUID
-    auditorium_name: str
-    auditorium_building: str
-
-    date: date
-    begin_lesson: time
-    end_lesson: time
-
-    group_id: int
-    sub_group: int = 0
 
 
 def _upsert_lecturer(payload: LessonCreate, session: Session) -> None:
@@ -148,6 +82,20 @@ def _upsert_discipline(payload: LessonCreate, session: Session) -> None:
         session.add(discipline)
 
 
+def _update_discipline_attributes(payload: LessonCreate, session: Session) -> None:
+    discipline = session.get(Discipline, payload.discipline_id)
+    if discipline is not None:
+        has_labs = discipline.has_labs
+        examtype = discipline.examtype
+        if not has_labs and payload.type_of_work == "Лабораторная работа":
+            discipline.has_labs = True
+        if (
+            examtype == "Неизв." or examtype is None
+        ) and payload.type_of_work in EXAM_TYPES:
+            discipline.examtype = payload.type_of_work
+        session.add(discipline)
+
+
 def _upsert_auditorium(payload: LessonCreate, session: Session) -> None:
     auditorium = session.get(Auditorium, payload.auditorium_id)
     if auditorium is None:
@@ -164,20 +112,6 @@ def _upsert_auditorium(payload: LessonCreate, session: Session) -> None:
         auditorium.name = payload.auditorium_name
         auditorium.building = payload.auditorium_building
         session.add(auditorium)
-
-
-def _upsert_discipline(payload: LessonCreate, session: Session) -> None:
-    discipline = session.get(Discipline, payload.discipline_id)
-    if discipline is not None:
-        has_labs = discipline.has_labs
-        examtype = discipline.examtype
-        if not has_labs and payload.type_of_work == "Лабораторная работа":
-            discipline.has_labs = True
-        if (
-            examtype == "Неизв." or examtype is None
-        ) and payload.type_of_work in EXAM_TYPES:
-            discipline.examtype = payload.type_of_work
-        session.add(discipline)
 
 
 def _upsert_reference_entities(payload: LessonCreate, session: Session) -> None:
@@ -204,20 +138,7 @@ def _upsert_reference_entities(payload: LessonCreate, session: Session) -> None:
     _upsert_kind_of_work(payload, session)
     _upsert_discipline(payload, session)
     _upsert_auditorium(payload, session)
-    _upsert_discipline(payload, session)
-
-
-def _get_payload(raw_lesson: dict[str, Any], group_id: int4) -> LessonCreate:
-    try:
-        mapped_payload = map_ruz_lessons_to_payloads([raw_lesson], group_id)[0]
-    except Exception as exc:
-        raise RuntimeError("failed to map RUZ lesson to payload") from exc
-    try:
-        payload = LessonCreate(**mapped_payload)
-    except ValidationError:
-        raise
-
-    return payload
+    _update_discipline_attributes(payload, session)
 
 
 def _upsert(values: list[LessonCreate], session: Session) -> tuple[int, int, int]:
@@ -249,7 +170,7 @@ def _upsert(values: list[LessonCreate], session: Session) -> tuple[int, int, int
 
 async def _get_incoming_lessons(
     groups: list[Group], start_str: str, end_str: str, stats: dict[str, Any]
-) -> tuple[dict[int, LessonCreate], set[tuple[int, int]]]:
+) -> tuple[dict[int, LessonCreate], set[tuple[int, int]], dict[str, Any]]:
     ruz_api = RuzAPI()
     incoming_lessons: dict[int, LessonCreate] = {}
     incoming_pairs: set[tuple[int, int]] = set()
@@ -279,18 +200,27 @@ async def _get_incoming_lessons(
 
         for raw_lesson in raw_lessons:
             try:
-                payload = _get_payload(raw_lesson, group.id)
+                mapped_payload = map_ruz_lessons_to_payloads([raw_lesson], group.id)[0]
             except Exception as exc:
                 tmp_stats["lessons_skipped"] += 1
                 tmp_stats["errors"].append(
                     {
                         "group_id": group.id,
-                        "lesson_id": raw_lesson.get("lessonOid")
-                        if isinstance(exc, ValidationError)
-                        else None,
-                        "stage": "get_payload"
-                        if isinstance(exc, ValidationError)
-                        else "map",
+                        "lesson_id": raw_lesson.get("lessonOid"),
+                        "stage": "map",
+                        "message": str(exc),
+                    }
+                )
+                continue
+
+            try:
+                payload = LessonCreate(**mapped_payload)
+            except ValidationError as exc:
+                tmp_stats["lessons_skipped"] += 1
+                tmp_stats["errors"].append(
+                    {
+                        "group_id": group.id,
+                        "stage": "validate",
                         "message": str(exc),
                     }
                 )

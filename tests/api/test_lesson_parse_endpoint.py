@@ -83,7 +83,7 @@ def _no_inter_group_sleep(monkeypatch):
     async def _noop_sleep(_seconds: float) -> None:
         return None
 
-    monkeypatch.setattr("ruz_server.api.lesson.asyncio.sleep", _noop_sleep)
+    monkeypatch.setattr("ruz_server.helpers.refresh_helper.asyncio.sleep", _noop_sleep)
 
 
 def _seed_groups(engine):
@@ -121,9 +121,10 @@ async def test_parse_lessons_success_and_idempotent(client, monkeypatch):
         return [_raw_lesson(20001, 7003)]
 
     monkeypatch.setattr(
-        "ruz_server.api.lesson.RuzAPI._get_borders_for_schedule", fake_borders
+        "ruz_server.helpers.refresh_helper.RuzAPI._get_borders_for_schedule",
+        fake_borders,
     )
-    monkeypatch.setattr("ruz_server.api.lesson.RuzAPI.get", fake_get)
+    monkeypatch.setattr("ruz_server.helpers.refresh_helper.RuzAPI.get", fake_get)
 
     first = await client.put("/api/lesson/parse")
     assert first.status_code == 200
@@ -173,9 +174,10 @@ async def test_parse_lessons_skips_invalid_payload_and_continues(client, monkeyp
         return []
 
     monkeypatch.setattr(
-        "ruz_server.api.lesson.RuzAPI._get_borders_for_schedule", fake_borders
+        "ruz_server.helpers.refresh_helper.RuzAPI._get_borders_for_schedule",
+        fake_borders,
     )
-    monkeypatch.setattr("ruz_server.api.lesson.RuzAPI.get", fake_get)
+    monkeypatch.setattr("ruz_server.helpers.refresh_helper.RuzAPI.get", fake_get)
 
     response = await client.put("/api/lesson/parse")
     assert response.status_code == 200
@@ -209,9 +211,10 @@ async def test_parse_lessons_fetch_error_in_one_group_does_not_stop_others(
         return [_raw_lesson(40001, 7006)]
 
     monkeypatch.setattr(
-        "ruz_server.api.lesson.RuzAPI._get_borders_for_schedule", fake_borders
+        "ruz_server.helpers.refresh_helper.RuzAPI._get_borders_for_schedule",
+        fake_borders,
     )
-    monkeypatch.setattr("ruz_server.api.lesson.RuzAPI.get", fake_get)
+    monkeypatch.setattr("ruz_server.helpers.refresh_helper.RuzAPI.get", fake_get)
 
     response = await client.put("/api/lesson/parse")
     assert response.status_code == 200
@@ -248,9 +251,10 @@ async def test_parse_lessons_prunes_removed_lessons(client, monkeypatch):
         return [_raw_lesson(50002, 7102)]
 
     monkeypatch.setattr(
-        "ruz_server.api.lesson.RuzAPI._get_borders_for_schedule", fake_borders
+        "ruz_server.helpers.refresh_helper.RuzAPI._get_borders_for_schedule",
+        fake_borders,
     )
-    monkeypatch.setattr("ruz_server.api.lesson.RuzAPI.get", fake_get_first)
+    monkeypatch.setattr("ruz_server.helpers.refresh_helper.RuzAPI.get", fake_get_first)
     first = await client.put("/api/lesson/parse")
     assert first.status_code == 200
 
@@ -259,7 +263,7 @@ async def test_parse_lessons_prunes_removed_lessons(client, monkeypatch):
             return [_raw_lesson(50001, 7101)]
         return []
 
-    monkeypatch.setattr("ruz_server.api.lesson.RuzAPI.get", fake_get_second)
+    monkeypatch.setattr("ruz_server.helpers.refresh_helper.RuzAPI.get", fake_get_second)
     second = await client.put("/api/lesson/parse")
     assert second.status_code == 200
     body = second.json()
@@ -284,14 +288,18 @@ async def test_parse_lessons_rolls_back_on_transaction_error(client, monkeypatch
         return [_raw_lesson(60001, 7201)]
 
     monkeypatch.setattr(
-        "ruz_server.api.lesson.RuzAPI._get_borders_for_schedule", fake_borders
+        "ruz_server.helpers.refresh_helper.RuzAPI._get_borders_for_schedule",
+        fake_borders,
     )
-    monkeypatch.setattr("ruz_server.api.lesson.RuzAPI.get", fake_get)
+    monkeypatch.setattr("ruz_server.helpers.refresh_helper.RuzAPI.get", fake_get)
 
     def explode(*args, **kwargs):
         raise RuntimeError("forced transaction failure")
 
-    monkeypatch.setattr("ruz_server.api.lesson._upsert_reference_entities", explode)
+    monkeypatch.setattr(
+        "ruz_server.helpers.refresh_helper._upsert_reference_entities",
+        explode,
+    )
 
     with pytest.raises(RuntimeError, match="forced transaction failure"):
         await client.put("/api/lesson/parse")
@@ -318,9 +326,10 @@ async def test_parse_lessons_rolls_back_when_failure_happens_mid_transaction(
         return [_raw_lesson(70002, 7302)]
 
     monkeypatch.setattr(
-        "ruz_server.api.lesson.RuzAPI._get_borders_for_schedule", fake_borders
+        "ruz_server.helpers.refresh_helper.RuzAPI._get_borders_for_schedule",
+        fake_borders,
     )
-    monkeypatch.setattr("ruz_server.api.lesson.RuzAPI.get", fake_get)
+    monkeypatch.setattr("ruz_server.helpers.refresh_helper.RuzAPI.get", fake_get)
 
     original_upsert = lesson.LessonRepository.Upsert
     calls = {"count": 0}
@@ -332,7 +341,8 @@ async def test_parse_lessons_rolls_back_when_failure_happens_mid_transaction(
         return original_upsert(self, lesson_model)
 
     monkeypatch.setattr(
-        "ruz_server.api.lesson.LessonRepository.Upsert", explode_on_second
+        "ruz_server.helpers.refresh_helper.LessonRepository.Upsert",
+        explode_on_second,
     )
 
     with pytest.raises(RuntimeError, match="mid-transaction failure"):
