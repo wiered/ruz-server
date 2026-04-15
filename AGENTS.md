@@ -41,4 +41,8 @@
 - Use markers where relevant: `api`, `repositories`, `helpers`, `models`, `ruzapi`, `unit`, `integration`, `slow`.
 - For changed logic, add/adjust tests in matching domain folder (API change -> `tests/api`, service change -> `tests/services`).
 - Keep async tests compatible with `pytest-asyncio` configuration from `pyproject.toml`.
-- Coverage gate is `fail_under = 70`; avoid reducing coverage for touched modules.
+
+## Ruff Code Quality & Formatting
+
+- Check code quality with Ruff): `.\.venv\Scripts\ruff check .`
+- Auto-format code with Ruff: `.\.venv\Scripts\ruff format .`
