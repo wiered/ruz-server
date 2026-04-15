@@ -12,7 +12,6 @@ from fastapi.responses import JSONResponse
 
 from ruz_server.api import api_router
 from ruz_server.api.security import require_api_key
-from ruz_server.database.database import db
 from ruz_server.logging_config import LOGGING_CONFIG
 from ruz_server.services.refresh_scheduler import (
     get_last_refresh_state,
@@ -36,10 +35,10 @@ async def lifespan(app: FastAPI):
     Lifespan context manager for FastAPI app.
 
     This function manages application startup and shutdown events.
-    It initializes database tables, configures and starts the APScheduler for
-    periodic background jobs (such as the daily refresh job), and performs any
-    necessary startup actions like triggering an update if specified in settings.
-    On app shutdown, it ensures that the scheduler is properly shut down.
+    It configures and starts the APScheduler for periodic background jobs
+    (such as the daily refresh job) and performs any necessary startup actions
+    like triggering an update if specified in settings. On app shutdown, it
+    ensures that the scheduler is properly shut down.
 
     Args:
         app (FastAPI): The FastAPI application instance.
@@ -47,8 +46,6 @@ async def lifespan(app: FastAPI):
     Yields:
         None: Used for FastAPI's lifespan event handling.
     """
-    await asyncio.to_thread(db.createAllTables)
-
     tz = ZoneInfo(settings.refresh_timezone)
     scheduler = AsyncIOScheduler(timezone=tz)
     scheduler.add_job(
