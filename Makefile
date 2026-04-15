@@ -1,4 +1,4 @@
-.PHONY: help test test-fast test-repositories test-api test-helpers test-models test-ruzapi test-unit test-integration test-coverage install-test-deps clean
+.PHONY: help test test-fast test-repositories test-api test-helpers test-models test-ruzapi test-unit test-integration test-coverage install-test-deps migrate clean
 
 # Forward extra CLI args to pytest, e.g.:
 # make test -- -q
@@ -12,6 +12,9 @@ help: ## Show this help message
 
 install-test-deps: ## Install test dependencies
 	pip install -e ".[test]"
+
+migrate: ## Apply Alembic migrations
+	alembic upgrade head
 
 test: ## Run all tests
 	pytest $(PYTEST_ARGS)

@@ -9,6 +9,8 @@ WORKDIR /ruz-server
 ENV PYTHONUNBUFFERED=1
 
 COPY pyproject.toml .
+COPY alembic.ini .
+COPY alembic ./alembic
 COPY src ./src
 
 RUN pip install --no-cache-dir -e .
