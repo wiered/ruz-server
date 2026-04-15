@@ -114,15 +114,47 @@ python -m ruz_server.main
 python -m ruzserver
 ```
 
-При старте сервис автоматически создаёт таблицы и запускает планировщик обновлений.
+Перед запуском сервиса выполните миграции Alembic:
 
-### Обновление схемы
-
-В версиях до поддержки nullable `users.subgroup` колонка `users.subgroup` создавалась как `NOT NULL`. Для уже существующей PostgreSQL-базы перед запуском новой версии ослабьте ограничение вручную:
-
-```sql
-ALTER TABLE users ALTER COLUMN subgroup DROP NOT NULL;
+```bash
+alembic upgrade head
 ```
+
+После этого запускайте приложение:
+
+```bash
+python -m ruz_server.main
+```
+
+### Обновление схемы и миграции
+
+Теперь схема меняется только через Alembic-ревизии.
+
+Создание новой ревизии:
+
+```bash
+alembic revision --autogenerate -m "short description"
+```
+
+Применение миграций:
+
+```bash
+alembic upgrade head
+```
+
+Если база уже существует и схема полностью соответствует initial revision, но Alembic ещё не знает о ней, пометьте её как актуальную:
+
+```bash
+alembic stamp head
+```
+
+Для старых баз, у которых `users.subgroup` ещё был `NOT NULL`, сначала зафиксируйте базу на ревизии `20260416_0001`, а затем выполните:
+
+```bash
+alembic upgrade head
+```
+
+Это применит ревизию `20260416_0002`, которая переводит колонку в nullable-режим. Ручной `ALTER TABLE ... DROP NOT NULL` больше не нужен.
 
 ## Docker
 
@@ -137,6 +169,8 @@ docker build -t ruz-server .
 ```bash
 docker run --rm --env-file .env -p 2201:2201 ruz-server
 ```
+
+Если миграции запускаются внутри контейнера, сначала выполните `alembic upgrade head`, а уже потом стартуйте основной процесс приложения.
 
 ## API
 
