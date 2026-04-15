@@ -29,5 +29,5 @@ if __name__ == "__main__":
         workers=(1 if reload_enabled else workers),
         proxy_headers=True,
         forwarded_allow_ips="*",
-        log_level=settings.logging_level,
+        log_level=settings.log_level.lower(),
     )
