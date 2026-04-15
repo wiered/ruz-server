@@ -83,7 +83,7 @@ app = FastAPI(
     description="API for the RUZ Server",
     version=__version__,
     license_info={
-        "name": "MIT License",
+        "name": "GPL-3.0",
         "url": "https://github.com/ruz-server/LICENSE",
     },
 )
