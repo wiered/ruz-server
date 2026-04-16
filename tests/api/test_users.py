@@ -9,9 +9,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel
 
-from ruz_server.api import users
+from ruz_server.api import groups, users
 from ruz_server.api.app import app
 from ruz_server.api.security import require_api_key
+from ruz_server.helpers.group_faculty import NO_FACULTY_DB_VALUE
 
 
 @pytest_asyncio.fixture
@@ -32,6 +33,7 @@ async def client():
 
     app.dependency_overrides[require_api_key] = lambda: None
     app.dependency_overrides[users.get_db] = override_get_db
+    app.dependency_overrides[groups.get_db] = override_get_db
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as test_client:
@@ -228,3 +230,41 @@ class TestUsersAPI:
     async def test_create_user_invalid_payload_returns_422(self, client):
         response = await client.post("/api/user/", json={"id": 1})
         assert response.status_code == 422
+
+    @pytest.mark.asyncio
+    async def test_create_user_without_faculty_autocreates_group_no_faculty(
+        self, client
+    ):
+        gid = str(uuid.uuid4())
+        response = await client.post(
+            "/api/user/",
+            json={
+                "id": 7020,
+                "username": "user_no_faculty",
+                "group_oid": 6200,
+                "subgroup": 1,
+                "group_guid": gid,
+                "group_name": "IU8-6200",
+            },
+        )
+        assert response.status_code == 201
+        group_response = await client.get("/api/group/6200")
+        assert group_response.status_code == 200
+        assert group_response.json()["faculty_name"] == NO_FACULTY_DB_VALUE
+
+    @pytest.mark.asyncio
+    async def test_update_user_autocreates_missing_group_without_faculty(self, client):
+        await client.post("/api/user/", json=user_payload(7021, group_id=6201))
+        new_guid = str(uuid.uuid4())
+        response = await client.put(
+            "/api/user/7021",
+            json={
+                "group_oid": 6202,
+                "subgroup": 1,
+                "group_guid": new_guid,
+                "group_name": "IU8-6202",
+            },
+        )
+        assert response.status_code == 200
+        group_response = await client.get("/api/group/6202")
+        assert group_response.json()["faculty_name"] == NO_FACULTY_DB_VALUE

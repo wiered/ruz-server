@@ -13,6 +13,7 @@ from ruz_server.helpers.api_helpers import (
     ensure_entity_doesnot_exist,
     ensure_entity_exists,
 )
+from ruz_server.helpers.group_faculty import persisted_faculty_name
 from ruz_server.models import Group
 from ruz_server.repositories import GroupRepository
 from ruz_server.ruz_api.api import RuzAPI
@@ -66,13 +67,14 @@ class GroupCreate(BaseModel):
         id (int): Unique integer identifier for the group (groupOid).
         guid (UUID): Stable UUID identifier for the group (groupGUID).
         name (str): Name of the group (must be unique).
-        faculty_name (str): Name of the faculty the group belongs to.
+        faculty_name (str | None): Name of the faculty; omitted or blank becomes
+            ``no_faculty`` in the database.
     """
 
     id: int
     guid: UUID
     name: str
-    faculty_name: str
+    faculty_name: str | None = None
 
 
 class GroupUpdate(BaseModel):
@@ -208,7 +210,7 @@ def create_group(
             id=payload.id,
             guid=payload.guid,
             name=payload.name,
-            faculty_name=payload.faculty_name,
+            faculty_name=persisted_faculty_name(payload.faculty_name),
         )
     )
 

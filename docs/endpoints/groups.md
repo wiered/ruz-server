@@ -54,7 +54,7 @@
 | `id`           | integer       | Да          | ID группы           |
 | `guid`         | string (UUID) | Да          | GUID группы         |
 | `name`         | string        | Да          | Название группы     |
-| `faculty_name` | string        | Да          | Название факультета |
+| `faculty_name` | string        | Нет         | Название факультета. Если поле не передать, передать `null` или пустую строку, в БД сохранится `no_faculty` |
 
 **Response 201**
 
