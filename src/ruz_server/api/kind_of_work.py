@@ -76,7 +76,7 @@ class KindOfWorkUpdate(BaseModel):
     """
 
     type_of_work: str | None | None = None
-    complexity: int | None | None = None
+    complexity: int | None = None
 
 
 @router.post("/", response_model=KindOfWorkRead)

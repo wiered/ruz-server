@@ -12,6 +12,7 @@ from sqlmodel import Session, SQLModel
 from ruz_server.api import groups
 from ruz_server.api.app import app
 from ruz_server.api.security import require_api_key
+from ruz_server.helpers.group_faculty import NO_FACULTY_DB_VALUE
 from ruz_server.ruz_api.api import RuzAPI
 
 
@@ -58,6 +59,17 @@ class TestGroupsAPI:
         body = response.json()
         assert body["id"] == payload["id"]
         assert body["name"] == payload["name"]
+
+    @pytest.mark.asyncio
+    async def test_create_group_without_faculty_name_stores_no_faculty(self, client):
+        payload = {
+            "id": 3010,
+            "guid": str(uuid.uuid4()),
+            "name": "IU8-no-faculty",
+        }
+        response = await client.post("/api/group/", json=payload)
+        assert response.status_code == 201
+        assert response.json()["faculty_name"] == NO_FACULTY_DB_VALUE
 
     @pytest.mark.asyncio
     async def test_list_groups(self, client):

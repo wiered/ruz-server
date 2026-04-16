@@ -14,6 +14,7 @@ from ruz_server.helpers.api_helpers import (
     ensure_entity_doesnot_exist,
     ensure_entity_exists,
 )
+from ruz_server.helpers.group_faculty import persisted_faculty_name
 from ruz_server.logging_config import LOGGING_CONFIG, ColoredFormatter
 from ruz_server.models import Group, User
 from ruz_server.repositories import GroupRepository, UserRepository
@@ -106,8 +107,8 @@ class UserUpdate(BaseModel):
     """
 
     username: str | None | None = None
-    group_oid: int | None | None = None
-    subgroup: int | None | None = None
+    group_oid: int | None = None
+    subgroup: int | None = None
     last_used_at: datetime | None | None = None
     group_guid: UUID | None | None = None
     group_name: str | None | None = None
@@ -148,10 +149,10 @@ def _validate_nullable_subgroup_transition(payload: UserUpdate) -> None:
 
 def _check_payload(payload: UserCreate | UserUpdate) -> None:
     """
-    Validates essential fields in the payload to ensure data integrity.
+    Validates fields required to create a missing group.
 
-    Checks that group_guid, group_name, and faculty_name are not None.
-    Raises HTTPException if any of these fields are missing.
+    ``faculty_name`` is optional; omitted or empty values are stored as
+    ``no_faculty`` in the database (see ``persisted_faculty_name``).
 
     Args:
         payload (UserCreate | UserUpdate): The payload containing user/group information
@@ -168,18 +169,15 @@ def _check_payload(payload: UserCreate | UserUpdate) -> None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid group name"
         )
-    if payload.faculty_name is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid faculty name"
-        )
 
 
 def _ensure_group_exists(payload: UserCreate | UserUpdate, session: Session) -> None:
     """Ensures that the group with the given OID exists in the database.
 
     If the group does not exist, it is created with the given GUID, name, and
-    faculty name. If any of the essential group fields are missing (i.e., GUID,
-    name, or faculty name), a 400 error is raised. Note that this function does
+    faculty name (or ``no_faculty`` when ``faculty_name`` is omitted or blank).
+    If ``group_guid`` or ``group_name`` is missing, a 400 error is raised. Note
+    that this function does
     not update the group if it already exists; it only creates it if it does not
     exist.
 
@@ -196,7 +194,7 @@ def _ensure_group_exists(payload: UserCreate | UserUpdate, session: Session) -> 
                 id=payload.group_oid,
                 guid=payload.group_guid,
                 name=payload.group_name,
-                faculty_name=payload.faculty_name,
+                faculty_name=persisted_faculty_name(payload.faculty_name),
             )
         )
 

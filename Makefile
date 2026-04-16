@@ -40,6 +40,9 @@ test-integration: ## Run integration tests only
 test-coverage: ## Run tests with coverage report and threshold
 	pytest --cov=src --cov-report=html --cov-report=term --cov-fail-under=$(COVERAGE_MIN) $(PYTEST_ARGS)
 
+coverage: ## Run tests with coverage report and threshold
+	pytest --cov=src --cov-report=html --cov-report=term --cov-fail-under=$(COVERAGE_MIN) $(PYTEST_ARGS)
+
 test-fast: ## Run fast tests (exclude slow tests)
 	pytest -m "not slow" $(PYTEST_ARGS)
 

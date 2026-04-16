@@ -152,14 +152,14 @@ class LessonUpdate(BaseModel):
         LessonUpdate: An object containing the fields to update in the Lesson entity.
     """
 
-    kind_of_work_id: int | None | None = None
-    discipline_id: int | None | None = None
-    auditorium_id: int | None | None = None
-    lecturer_id: int | None | None = None
+    kind_of_work_id: int | None = None
+    discipline_id: int | None = None
+    auditorium_id: int | None = None
+    lecturer_id: int | None = None
     date: datetime_date | None | None = None
     begin_lesson: time | None | None = None
     end_lesson: time | None | None = None
-    sub_group: int | None | None = None
+    sub_group: int | None = None
     updated_at: dt | None | None = None
 
 
