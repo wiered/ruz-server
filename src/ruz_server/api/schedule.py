@@ -6,8 +6,9 @@ from pydantic import BaseModel
 from sqlmodel import Session
 
 from ruz_server.database import db
+from ruz_server.helpers.api_helpers import ensure_entity_exists
 from ruz_server.models import Lesson
-from ruz_server.repositories import LessonRepository, UserRepository
+from ruz_server.repositories import GroupRepository, LessonRepository, UserRepository
 
 router = APIRouter(prefix="/schedule", tags=["schedule"])
 
@@ -194,6 +195,43 @@ def get_user_schedule_week(
     lessons = lesson_repo.ListForUserByDateRange(
         group_id=group_id,
         subgroup=subgroup,
+        start=start,
+        end=end,
+    )
+    return [map_lesson_to_schedule_dto(lesson, group_id) for lesson in lessons]
+
+
+@router.get("/group/{group_id}/week", response_model=list[UserScheduleLessonRead])
+def get_group_schedule_week(
+    group_id: int,
+    date: datetime.date = Query(...),
+    session: Session = Depends(get_db),
+):
+    """
+    Weekly schedule for a student group, including every lesson subgroup.
+
+    Uses the same week bounds as ``/schedule/user/{user_id}/week`` (Mon–Sun).
+    ``subgroup=0`` semantics from ``ListForUserByDateRange``: all ``Lesson.sub_group``
+    values linked to this group are returned.
+
+    Args:
+        group_id (int): Group identifier (``Group.id`` / RUZ groupOid).
+        date (datetime.date): Anchor date inside the target week.
+        session (Session): Database session.
+
+    Returns:
+        list[UserScheduleLessonRead]: Lessons for the group for that week.
+
+    Raises:
+        HTTPException: 404 if the group does not exist.
+    """
+    group_repo = GroupRepository(session)
+    ensure_entity_exists(group_id, group_repo.GetById)
+    start, end = get_week_range(date)
+    lesson_repo = LessonRepository(session)
+    lessons = lesson_repo.ListForUserByDateRange(
+        group_id=group_id,
+        subgroup=0,
         start=start,
         end=end,
     )
