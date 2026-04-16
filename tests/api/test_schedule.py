@@ -291,3 +291,30 @@ class TestScheduleAPI:
         assert response.status_code == 200
         lesson_ids = [row["lesson_id"] for row in response.json()]
         assert 1005 not in lesson_ids
+
+    @pytest.mark.asyncio
+    async def test_group_week_returns_all_lesson_subgroups(self, client):
+        _seed_user_and_lessons(client.engine, user_subgroup=1)
+        response = await client.get(
+            "/api/schedule/group/7001/week", params={"date": "2025-01-14"}
+        )
+        assert response.status_code == 200
+        lesson_ids = [row["lesson_id"] for row in response.json()]
+        assert lesson_ids == [1001, 1002, 1003, 1004]
+
+    @pytest.mark.asyncio
+    async def test_group_week_unknown_group_returns_404(self, client):
+        _seed_user_and_lessons(client.engine)
+        response = await client.get(
+            "/api/schedule/group/99999/week", params={"date": "2025-01-14"}
+        )
+        assert response.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_group_week_empty_week_returns_empty_list(self, client):
+        _seed_user_and_lessons(client.engine)
+        response = await client.get(
+            "/api/schedule/group/7001/week", params={"date": "2025-02-01"}
+        )
+        assert response.status_code == 200
+        assert response.json() == []
