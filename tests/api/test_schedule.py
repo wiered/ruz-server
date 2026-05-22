@@ -160,6 +160,26 @@ def _seed_user_and_lessons(
 @pytest.mark.api
 class TestScheduleAPI:
     @pytest.mark.asyncio
+    async def test_user_schedule_returns_today_through_end_of_next_month(self, client):
+        _seed_user_and_lessons(client.engine)
+
+        class _FakeDate(datetime.date):
+            @classmethod
+            def today(cls):
+                return cls(2025, 1, 14)
+
+        original_date = schedule.datetime.date
+        schedule.datetime.date = _FakeDate
+        try:
+            response = await client.get("/api/schedule/user/123456")
+        finally:
+            schedule.datetime.date = original_date
+
+        assert response.status_code == 200
+        lesson_ids = [row["lesson_id"] for row in response.json()]
+        assert lesson_ids == [1004, 1005]
+
+    @pytest.mark.asyncio
     async def test_day_returns_only_date_and_sorted(self, client):
         _seed_user_and_lessons(client.engine)
         response = await client.get(

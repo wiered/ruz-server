@@ -1,3 +1,4 @@
+import calendar
 import datetime
 from collections.abc import Generator
 
@@ -68,6 +69,32 @@ def get_week_range(anchor_date: datetime.date) -> tuple[datetime.date, datetime.
     """
     start = anchor_date - datetime.timedelta(days=anchor_date.weekday())
     end = start + datetime.timedelta(days=6)
+    return start, end
+
+
+def get_today_to_end_of_next_month_range(
+    today: datetime.date | None = None,
+) -> tuple[datetime.date, datetime.date]:
+    """
+    Calculate the inclusive range from today through the end of next month.
+
+    Args:
+        today (datetime.date | None): Reference date.
+            Uses local current date if omitted.
+
+    Returns:
+        tuple[datetime.date, datetime.date]: Start and end dates for the range.
+    """
+    start = today or datetime.date.today()
+    if start.month == 12:
+        next_month_year = start.year + 1
+        next_month = 1
+    else:
+        next_month_year = start.year
+        next_month = start.month + 1
+
+    last_day = calendar.monthrange(next_month_year, next_month)[1]
+    end = datetime.date(next_month_year, next_month, last_day)
     return start, end
 
 
@@ -191,6 +218,34 @@ def get_user_schedule_week(
     """
     group_id, subgroup = _get_user_group_and_subgroup(user_id, session)
     start, end = get_week_range(date)
+    lesson_repo = LessonRepository(session)
+    lessons = lesson_repo.ListForUserByDateRange(
+        group_id=group_id,
+        subgroup=subgroup,
+        start=start,
+        end=end,
+    )
+    return [map_lesson_to_schedule_dto(lesson, group_id) for lesson in lessons]
+
+
+@router.get("/user/{user_id}", response_model=list[UserScheduleLessonRead])
+def get_user_schedule(
+    user_id: int,
+    session: Session = Depends(get_db),
+):
+    """
+    Retrieves the lesson schedule for a specific user from today to end of next month.
+
+    Args:
+        user_id (int): The ID of the user whose schedule is requested.
+        session (Session): The database session dependency.
+
+    Returns:
+        List[UserScheduleLessonRead]: A list of schedule lesson data for the user
+            from today through the last day of the next calendar month.
+    """
+    group_id, subgroup = _get_user_group_and_subgroup(user_id, session)
+    start, end = get_today_to_end_of_next_month_range()
     lesson_repo = LessonRepository(session)
     lessons = lesson_repo.ListForUserByDateRange(
         group_id=group_id,
