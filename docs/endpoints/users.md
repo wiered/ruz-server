@@ -244,6 +244,14 @@ true
 
 **Response 404** — пользователь с указанным `user_id` не найден.
 
+**Response 500** — не удалось обновить `last_used_at`.
+
+```json
+{
+  "detail": "Error: Update Failed"
+}
+```
+
 ### DELETE `/api/user/{user_id}`
 
 Удаление пользователя.

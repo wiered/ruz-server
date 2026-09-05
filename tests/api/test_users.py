@@ -148,6 +148,20 @@ class TestUsersAPI:
         assert response.json() == {"detail": "Error: Not Found"}
 
     @pytest.mark.asyncio
+    async def test_touch_user_update_failure_returns_500(self, client, monkeypatch):
+        await client.post("/api/user/", json=user_payload(7019))
+        monkeypatch.setattr(
+            users.UserRepository,
+            "UpdateLastUsedAt",
+            lambda _self, _user_id: False,
+        )
+
+        response = await client.put("/api/user/7019/touch")
+
+        assert response.status_code == 500
+        assert response.json() == {"detail": "Error: Update Failed"}
+
+    @pytest.mark.asyncio
     async def test_update_user_invalid_subgroup_returns_400(self, client):
         await client.post("/api/user/", json=user_payload(7011))
         response = await client.put("/api/user/7011", json={"subgroup": 3})
