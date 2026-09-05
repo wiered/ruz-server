@@ -321,10 +321,10 @@ def update_user(user_id: int, payload: UserUpdate, session: Session = Depends(ge
     return ensure_entity_exists(user_id, repo.GetById)
 
 
-@router.put("/last_used_at/{user_guid}")
+@router.put("/{user_id}/touch")
 def update_user_last_used_at(user_id: int, session: Session = Depends(get_db)):
     """
-    Update the 'last_used_at' timestamp for a user by user ID.
+    Record the user's current activity time.
 
     Args:
         user_id (int): The unique identifier of the user.
